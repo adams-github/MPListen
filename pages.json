@@ -1,0 +1,42 @@
+{
+	"pages": [{
+		"path": "pages/SongSheet/SongSheet",
+		"style": {
+			"navigationBarTitleText": "",
+			"enablePullDownRefresh": false
+		}
+
+	}, {
+		"path": "pages/MusicVideo/MusicVideo",
+		"style": {
+			"navigationBarTitleText": "",
+			"enablePullDownRefresh": false
+		}
+	}],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"app-plus": {
+			"background": "#efeff4"
+		}
+	},
+	"tabBar": {
+		"selectedColor": "#1296db",
+		"color": "#000000",
+		"list": [{
+				"pagePath": "pages/SongSheet/SongSheet",
+				"text": "歌单",
+				"iconPath": "static/ic_main_songsheet.png",
+				"selectedIconPath": "static/ic_main_songsheet_active.png"
+			},
+			{
+				"pagePath": "pages/MusicVideo/MusicVideo",
+				"text": "MV",
+				"iconPath": "static/ic_main_mv.png",
+				"selectedIconPath": "static/ic_main_mv_active.png"
+			}
+		]
+	}
+}
