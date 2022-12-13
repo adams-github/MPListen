@@ -1,6 +1,6 @@
 <template>
 	<view class="view-container">
-		<view class="search-box">
+		<view class="search-box" @click="navigateToSearch">
 			<CommonSearch></CommonSearch>
 		</view>
 
@@ -13,7 +13,15 @@
 			return {
 
 			};
+		},
+		methods: {
+			navigateToSearch() {
+				uni.navigateTo({
+					url: "/pages/SearchSong/SearchSong"
+				})
+			}
 		}
+
 	}
 </script>
 
