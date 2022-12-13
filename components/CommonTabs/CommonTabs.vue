@@ -6,6 +6,7 @@
 
 <script>
 	export default {
+		name:"CommonTabs",
 		data() {
 			return {
 				
@@ -14,6 +15,6 @@
 	}
 </script>
 
-<style lang="scss" scoped>
+<style>
 
 </style>
