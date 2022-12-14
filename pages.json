@@ -2,30 +2,24 @@
 	"pages": [{
 		"path": "pages/SongSheet/SongSheet",
 		"style": {
-			"navigationBarTitleText": "精选歌单",
+			"navigationBarTitleText": "MPListen",
 			"enablePullDownRefresh": false
 		}
 
 	}, {
 		"path": "pages/RecentPlay/RecentPlay",
 		"style": {
-			"navigationBarTitleText": "最近播放",
+			"navigationBarTitleText": "MPListen",
 			"enablePullDownRefresh": false
 		}
 
 	}, {
 		"path": "pages/SearchSong/SearchSong",
 		"style": {
-			"navigationBarTitleText": "搜索",
+			"navigationBarTitleText": "MPListen",
 			"enablePullDownRefresh": true
 		}
 
-	}, {
-		"path": "pages/MusicVideo/MusicVideo",
-		"style": {
-			"navigationBarTitleText": "MV",
-			"enablePullDownRefresh": false
-		}
 	}],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
@@ -38,6 +32,7 @@
 	"tabBar": {
 		"selectedColor": "#1296db",
 		"color": "#2c2c2c",
+		"borderStyle": "white",
 		"list": [{
 				"pagePath": "pages/SongSheet/SongSheet",
 				"text": "歌单",

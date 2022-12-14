@@ -47,7 +47,7 @@
 
 		.search-box {
 			padding: 0 20px;
-			margin: 15px 0;
+			margin: 5px 0px 10px;
 		}
 	}
 </style>
