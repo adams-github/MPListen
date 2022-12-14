@@ -1,6 +1,6 @@
 <template>
 	<view class="view-container">
-		<view class="search-box" @click="navigateToSearch">
+		<view class="search-box" @click="navigateToSearch()">
 			<CommonSearch></CommonSearch>
 		</view>
 

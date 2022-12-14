@@ -18,6 +18,7 @@
 	@import '@/uni_modules/uni-scss/index.scss';
 	/* #ifndef APP-NVUE */
 	@import '@/static/customicons.css';
+
 	// 设置整个项目的背景色
 	page {
 		background-color: #f5f5f5;
@@ -28,5 +29,14 @@
 		font-size: 14px;
 		color: #333;
 		padding: 10px;
+	}
+
+	/* 隐藏scroll-view的滚动条 */
+	::-webkit-scrollbar {
+		display: none;
+		width: 0 !important;
+		height: 0 !important;
+		-webkit-appearance: none;
+		background: transparent;
 	}
 </style>

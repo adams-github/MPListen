@@ -4,7 +4,7 @@
 			<CommonSearch></CommonSearch>
 		</view>
 
-		<CommonTabs :tabsData="tabsData"></CommonTabs>
+		<CommonTabs :tabsData="tabsData" :defaultIndex="0"></CommonTabs>
 	</view>
 </template>
 
@@ -13,20 +13,28 @@
 		data() {
 			return {
 				tabsData: [{
-						"label": "网易云",
+						"label": "网易云音乐",
 						"id": 0
 					},
 					{
-						"label": "QQ",
+						"label": "QQ音乐",
 						"id": 1
 					},
 					{
-						"label": "酷狗",
+						"label": "酷狗音乐",
 						"id": 2
 					},
 					{
-						"label": "酷我",
+						"label": "酷我音乐",
 						"id": 3
+					},
+					{
+						"label": "咪咕音乐",
+						"id": 4
+					},
+					{
+						"label": "哔哩哔哩",
+						"id": 5
 					}
 				]
 			};
