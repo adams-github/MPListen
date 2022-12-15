@@ -30,8 +30,8 @@
 		}
 	},
 	"tabBar": {
-		"selectedColor": "#1296db",
-		"color": "#2c2c2c",
+		"selectedColor": "#22D59C",
+		"color": "#b2b2b2",
 		"borderStyle": "white",
 		"list": [{
 				"pagePath": "pages/SongSheet/SongSheet",

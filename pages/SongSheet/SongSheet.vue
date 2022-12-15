@@ -1,7 +1,7 @@
 <template>
 	<view class="view-container">
-		<view class="search-box" @click="navigateToSearch()">
-			<CommonSearch></CommonSearch>
+		<view @click="navigateToSearch()">
+			<uni-search-bar bgColor="#ffffff" placeholder="搜索" radius="40" readonly></uni-search-bar>
 		</view>
 
 	</view>
@@ -26,11 +26,5 @@
 </script>
 
 <style lang="scss" scoped>
-	.view-container {
-
-		.search-box {
-			padding: 0 20px;
-			margin: 15px 0;
-		}
-	}
+	.view-container {}
 </style>

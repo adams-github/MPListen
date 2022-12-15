@@ -7,9 +7,7 @@
 						<block v-for="(item, index) in tabsData" :key="index">
 							<view :id="'_tabItem_' + index" class="tab-item"
 								:class="{'tab-item-active' : activeIndex === index}" @click="onTabItemClick(index)"
-								:style="{
-									color: activeIndex === index ? defaultConfig.activeTextColor:defaultConfig.textColor
-								}">
+								:style="{color: activeIndex === index ? defaultConfig.activeTextColor:defaultConfig.textColor}">
 								{{ item.label }}
 							</view>
 						</block>
@@ -29,9 +27,10 @@
 <script>
 	export default {
 		name: "CommonTabs",
+		emits: ['onTabItemClick'],
 		props: {
-			config:{
-				type:Object,
+			config: {
+				type: Object,
 				default: () => {
 					return {};
 				}
@@ -49,13 +48,14 @@
 		},
 		data() {
 			return {
+				deviceWidth: 0,
 				activeIndex: -1,
 				defaultConfig: {
-					textColor: "#333333",
-					activeTextColor: "#1296db",
+					textColor: "#8a8a8a",
+					activeTextColor: "#22D59C",
 					underLineWidth: 24,
-					underLineHeight: 2,
-					underLineColor: "#1296db"
+					underLineHeight: 3,
+					underLineColor: "#22D59C"
 				},
 				screenLeft: 0,
 				slider: {
@@ -66,10 +66,13 @@
 			};
 		},
 		watch: {
-			config:{
-				immediate:true,
-				handler(val){
-					this.defaultConfig = {...this.defaultConfig, ...val};
+			config: {
+				immediate: true,
+				handler(val) {
+					this.defaultConfig = {
+						...this.defaultConfig,
+						...val
+					};
 				}
 			},
 			defaultIndex: {
@@ -94,6 +97,13 @@
 				immediate: true
 			}
 		},
+		/**
+		 * 组件生命周期方法
+		 * 获取屏幕的宽度
+		 * */
+		created() {
+			this.deviceWidth = uni.getWindowInfo().screenWidth;
+		},
 		methods: {
 			/* 更新每个tabItem的宽度 */
 			updateTabItemWidth() {
@@ -106,7 +116,7 @@
 						.select('#_tabItem_' + index)
 						.boundingClientRect((res) => {
 							// res就是拿到的DOM对象
-							//给每个item设置一个_slider对象，记录指示条left的位置
+							// 给每个item设置一个_slider对象，记录指示条left的位置
 							item._slider = {
 								indicatorLeft: res.left + (res.width - this.defaultConfig.underLineWidth) /
 									2
@@ -132,7 +142,7 @@
 				this.slider = {
 					left: this.tabItemList[this.activeIndex]._slider.indicatorLeft
 				};
-				this.screenLeft = this.activeIndex * this.defaultConfig.underLineWidth;
+				this.screenLeft = this.slider.left + this.defaultConfig.underLineWidth / 2 - this.deviceWidth / 2;
 			}
 
 		}
@@ -162,7 +172,6 @@
 					position: relative;
 
 					.tab-item-box {
-
 						height: 100%;
 
 						.tab-item {
@@ -171,10 +180,10 @@
 							position: relative;
 							text-align: center;
 							padding: 0 15px;
-							color: "#333333";
+							color: "#8a8a8a";
 
 							&-active {
-								color: "#1296db";
+								color: "#22D59C";
 								font-weight: bold;
 							}
 						}
@@ -182,15 +191,14 @@
 
 					.underLine {
 						width: 24px;
-						height: 2px;
-						background-color: "#1296db";
+						height: 3px;
+						background-color: "#22D59C";
 						border-radius: 1px;
 						transition: 0.5s;
 						position: absolute;
 						bottom: 0;
 					}
 				}
-
 			}
 		}
 	}

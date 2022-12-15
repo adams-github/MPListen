@@ -25,7 +25,7 @@
 </script>
 
 <style lang="scss" scoped>
-	$uni-img-size-sm:20px;
+	$img-size:20px;
 
 	.search-container {
 		display: flex;
@@ -37,14 +37,14 @@
 			align-items: center;
 			width: 100%;
 			height: 28px;
-			padding: 0 $uni-spacing-sm;
-			background-color: $uni-white;
+			padding: 0 8px;
+			background-color: white;
 			border-radius: 14px;
-			border: 1px solid $uni-white;
+			border: 1px solid white;
 
 			.search-icon {
-				width: $uni-img-size-sm;
-				height: $uni-img-size-sm;
+				width: $img-size;
+				height: $img-size;
 			}
 
 			.search-text {
