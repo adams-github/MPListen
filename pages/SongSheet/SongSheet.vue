@@ -1,7 +1,8 @@
 <template>
 	<view class="view-container">
-		<view @click="navigateToSearch()">
-			<uni-search-bar bgColor="#ffffff" placeholder="搜索" radius="40" readonly></uni-search-bar>
+		<view @click="navigateToSearch">
+			<uni-search-bar bgColor="#ffffff" placeholder="搜索" radius="40" readonly>
+			</uni-search-bar>
 		</view>
 
 	</view>

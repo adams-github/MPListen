@@ -7,6 +7,9 @@
 </template>
 
 <script>
+	import {
+		neteaseSearch
+	} from '@/api/netease.js';
 	export default {
 		data() {
 			return {
@@ -36,14 +39,22 @@
 					}
 				],
 				inputText: "",
-				platformIndex: 0
+				platformIndex: 0,
+				neteaseCurPage: 1
 			};
+		},
+		onBackPress() {
+			uni.hideLoading();
 		},
 		methods: {
 			search(res) {
+				uni.showLoading({
+					title: "加载中..."
+				});
 				switch (this.platformIndex) {
 					case 0:
 						console.log(res.value);
+						this.exceNeteaseSearch(res.value);
 						break;
 					case 1:
 						console.log(res.value);
@@ -64,6 +75,22 @@
 			},
 			onPlatformSelected(val) {
 				this.platformIndex = val;
+			},
+			exceNeteaseSearch(label) {
+				neteaseSearch(label, this.neteaseCurPage)
+				.then((data) => {
+					uni.hideLoading();
+					if(data.code === 200){
+						
+					}else{
+						uni.showToast({
+							title:""
+						})
+					}
+				}).catch((error) => {
+					uni.hideLoading();
+				});
+
 			}
 		}
 	}
