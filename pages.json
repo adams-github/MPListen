@@ -17,7 +17,7 @@
 		"path": "pages/SearchSong/SearchSong",
 		"style": {
 			"navigationBarTitleText": "MPListen",
-			"enablePullDownRefresh": true
+			"enablePullDownRefresh": false
 		}
 
 	}],

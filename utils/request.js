@@ -16,6 +16,7 @@ function request({
 				header
 			}) => {
 				if (statusCode === 200) {
+					console.log("statusCode: " + statusCode);
 					resolve(data);
 				} else {
 					reject(data);

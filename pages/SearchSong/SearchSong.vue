@@ -1,6 +1,6 @@
 <template>
 	<view class="view-container">
-		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="search"></uni-search-bar>
+		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"></uni-search-bar>
 		<CommonTabs :tabsData="tabsData" :defaultIndex="0" @onTabItemClick="onPlatformSelected"></CommonTabs>
 		<uni-list></uni-list>
 	</view>
@@ -29,70 +29,102 @@
 						"label": "酷我音乐",
 						"id": 3
 					},
-					{
-						"label": "咪咕音乐",
-						"id": 4
-					},
-					{
-						"label": "哔哩哔哩",
-						"id": 5
-					}
+					// {
+					// 	"label": "咪咕音乐",
+					// 	"id": 4
+					// },
+					// {
+					// 	"label": "哔哩哔哩",
+					// 	"id": 5
+					// }
 				],
 				inputText: "",
+				isRefreshing: false,
 				platformIndex: 0,
-				neteaseCurPage: 1
+				neteaseCurPage: 1,
+				neteaseSongList: [],
+				qqSongList: [],
+				kugouSongList: [],
+				kuwoSongList: [],
+				miguSongList: [],
+				bilibiliSongList: []
 			};
 		},
 		onBackPress() {
-			uni.hideLoading();
+			uni.hideNavigationBarLoading();
 		},
 		methods: {
-			search(res) {
-				uni.showLoading({
-					title: "加载中..."
-				});
+			inputConfirm(res) {
+				this.inputText = res.value;
+				this.search(res.value);
+			},
+			search(label) {
+				if (label === '') return;
+
+				this.isRefreshing = true;
+				uni.showNavigationBarLoading();
 				switch (this.platformIndex) {
 					case 0:
-						console.log(res.value);
-						this.exceNeteaseSearch(res.value);
+						this.exceNeteaseSearch(label);
 						break;
 					case 1:
-						console.log(res.value);
+						this.exceQQSearch(label);
 						break;
 					case 2:
-						console.log(res.value);
+						this.exceKugouSearch(label);
 						break;
 					case 3:
-						console.log(res.value);
+						this.exceKuwoSearch(label);
 						break;
-					case 4:
-						console.log(res.value);
-						break;
-					case 5:
-						console.log(res.value);
-						break;
+						// case 4:
+						// 	console.log(label);
+						// 	break;
+						// case 5:
+						// 	console.log(label);
+						// 	break;
 				}
 			},
 			onPlatformSelected(val) {
-				this.platformIndex = val;
+				if (this.platformIndex != val) {
+					uni.hideNavigationBarLoading()
+					this.platformIndex = val;
+					this.search(this.inputText);
+				}
 			},
 			exceNeteaseSearch(label) {
-				neteaseSearch(label, this.neteaseCurPage)
-				.then((data) => {
-					uni.hideLoading();
-					if(data.code === 200){
-						
-					}else{
-						uni.showToast({
-							title:""
-						})
+				neteaseSearch(label, this.neteaseCurPage, (data) => {
+					console.log(data);
+					if (this.isRefreshing) {
+						this.isRefreshing = false;
+						uni.hideNavigationBarLoading();
+						this.neteaseSongList = data;
+					} else {
+						let templist = this.neteaseSongList;
+						const resultList = templist.contact(data);
+						this.neteaseSongList = resultList;
 					}
-				}).catch((error) => {
-					uni.hideLoading();
+				}, (error) => {
+					uni.showToast({
+						title: error,
+						icon: 'none',
+						position: 'bottom'
+					});
+					if (this.isRefreshing) {
+						this.isRefreshing = false;
+						uni.hideNavigationBarLoading();
+					}
 				});
+			},
+			exceQQSearch(label) {
 
-			}
-		}
+			},
+			exceKugouSearch(label) {
+
+			},
+			exceKuwoSearch(label) {
+
+			},
+		},
 	}
 </script>
 
