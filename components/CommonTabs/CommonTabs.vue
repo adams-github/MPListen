@@ -1,5 +1,5 @@
 <template>
-	<view class="tab-container">
+	<view class="tab-container" :style="{backgroundColor: bgColor}" >
 		<view class="tab-box">
 			<scroll-view class="scroll-v" scroll-x scroll-with-animation :scroll-left="screenLeft">
 				<view class="srcoll-content">
@@ -29,6 +29,10 @@
 		name: "CommonTabs",
 		emits: ['onTabItemClick'],
 		props: {
+			bgColor:{
+				type: String,
+				default: "#ffffff"
+			},
 			config: {
 				type: Object,
 				default: () => {
@@ -173,13 +177,14 @@
 
 					.tab-item-box {
 						height: 100%;
-
+						
 						.tab-item {
 							height: 100%;
 							display: inline-block;
 							position: relative;
 							text-align: center;
-							padding: 0 15px;
+							margin-top: 10px;
+							padding: 0px 15px;
 							color: "#8a8a8a";
 
 							&-active {
@@ -197,6 +202,7 @@
 						transition: 0.5s;
 						position: absolute;
 						bottom: 0;
+						z-index: 99;
 					}
 				}
 			}

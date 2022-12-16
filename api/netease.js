@@ -30,8 +30,10 @@ export function neteaseSearch(label, curPage, successCb, errorCb) {
 				let songList = [];
 				data.result.songs.forEach((item, index)=>{
 					songList.push({
+						platform:'netease',
 						id: item.id,
 						name: item.name,
+						url:'',
 						singer: item.artists[0].name,
 						albumName: item.album.name,
 						albumUrl:item.album.picUrl,
@@ -42,6 +44,7 @@ export function neteaseSearch(label, curPage, successCb, errorCb) {
 			}
 		} else {
 			if (typeof errorCb === 'function') {
+				console.log(data.message);
 				errorCb(data.message);
 			}
 		}
