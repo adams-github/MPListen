@@ -1,6 +1,7 @@
 <template>
 	<view class="view-container">
-		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"></uni-search-bar>
+		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"
+			@cancel="inputCancel"></uni-search-bar>
 		<view class="tab-sticky">
 			<CommonTabs bgColor="#FAFAFA" :tabsData="tabsData" :defaultIndex="0" @onTabItemClick="onPlatformSelected">
 			</CommonTabs>
@@ -12,9 +13,9 @@
 				<view>
 					<block v-for="(item, index) in songList" :key="index">
 						<view class="item-box" hover-class="item-hover" @click="itemClick(item)">
-							<text style="color: #22D59C; font-size: 13px;">{{item.name}}</text>
+							<text style="color: #22D59C; font-size: 16px;">{{item.name}}</text>
 							<text style="color: #7d7d7d; font-size: 13px; margin-top: 3px;">
-								{{item.singer + ' · ' + item.albumName}}</text>
+								{{item.singer + (item.albumName != ''? ' -' + '《' + item.albumName + '》' : '')}}</text>
 						</view>
 					</block>
 				</view>
@@ -26,13 +27,20 @@
 <script>
 	import {
 		neteaseSearch
-	} from '@/api/netease.js';
+	} from '@/api/netease.js'
+	import {
+		qqSearch
+	} from '@/api/qq.js'
 	import {
 		kugouSearch
 	} from '@/api/kugou.js'
 	import {
 		kuwoSearch
 	} from '@/api/kuwo.js'
+	import {
+		miguSearch
+	} from '@/api/migu.js'
+
 	export default {
 		data() {
 			return {
@@ -52,10 +60,10 @@
 					// 	"label": "酷我音乐",
 					// 	"id": 3
 					// },
-					// {
-					// 	"label": "咪咕音乐",
-					// 	"id": 4
-					// },
+					{
+						"label": "咪咕音乐",
+						"id": 3
+					},
 					// {
 					// 	"label": "哔哩哔哩",
 					// 	"id": 5
@@ -68,12 +76,13 @@
 				qqCurPage: 1,
 				kugouCurPage: 1,
 				kuwoCurPage: 1,
+				miguCurPage: 1,
 				songList: [],
 				neteaseSongList: [],
 				qqSongList: [],
 				kugouSongList: [],
 				kuwoSongList: [],
-				// miguSongList: [],
+				miguSongList: [],
 				// bilibiliSongList: []
 			};
 		},
@@ -84,6 +93,20 @@
 			inputConfirm(res) {
 				this.inputText = res.value;
 				this.search(res.value);
+			},
+			inputCancel() {
+				this.inputText = '';
+				this.songList = [];
+				this.neteaseSongList = [];
+				this.qqSongList = [];
+				this.kugouSongList = [];
+				this.kuwoSongList = [];
+				this.miguSongList = [];
+				this.neteaseCurPage = 1;
+				this.qqCurPage = 1;
+				this.kugouCurPage = 1;
+				this.kuwoCurPage = 1;
+				this.miguCurPage = 1;
 			},
 			search(label) {
 				if (label === '') return;
@@ -101,27 +124,21 @@
 						this.exceKugouSearch(label);
 						break;
 					case 3:
-						this.exceKuwoSearch(label);
+						this.exceMiguSearch(label);
 						break;
-						// case 4:
-						// 	console.log(label);
-						// 	break;
-						// case 5:
-						// 	console.log(label);
-						// 	break;
 				}
 			},
 			onPlatformSelected(val) {
-				if (this.platformIndex != val) {
-					uni.hideNavigationBarLoading()
-					this.songList = [];
-					this.platformIndex = val;
-					this.search(this.inputText);
-				}
+				uni.hideNavigationBarLoading()
+				this.songList = [];
+				this.platformIndex = val;
+				this.search(this.inputText);
 			},
 			exceNeteaseSearch(label) {
+				if (this.isRefreshing) {
+					this.neteaseCurPage = 1;
+				}
 				neteaseSearch(label, this.neteaseCurPage, (data) => {
-					console.log(data);
 					if (this.isRefreshing) {
 						this.isRefreshing = false;
 						uni.hideNavigationBarLoading();
@@ -130,26 +147,38 @@
 						let templist = this.neteaseSongList;
 						const resultList = templist.contact(data);
 						this.neteaseSongList = resultList;
+						this.neteaseCurPage++;
 					}
 					this.songList = this.neteaseSongList;
 				}, (error) => {
-					uni.showToast({
-						title: error,
-						icon: 'none',
-						position: 'bottom'
-					});
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-					}
+					this.searchError(error);
 				});
 			},
 			exceQQSearch(label) {
-
+				if (this.isRefreshing) {
+					this.qqCurPage = 1;
+				}
+				qqSearch(label, this.qqCurPage, (data) => {
+					if (this.isRefreshing) {
+						this.isRefreshing = false;
+						uni.hideNavigationBarLoading();
+						this.qqSongList = data;
+					} else {
+						let templist = this.qqSongList;
+						const resultList = templist.contact(data);
+						this.qqSongList = resultList;
+						this.qqCurPage++;
+					}
+					this.songList = this.qqSongList;
+				}, (error) => {
+					this.searchError(error);
+				});
 			},
 			exceKugouSearch(label) {
+				if (this.isRefreshing) {
+					this.kugouCurPage = 1;
+				}
 				kugouSearch(label, this.kugouCurPage, (data) => {
-					console.log(data);
 					if (this.isRefreshing) {
 						this.isRefreshing = false;
 						uni.hideNavigationBarLoading();
@@ -158,23 +187,18 @@
 						let templist = this.kugouSongList;
 						const resultList = templist.contact(data);
 						this.kugouSongList = resultList;
+						this.kugouCurPage++;
 					}
 					this.songList = this.kugouSongList;
 				}, (error) => {
-					uni.showToast({
-						title: error,
-						icon: 'none',
-						position: 'bottom'
-					});
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-					}
+					this.searchError(error);
 				});
 			},
 			exceKuwoSearch(label) {
+				if (this.isRefreshing) {
+					this.kuwoCurPage = 1;
+				}
 				kuwoSearch(label, this.kuwoCurPage, (data) => {
-					console.log(data);
 					if (this.isRefreshing) {
 						this.isRefreshing = false;
 						uni.hideNavigationBarLoading();
@@ -183,19 +207,43 @@
 						let templist = this.kuwoSongList;
 						const resultList = templist.contact(data);
 						this.kuwoSongList = resultList;
+						this.kuwoCurPage++;
 					}
 					this.songList = this.kuwoSongList;
 				}, (error) => {
-					uni.showToast({
-						title: error,
-						icon: 'none',
-						position: 'bottom'
-					});
+					this.searchError(error);
+				});
+			},
+			exceMiguSearch(label) {
+				if (this.isRefreshing) {
+					this.miguCurPage = 1;
+				}
+				miguSearch(label, this.miguCurPage, (data) => {
 					if (this.isRefreshing) {
 						this.isRefreshing = false;
 						uni.hideNavigationBarLoading();
+						this.miguSongList = data;
+					} else {
+						let templist = this.miguSongList;
+						const resultList = templist.contact(data);
+						this.miguSongList = resultList;
+						this.miguCurPage++;
 					}
+					this.songList = this.miguSongList;
+				}, (error) => {
+					this.searchError(error);
 				});
+			},
+			searchError(error) {
+				uni.showToast({
+					title: error,
+					icon: 'none',
+					position: 'bottom'
+				});
+				if (this.isRefreshing) {
+					this.isRefreshing = false;
+					uni.hideNavigationBarLoading();
+				}
 			},
 			itemClick(item) {
 				console.log(item.name);
