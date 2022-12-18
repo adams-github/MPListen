@@ -2,3 +2,5 @@
 /.hbuilderx/
 /.hbuilderx/launch.json
 /unpackage/
+/node_modules/.bin/
+/node_modules/.vite/

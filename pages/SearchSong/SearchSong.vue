@@ -19,6 +19,8 @@
 						</view>
 					</block>
 				</view>
+				<uni-load-more :status="loadMoreStatus" iconType="auto" :contentText="loadMoreText"
+					@clickLoadMore="search(1)" v-show="isShowLoadMore"></uni-load-more>
 			</scroll-view>
 		</view>
 	</view>
@@ -71,6 +73,13 @@
 				],
 				inputText: "",
 				isRefreshing: false,
+				isShowLoadMore: false,
+				loadMoreStatus: 'more',
+				loadMoreText: {
+					contentdown: '点击加载更多',
+					contentrefresh: '拼命加载中',
+					contentnomore: '别点了, 只有这么多了'
+				},
 				platformIndex: 0,
 				neteaseCurPage: 1,
 				qqCurPage: 1,
@@ -92,7 +101,7 @@
 		methods: {
 			inputConfirm(res) {
 				this.inputText = res.value;
-				this.search(res.value);
+				this.search(0);
 			},
 			inputCancel() {
 				this.inputText = '';
@@ -108,11 +117,16 @@
 				this.kuwoCurPage = 1;
 				this.miguCurPage = 1;
 			},
-			search(label) {
+			search(val) {
+				let label = this.inputText;
 				if (label === '') return;
 
-				this.isRefreshing = true;
-				uni.showNavigationBarLoading();
+				if (val == 0) {
+					this.isRefreshing = true;
+					uni.showNavigationBarLoading();
+				} else {
+					this.loadMoreStatus = 'loading';
+				}
 				switch (this.platformIndex) {
 					case 0:
 						this.exceNeteaseSearch(label);
@@ -132,11 +146,13 @@
 				uni.hideNavigationBarLoading()
 				this.songList = [];
 				this.platformIndex = val;
-				this.search(this.inputText);
+				this.search(0);
 			},
 			exceNeteaseSearch(label) {
 				if (this.isRefreshing) {
 					this.neteaseCurPage = 1;
+				} else {
+					this.neteaseCurPage++;
 				}
 				neteaseSearch(label, this.neteaseCurPage, (data) => {
 					if (this.isRefreshing) {
@@ -144,10 +160,7 @@
 						uni.hideNavigationBarLoading();
 						this.neteaseSongList = data;
 					} else {
-						let templist = this.neteaseSongList;
-						const resultList = templist.contact(data);
-						this.neteaseSongList = resultList;
-						this.neteaseCurPage++;
+						this.neteaseSongList = this.neteaseSongList.concat(data);
 					}
 					this.songList = this.neteaseSongList;
 				}, (error) => {
@@ -157,6 +170,8 @@
 			exceQQSearch(label) {
 				if (this.isRefreshing) {
 					this.qqCurPage = 1;
+				} else {
+					this.qqCurPage++;
 				}
 				qqSearch(label, this.qqCurPage, (data) => {
 					if (this.isRefreshing) {
@@ -164,10 +179,7 @@
 						uni.hideNavigationBarLoading();
 						this.qqSongList = data;
 					} else {
-						let templist = this.qqSongList;
-						const resultList = templist.contact(data);
-						this.qqSongList = resultList;
-						this.qqCurPage++;
+						this.qqSongList = this.qqSongList.concat(data);
 					}
 					this.songList = this.qqSongList;
 				}, (error) => {
@@ -177,6 +189,8 @@
 			exceKugouSearch(label) {
 				if (this.isRefreshing) {
 					this.kugouCurPage = 1;
+				} else {
+					this.kugouCurPage++;
 				}
 				kugouSearch(label, this.kugouCurPage, (data) => {
 					if (this.isRefreshing) {
@@ -184,10 +198,7 @@
 						uni.hideNavigationBarLoading();
 						this.kugouSongList = data;
 					} else {
-						let templist = this.kugouSongList;
-						const resultList = templist.contact(data);
-						this.kugouSongList = resultList;
-						this.kugouCurPage++;
+						this.kugouSongList = this.kugouSongList.concat(data);
 					}
 					this.songList = this.kugouSongList;
 				}, (error) => {
@@ -197,6 +208,8 @@
 			exceKuwoSearch(label) {
 				if (this.isRefreshing) {
 					this.kuwoCurPage = 1;
+				} else {
+					this.kuwoCurPage++;
 				}
 				kuwoSearch(label, this.kuwoCurPage, (data) => {
 					if (this.isRefreshing) {
@@ -204,10 +217,7 @@
 						uni.hideNavigationBarLoading();
 						this.kuwoSongList = data;
 					} else {
-						let templist = this.kuwoSongList;
-						const resultList = templist.contact(data);
-						this.kuwoSongList = resultList;
-						this.kuwoCurPage++;
+						this.kuwoSongList = this.kuwoSongList.concat(data);
 					}
 					this.songList = this.kuwoSongList;
 				}, (error) => {
@@ -217,6 +227,8 @@
 			exceMiguSearch(label) {
 				if (this.isRefreshing) {
 					this.miguCurPage = 1;
+				} else {
+					this.miguCurPage++;
 				}
 				miguSearch(label, this.miguCurPage, (data) => {
 					if (this.isRefreshing) {
@@ -224,10 +236,7 @@
 						uni.hideNavigationBarLoading();
 						this.miguSongList = data;
 					} else {
-						let templist = this.miguSongList;
-						const resultList = templist.contact(data);
-						this.miguSongList = resultList;
-						this.miguCurPage++;
+						this.miguSongList = this.miguSongList.concat(data);
 					}
 					this.songList = this.miguSongList;
 				}, (error) => {
@@ -249,6 +258,19 @@
 				console.log(item.name);
 			}
 		},
+		watch: {
+			songList: {
+				immediate: true,
+				handler(val) {
+					this.isShowLoadMore = val.length > 0;
+					if (val.length % 20 === 0) {
+						this.loadMoreStatus = 'more';
+					} else {
+						this.loadMoreStatus = 'noMore';
+					}
+				}
+			}
+		}
 	}
 </script>
 
