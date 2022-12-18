@@ -27,9 +27,7 @@
 </template>
 
 <script>
-	import {
-		neteaseSearch
-	} from '@/api/netease.js'
+	import neteaseJs from '@/api/netease.js'
 	import {
 		qqSearch
 	} from '@/api/qq.js'
@@ -73,6 +71,7 @@
 				],
 				inputText: "",
 				isRefreshing: false,
+				isLoadingSong: false,
 				isShowLoadMore: false,
 				loadMoreStatus: 'more',
 				loadMoreText: {
@@ -97,6 +96,7 @@
 		},
 		onBackPress() {
 			uni.hideNavigationBarLoading();
+			uni.hideLoading();
 		},
 		methods: {
 			inputConfirm(res) {
@@ -154,7 +154,7 @@
 				} else {
 					this.neteaseCurPage++;
 				}
-				neteaseSearch(label, this.neteaseCurPage, (data) => {
+				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
 					if (this.isRefreshing) {
 						this.isRefreshing = false;
 						uni.hideNavigationBarLoading();
@@ -164,7 +164,7 @@
 					}
 					this.songList = this.neteaseSongList;
 				}, (error) => {
-					this.searchError(error);
+					this.requestError(error);
 				});
 			},
 			exceQQSearch(label) {
@@ -183,7 +183,7 @@
 					}
 					this.songList = this.qqSongList;
 				}, (error) => {
-					this.searchError(error);
+					this.requestError(error);
 				});
 			},
 			exceKugouSearch(label) {
@@ -202,7 +202,7 @@
 					}
 					this.songList = this.kugouSongList;
 				}, (error) => {
-					this.searchError(error);
+					this.requestError(error);
 				});
 			},
 			exceKuwoSearch(label) {
@@ -221,7 +221,7 @@
 					}
 					this.songList = this.kuwoSongList;
 				}, (error) => {
-					this.searchError(error);
+					this.requestError(error);
 				});
 			},
 			exceMiguSearch(label) {
@@ -240,10 +240,10 @@
 					}
 					this.songList = this.miguSongList;
 				}, (error) => {
-					this.searchError(error);
+					this.requestError(error);
 				});
 			},
-			searchError(error) {
+			requestError(error) {
 				uni.showToast({
 					title: error,
 					icon: 'none',
@@ -253,9 +253,41 @@
 					this.isRefreshing = false;
 					uni.hideNavigationBarLoading();
 				}
+				if (this.isLoadingSong) {
+					this.isLoadingSong = false;
+					uni.hideLoading();
+				}
+				if (this.loadMoreStatus === 'loading') {
+					this.loadMoreStatus = 'more';
+				}
 			},
 			itemClick(item) {
-				console.log(item.name);
+				switch (this.platformIndex) {
+					case 0:
+						this.neteaseSongUrl(item);
+						break;
+					case 1:
+
+						break;
+					case 2:
+
+						break;
+					case 3:
+
+						break;
+				}
+			},
+
+			neteaseSongUrl(item) {
+				uni.showLoading();
+				neteaseJs.neteaseSongUrl(item.id, (data) => {
+					console.log(data);
+					this.isLoadingSong = false;
+					uni.hideLoading();
+
+				}, (error) => {
+					this.requestError(error);
+				});
 			}
 		},
 		watch: {
