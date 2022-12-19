@@ -27,18 +27,15 @@
 </template>
 
 <script>
-	import neteaseJs from '@/api/netease.js'
-	import {
-		qqSearch
-	} from '@/api/qq.js'
-	
+	// import neteaseJs from '@/api/netease.js'
+	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import {
 		kuwoSearch
 	} from '@/api/kuwo.js'
-	import {
-		miguSearch
-	} from '@/api/migu.js'
+	// import {
+	// 	miguSearch
+	// } from '@/api/migu.js'
 
 	export default {
 		data() {
@@ -76,7 +73,7 @@
 				loadMoreText: {
 					contentdown: '点击加载更多',
 					contentrefresh: '拼命加载中',
-					contentnomore: '别点了, 只有这么多了'
+					contentnomore: '到底了'
 				},
 				platformIndex: 0,
 				neteaseCurPage: 1,
@@ -142,11 +139,11 @@
 				} else {
 					this.neteaseCurPage++;
 				}
-				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
-					this.requestListSuccess(data);
-				}, (error) => {
-					this.requestError(error);
-				});
+				// neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
+				// 	this.requestListSuccess(data);
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
 			},
 			exceQQSearch(label) {
 				if (this.isRefreshing) {
@@ -154,7 +151,7 @@
 				} else {
 					this.qqCurPage++;
 				}
-				qqSearch(label, this.qqCurPage, (data) => {
+				qqJs.qqSearch(label, this.qqCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
@@ -190,11 +187,11 @@
 				} else {
 					this.miguCurPage++;
 				}
-				miguSearch(label, this.miguCurPage, (data) => {
-					this.requestListSuccess(data);
-				}, (error) => {
-					this.requestError(error);
-				});
+				// miguSearch(label, this.miguCurPage, (data) => {
+				// 	this.requestListSuccess(data);
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
 			},
 			requestListSuccess(data){
 				if (this.isRefreshing) {
@@ -227,7 +224,7 @@
 						this.neteaseSongUrl(item);
 						break;
 					case 1:
-
+						this.qqSongUrl(item);
 						break;
 					case 2:
 						this.kugouSongData(item);
@@ -240,11 +237,21 @@
 
 			neteaseSongUrl(item) {
 				uni.showLoading();
-				neteaseJs.neteaseSongUrl(item.id, (data) => {
+				// neteaseJs.neteaseSongUrl(item.id, (data) => {
+				// 	console.log(data);
+				// 	this.isLoadingSong = false;
+				// 	uni.hideLoading();
+
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
+			},
+			qqSongUrl(item) {
+				uni.showLoading();
+				qqJs.qqSongUrl(item.id, (data) => {
 					console.log(data);
 					this.isLoadingSong = false;
 					uni.hideLoading();
-
 				}, (error) => {
 					this.requestError(error);
 				});
