@@ -8,20 +8,8 @@ const URL_MP3_NETEASE = "/eapi/song/enhance/player/url";
 let neteaseJs = {};
 
 
-
-// function _create_secret_key(size) {
-// 	const result = [];
-// 	const choice = '012345679abcdef'.split('');
-// 	for (let i = 0; i < size; i += 1) {
-// 		const index = Math.floor(Math.random() * choice.length);
-// 		result.push(choice[index]);
-// 	}
-// 	return result.join('');
-// }
-
 function eapi(url, object) {
 	const eapiKey = 'e82ckenh8dichen8';
-
 	const text = typeof object === 'object' ? JSON.stringify(object) : object;
 	const message = 'nobody' + url + 'use' + text + 'md5forencrypt';
 	const digest = forge.md5
@@ -101,13 +89,16 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 	});
 };
 
+/**
+ * 通过歌曲的id来获取mp3的播放连接，大概率也是有播放期限限制的(路径带有日期)
+ */
 neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 	const d = {
 		ids: '[' + songId + ']',
 		br: 999000
 	};
 	const request_url = BASE_URL_NETEASE + URL_MP3_NETEASE;
-	const request_data = eapi('/api/song/enhance/player/url', d);//FA90B329E9614F79E79598F37DC2EDB430F8378D2A2796338F0BFDEAEF824A22975CDA9D96D79E6DC4A59218CDB8199FF0BF5508AC469039F9416CFBA9DCF26D4959DDD5294E9C48DBF5C8992F45F3D57F7CD65F22E85F6ABBD4A9C3DD63764B40996555D96920E0D801A2969EC832E1C70A769355061E5EE37D7A9E40F97FC2
+	const request_data = eapi('/api/song/enhance/player/url', d);
 	const request_method = "POST";
 	const request_header = {
 		'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
@@ -121,8 +112,14 @@ neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 	}).then((res) => {
 		console.log(res);
 		if (res.code === 200) {
-			if (typeof successCb === 'function') {
-				successCb(res.data[0].url);
+			if (res.data[0].url != undefined && res.data[0].url != null && res.data[0].url != '') {
+				if (typeof successCb === 'function') {
+					successCb(res.data[0].url);
+				}
+			} else {
+				if (typeof errorCb === 'function') {
+					errorCb('网易平台没有版权或需要VIP');
+				}
 			}
 		} else {
 			console.log(res.message == undefined ? res.msg : res.message);

@@ -31,9 +31,8 @@
 	import {
 		qqSearch
 	} from '@/api/qq.js'
-	import {
-		kugouSearch
-	} from '@/api/kugou.js'
+	
+	import kugouJs from '@/api/kugou.js'
 	import {
 		kuwoSearch
 	} from '@/api/kuwo.js'
@@ -85,13 +84,7 @@
 				kugouCurPage: 1,
 				kuwoCurPage: 1,
 				miguCurPage: 1,
-				songList: [],
-				neteaseSongList: [],
-				qqSongList: [],
-				kugouSongList: [],
-				kuwoSongList: [],
-				miguSongList: [],
-				// bilibiliSongList: []
+				songList: []
 			};
 		},
 		onBackPress() {
@@ -106,11 +99,6 @@
 			inputCancel() {
 				this.inputText = '';
 				this.songList = [];
-				this.neteaseSongList = [];
-				this.qqSongList = [];
-				this.kugouSongList = [];
-				this.kuwoSongList = [];
-				this.miguSongList = [];
 				this.neteaseCurPage = 1;
 				this.qqCurPage = 1;
 				this.kugouCurPage = 1;
@@ -155,14 +143,7 @@
 					this.neteaseCurPage++;
 				}
 				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-						this.neteaseSongList = data;
-					} else {
-						this.neteaseSongList = this.neteaseSongList.concat(data);
-					}
-					this.songList = this.neteaseSongList;
+					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -174,14 +155,7 @@
 					this.qqCurPage++;
 				}
 				qqSearch(label, this.qqCurPage, (data) => {
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-						this.qqSongList = data;
-					} else {
-						this.qqSongList = this.qqSongList.concat(data);
-					}
-					this.songList = this.qqSongList;
+					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -192,15 +166,8 @@
 				} else {
 					this.kugouCurPage++;
 				}
-				kugouSearch(label, this.kugouCurPage, (data) => {
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-						this.kugouSongList = data;
-					} else {
-						this.kugouSongList = this.kugouSongList.concat(data);
-					}
-					this.songList = this.kugouSongList;
+				kugouJs.kugouSearch(label, this.kugouCurPage, (data) => {
+					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -212,14 +179,7 @@
 					this.kuwoCurPage++;
 				}
 				kuwoSearch(label, this.kuwoCurPage, (data) => {
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-						this.kuwoSongList = data;
-					} else {
-						this.kuwoSongList = this.kuwoSongList.concat(data);
-					}
-					this.songList = this.kuwoSongList;
+					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -231,17 +191,17 @@
 					this.miguCurPage++;
 				}
 				miguSearch(label, this.miguCurPage, (data) => {
-					if (this.isRefreshing) {
-						this.isRefreshing = false;
-						uni.hideNavigationBarLoading();
-						this.miguSongList = data;
-					} else {
-						this.miguSongList = this.miguSongList.concat(data);
-					}
-					this.songList = this.miguSongList;
+					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
+			},
+			requestListSuccess(data){
+				if (this.isRefreshing) {
+					this.isRefreshing = false;
+					uni.hideNavigationBarLoading();
+				} 
+				this.songList = this.songList.concat(data);
 			},
 			requestError(error) {
 				uni.showToast({
@@ -270,7 +230,7 @@
 
 						break;
 					case 2:
-
+						this.kugouSongData(item);
 						break;
 					case 3:
 
@@ -285,6 +245,16 @@
 					this.isLoadingSong = false;
 					uni.hideLoading();
 
+				}, (error) => {
+					this.requestError(error);
+				});
+			},
+			kugouSongData(item) {
+				uni.showLoading();
+				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
+					console.log(data);
+					this.isLoadingSong = false;
+					uni.hideLoading();
 				}, (error) => {
 					this.requestError(error);
 				});

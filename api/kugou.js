@@ -2,17 +2,18 @@ import requester from "@/utils/request.js"
 
 const BASE_URL_KUGOU = "https://songsearch.kugou.com";
 const URL_SEARCH_KUGOU = "/song_search_v2";
+const URL_MP3_KUGOU = "https://wwwapi.kugou.com/yy/index.php";
 
-export function kugouSearch(label, curPage, successCb, errorCb) {
+let kugouJs = {};
+
+kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 	const request_url = BASE_URL_KUGOU + URL_SEARCH_KUGOU;
 	const request_data = {
 		keyword: label,
 		page: curPage,
 	};
 	const request_method = "GET";
-	const request_header = {
-		// 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-	};
+	const request_header = {};
 	requester.request({
 		request_url,
 		request_data,
@@ -49,3 +50,48 @@ export function kugouSearch(label, curPage, successCb, errorCb) {
 		}
 	});
 }
+
+/**
+ * 根据歌曲的id和专辑id来获取歌曲的信息，拿到播放的url(大概率有期限)，专辑图片url， 歌词
+ */
+kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
+	const request_url = URL_MP3_KUGOU;
+	const request_data = {
+		r: 'play/getdata',
+		mid: 1,
+		hash: songId,
+		platid: 4,
+		album_id: albumId,
+		_: new Date().getTime()
+	};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (res.err_code === 0) {
+			if (typeof successCb === 'function') {
+				successCb({
+					lyrics: res.data.lyrics,
+					img: res.data.img,
+					url: res.data.play_url
+				});
+			}
+		} else {
+			console.log(res.err_msg);
+			if (typeof errorCb === 'function') {
+				errorCb(res.err_msg);
+			}
+		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+export default kugouJs
