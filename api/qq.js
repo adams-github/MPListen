@@ -111,7 +111,7 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('QQ平台没有版权或需要VIP');
+					errorCb('QQ没有版权或需要VIP');
 				}
 			}
 		} else {

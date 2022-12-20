@@ -1,13 +1,17 @@
 import requester from "@/utils/request.js"
 
+const URL_KUWO_SERACH = "http://search.kuwo.cn/r.s";
 const BASE_URL_KUWO = "https://www.kuwo.cn";
 const URL_SEARCH_KUWO = "/api/www/search/searchMusicBykeyWord";
 
+
+let kuwoJs = {}
+
 /**
- * 酷我的接口必须要传referer, csrf, cookie
+ * https://www.kuwo.cn中，酷我的接口必须要传referer, csrf, cookie
  * 而且referer必须要为https://www.kuwo.cn，暂时无法实现
  */
-export function kuwoSearch(label, curPage, successCb, errorCb) {
+kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 	const request_url = BASE_URL_KUWO + URL_SEARCH_KUWO;
 	const request_data = {
 		key: label,
@@ -18,7 +22,7 @@ export function kuwoSearch(label, curPage, successCb, errorCb) {
 	const request_header = {
 		'referer': 'https://www.kuwo.cn',
 		'csrf': 'RVFEJULHRY',
-		'cookie':'kw_token=RVFEJULHRY'
+		'cookie': 'kw_token=RVFEJULHRY'
 	};
 	requester.request({
 		request_url,
@@ -57,3 +61,50 @@ export function kuwoSearch(label, curPage, successCb, errorCb) {
 		}
 	});
 }
+
+
+kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
+	const request_url = URL_KUWO_SERACH;
+	const request_data = {
+		all: label,
+		pn: (curPage - 1),
+		rn: 20,
+		ft: 'music',
+		encoding: 'utf8',
+		rformat: 'json',
+		mobi:1,
+		display_type:2
+	};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (typeof successCb === 'function') {
+			let songList = [];
+			res.abslist.forEach((item, index) => {
+				songList.push({
+					platform: 'kuwo',
+					id: item.DC_TARGETID,
+					name: item.NAME,
+					url: '',
+					singer: item.ARTIST,
+					albumName: item.ALBUM,
+					albumUrl: item.hts_MVPIC,
+					albumId: item.ALBUMID
+				})
+			});
+			successCb(songList);
+		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+export default kuwoJs

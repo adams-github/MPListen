@@ -118,7 +118,7 @@ neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('网易平台没有版权或需要VIP');
+					errorCb('网易没有版权或需要VIP');
 				}
 			}
 		} else {

@@ -73,12 +73,18 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 		request_header
 	}).then((res) => {
 		if (res.err_code === 0) {
-			if (typeof successCb === 'function') {
-				successCb({
-					lyrics: res.data.lyrics,
-					img: res.data.img,
-					url: res.data.play_url
-				});
+			if (res.data.play_url != undefined && res.data.play_url != '') {
+				if (typeof successCb === 'function') {
+					successCb({
+						url: res.data.play_url,
+						img: res.data.img,
+						lyrics: res.data.lyrics
+					});
+				}
+			} else {
+				if (typeof errorCb === 'function') {
+					errorCb('酷狗没有版权或需要VIP');
+				}
 			}
 		} else {
 			console.log(res.err_msg);

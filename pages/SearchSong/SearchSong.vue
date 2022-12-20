@@ -30,9 +30,7 @@
 	// import neteaseJs from '@/api/netease.js'
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
-	import {
-		kuwoSearch
-	} from '@/api/kuwo.js'
+	import kuwoJs from '@/api/kuwo.js'
 	// import {
 	// 	miguSearch
 	// } from '@/api/migu.js'
@@ -52,18 +50,14 @@
 						"label": "酷狗音乐",
 						"id": 2
 					},
-					// {
-					// 	"label": "酷我音乐",
-					// 	"id": 3
-					// },
 					{
-						"label": "咪咕音乐",
+						"label": "酷我音乐",
 						"id": 3
 					},
-					// {
-					// 	"label": "哔哩哔哩",
-					// 	"id": 5
-					// }
+					{
+						"label": "咪咕音乐",
+						"id": 4
+					},
 				],
 				inputText: "",
 				isRefreshing: false,
@@ -73,7 +67,7 @@
 				loadMoreText: {
 					contentdown: '点击加载更多',
 					contentrefresh: '拼命加载中',
-					contentnomore: '到底了'
+					contentnomore: '已经到底了'
 				},
 				platformIndex: 0,
 				neteaseCurPage: 1,
@@ -90,6 +84,7 @@
 		},
 		methods: {
 			inputConfirm(res) {
+				this.inputCancel();
 				this.inputText = res.value;
 				this.search(0);
 			},
@@ -123,6 +118,9 @@
 						this.exceKugouSearch(label);
 						break;
 					case 3:
+						this.exceKuwoSearch(label);
+						break;
+					case 4:
 						this.exceMiguSearch(label);
 						break;
 				}
@@ -175,7 +173,7 @@
 				} else {
 					this.kuwoCurPage++;
 				}
-				kuwoSearch(label, this.kuwoCurPage, (data) => {
+				kuwoJs.kuwoSearchForWX(label, this.kuwoCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
@@ -193,11 +191,11 @@
 				// 	this.requestError(error);
 				// });
 			},
-			requestListSuccess(data){
+			requestListSuccess(data) {
 				if (this.isRefreshing) {
 					this.isRefreshing = false;
 					uni.hideNavigationBarLoading();
-				} 
+				}
 				this.songList = this.songList.concat(data);
 			},
 			requestError(error) {
@@ -259,7 +257,7 @@
 			kugouSongData(item) {
 				uni.showLoading();
 				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
-					console.log(data);
+					console.log(data.url);
 					this.isLoadingSong = false;
 					uni.hideLoading();
 				}, (error) => {
