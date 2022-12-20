@@ -123,7 +123,9 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		successCb(res)
+		if (typeof successCb === 'function') {
+			successCb(res)
+		}
 	}).catch((error) => {
 		console.log(error);
 		if (typeof errorCb === 'function') {

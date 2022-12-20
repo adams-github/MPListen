@@ -27,13 +27,11 @@
 </template>
 
 <script>
-	// import neteaseJs from '@/api/netease.js'
+	import neteaseJs from '@/api/netease.js'
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
-	// import {
-	// 	miguSearch
-	// } from '@/api/migu.js'
+	import miguJs from '@/api/migu.js'
 
 	export default {
 		data() {
@@ -137,11 +135,11 @@
 				} else {
 					this.neteaseCurPage++;
 				}
-				// neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
-				// 	this.requestListSuccess(data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
+					this.requestListSuccess(data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			exceQQSearch(label) {
 				if (this.isRefreshing) {
@@ -185,11 +183,11 @@
 				} else {
 					this.miguCurPage++;
 				}
-				// miguSearch(label, this.miguCurPage, (data) => {
-				// 	this.requestListSuccess(data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				miguJs.miguSearch(label, this.miguCurPage, (data) => {
+					this.requestListSuccess(data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			requestListSuccess(data) {
 				if (this.isRefreshing) {
@@ -231,19 +229,21 @@
 					case 3:
 						this.neteaseSongUrl(item);
 						break;
+					case 4:
+						this.miguSongUrl(item);
 						break;
 				}
 			},
 
 			neteaseSongUrl(item) {
-				// neteaseJs.neteaseSongUrl(item.id, (data) => {
-				// 	console.log(data);
-				// 	this.isLoadingSong = false;
-				// 	uni.hideLoading();
+				neteaseJs.neteaseSongUrl(item.id, (data) => {
+					console.log(data);
+					this.isLoadingSong = false;
+					uni.hideLoading();
 
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			qqSongUrl(item) {
 				qqJs.qqSongUrl(item.id, (data) => {
@@ -272,6 +272,15 @@
 					this.requestError(error);
 				});
 			},
+			miguSongUrl(item) {
+				miguJs.miguSongUrl(item.id, (data) => {
+					console.log(data);
+					this.isLoadingSong = false;
+					uni.hideLoading();
+				}, (error) => {
+					this.requestError(error);
+				});
+			}
 		},
 		watch: {
 			songList: {
