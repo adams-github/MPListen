@@ -106,7 +106,7 @@ miguJs.miguSongUrl = function(songId, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		if (res.code === '000000') {
+		if (res.code === '000000' && res.data.url != undefined) {
 			if (typeof successCb === 'function') {
 				successCb(res.data.url)
 			}
