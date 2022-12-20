@@ -3,7 +3,7 @@ import requester from "@/utils/request.js"
 const URL_KUWO_SERACH = "http://search.kuwo.cn/r.s";
 const BASE_URL_KUWO = "https://www.kuwo.cn";
 const URL_SEARCH_KUWO = "/api/www/search/searchMusicBykeyWord";
-
+const URL_MP3_KUWO = "https://antiserver.kuwo.cn/anti.s";
 
 let kuwoJs = {}
 
@@ -72,8 +72,8 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 		ft: 'music',
 		encoding: 'utf8',
 		rformat: 'json',
-		mobi:1,
-		display_type:2
+		mobi: 1,
+		display_type: 2
 	};
 	const request_method = "GET";
 	const request_header = {};
@@ -99,6 +99,31 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 			});
 			successCb(songList);
 		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
+	const request_url = URL_MP3_KUWO;
+	const request_data = {
+		type: 'convert_url',
+		format: 'mp3',
+		response: 'url',
+		rid: songId
+	};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		successCb(res)
 	}).catch((error) => {
 		console.log(error);
 		if (typeof errorCb === 'function') {

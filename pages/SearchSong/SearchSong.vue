@@ -39,19 +39,19 @@
 		data() {
 			return {
 				tabsData: [{
-						"label": "网易云音乐",
+						"label": "酷我音乐",
 						"id": 0
 					},
 					{
-						"label": "QQ音乐",
+						"label": "酷狗音乐",
 						"id": 1
 					},
 					{
-						"label": "酷狗音乐",
+						"label": "QQ音乐",
 						"id": 2
 					},
 					{
-						"label": "酷我音乐",
+						"label": "网易云音乐",
 						"id": 3
 					},
 					{
@@ -109,16 +109,16 @@
 				}
 				switch (this.platformIndex) {
 					case 0:
-						this.exceNeteaseSearch(label);
+						this.exceKuwoSearch(label);
 						break;
 					case 1:
-						this.exceQQSearch(label);
-						break;
-					case 2:
 						this.exceKugouSearch(label);
 						break;
+					case 2:
+						this.exceQQSearch(label);
+						break;
 					case 3:
-						this.exceKuwoSearch(label);
+						this.exceNeteaseSearch(label);
 						break;
 					case 4:
 						this.exceMiguSearch(label);
@@ -217,24 +217,25 @@
 				}
 			},
 			itemClick(item) {
+				uni.showLoading();
 				switch (this.platformIndex) {
 					case 0:
-						this.neteaseSongUrl(item);
+						this.kuwoSongUrl(item);
 						break;
 					case 1:
-						this.qqSongUrl(item);
-						break;
-					case 2:
 						this.kugouSongData(item);
 						break;
+					case 2:
+						this.qqSongUrl(item);
+						break;
 					case 3:
-
+						this.neteaseSongUrl(item);
+						break;
 						break;
 				}
 			},
 
 			neteaseSongUrl(item) {
-				uni.showLoading();
 				// neteaseJs.neteaseSongUrl(item.id, (data) => {
 				// 	console.log(data);
 				// 	this.isLoadingSong = false;
@@ -245,7 +246,6 @@
 				// });
 			},
 			qqSongUrl(item) {
-				uni.showLoading();
 				qqJs.qqSongUrl(item.id, (data) => {
 					console.log(data);
 					this.isLoadingSong = false;
@@ -255,7 +255,6 @@
 				});
 			},
 			kugouSongData(item) {
-				uni.showLoading();
 				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
 					console.log(data.url);
 					this.isLoadingSong = false;
@@ -263,7 +262,16 @@
 				}, (error) => {
 					this.requestError(error);
 				});
-			}
+			},
+			kuwoSongUrl(item) {
+				kuwoJs.kuwoSongUrl(item.id, (data) => {
+					console.log(data);
+					this.isLoadingSong = false;
+					uni.hideLoading();
+				}, (error) => {
+					this.requestError(error);
+				});
+			},
 		},
 		watch: {
 			songList: {
