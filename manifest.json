@@ -51,12 +51,16 @@
     "mp-weixin" : {
         /* 小程序特有相关 */
         "appid" : "wxe23077c435fb8573",
+		"requiredBackgroundModes": ["audio"],
         "setting" : {
-            "urlCheck" : false,
+            "urlCheck" : true,
             "checkSiteMap" : false,
-            "minified" : true
+            "minified" : true,
+            "es6" : false,
+            "postcss" : true
         },
-        "usingComponents" : true
+        "usingComponents" : true,
+        "permission" : {}
     },
     "vueVersion" : "2"
 }

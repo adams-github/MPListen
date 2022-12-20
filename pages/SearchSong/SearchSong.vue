@@ -27,11 +27,13 @@
 </template>
 
 <script>
-	import neteaseJs from '@/api/netease.js'
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
-	import miguJs from '@/api/migu.js'
+	// import neteaseJs from '@/api/netease.js'
+	// import miguJs from '@/api/migu.js'
+
+	import bgMp3Player from '@/utils/bgPlayer.js'
 
 	export default {
 		data() {
@@ -49,11 +51,11 @@
 						"id": 2
 					},
 					{
-						"label": "网易云音乐",
+						"label": "咪咕音乐",
 						"id": 3
 					},
 					{
-						"label": "咪咕音乐",
+						"label": "网易云音乐",
 						"id": 4
 					},
 				],
@@ -116,10 +118,10 @@
 						this.exceQQSearch(label);
 						break;
 					case 3:
-						this.exceNeteaseSearch(label);
+						this.exceMiguSearch(label);
 						break;
 					case 4:
-						this.exceMiguSearch(label);
+						this.exceNeteaseSearch(label);
 						break;
 				}
 			},
@@ -128,18 +130,6 @@
 				this.songList = [];
 				this.platformIndex = val;
 				this.search(0);
-			},
-			exceNeteaseSearch(label) {
-				if (this.isRefreshing) {
-					this.neteaseCurPage = 1;
-				} else {
-					this.neteaseCurPage++;
-				}
-				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
-					this.requestListSuccess(data);
-				}, (error) => {
-					this.requestError(error);
-				});
 			},
 			exceQQSearch(label) {
 				if (this.isRefreshing) {
@@ -177,17 +167,29 @@
 					this.requestError(error);
 				});
 			},
+			exceNeteaseSearch(label) {
+				if (this.isRefreshing) {
+					this.neteaseCurPage = 1;
+				} else {
+					this.neteaseCurPage++;
+				}
+				// neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
+				// 	this.requestListSuccess(data);
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
+			},
 			exceMiguSearch(label) {
 				if (this.isRefreshing) {
 					this.miguCurPage = 1;
 				} else {
 					this.miguCurPage++;
 				}
-				miguJs.miguSearch(label, this.miguCurPage, (data) => {
-					this.requestListSuccess(data);
-				}, (error) => {
-					this.requestError(error);
-				});
+				// miguJs.miguSearch(label, this.miguCurPage, (data) => {
+				// 	this.requestListSuccess(data);
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
 			},
 			requestListSuccess(data) {
 				if (this.isRefreshing) {
@@ -227,20 +229,21 @@
 						this.qqSongUrl(item);
 						break;
 					case 3:
-						this.neteaseSongUrl(item);
+						this.miguSongUrl(item);
 						break;
 					case 4:
-						this.miguSongUrl(item);
+						this.neteaseSongUrl(item);
 						break;
 				}
 			},
 
-			neteaseSongUrl(item) {
-				neteaseJs.neteaseSongUrl(item.id, (data) => {
+			kuwoSongUrl(item) {
+				kuwoJs.kuwoSongUrl(item.id, (data) => {
 					console.log(data);
 					this.isLoadingSong = false;
 					uni.hideLoading();
-
+					item.url = data;
+					bgMp3Player.play(item);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -250,6 +253,8 @@
 					console.log(data);
 					this.isLoadingSong = false;
 					uni.hideLoading();
+					item.url = data;
+					bgMp3Player.play(item);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -259,27 +264,33 @@
 					console.log(data.url);
 					this.isLoadingSong = false;
 					uni.hideLoading();
-				}, (error) => {
-					this.requestError(error);
-				});
-			},
-			kuwoSongUrl(item) {
-				kuwoJs.kuwoSongUrl(item.id, (data) => {
-					console.log(data);
-					this.isLoadingSong = false;
-					uni.hideLoading();
+					item.url = data;
+					bgMp3Player.play(item);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			miguSongUrl(item) {
-				miguJs.miguSongUrl(item.id, (data) => {
-					console.log(data);
-					this.isLoadingSong = false;
-					uni.hideLoading();
-				}, (error) => {
-					this.requestError(error);
-				});
+				// miguJs.miguSongUrl(item.id, (data) => {
+				// 	console.log(data);
+				// 	this.isLoadingSong = false;
+				// 	uni.hideLoading();
+				//  item.url = data;
+				// 	bgMp3Player.play(item);
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
+			},
+			neteaseSongUrl(item) {
+				// neteaseJs.neteaseSongUrl(item.id, (data) => {
+				// 	console.log(data);
+				// 	this.isLoadingSong = false;
+				// 	uni.hideLoading();
+				//  item.url = data;
+				// 	bgMp3Player.play(item);
+				// }, (error) => {
+				// 	this.requestError(error);
+				// });
 			}
 		},
 		watch: {
@@ -331,7 +342,5 @@
 				background-color: #F0F0F0;
 			}
 		}
-
-
 	}
 </style>

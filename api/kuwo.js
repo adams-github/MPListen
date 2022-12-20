@@ -1,6 +1,6 @@
 import requester from "@/utils/request.js"
 
-const URL_KUWO_SERACH = "http://search.kuwo.cn/r.s";
+const URL_KUWO_SERACH = "https://search.kuwo.cn/r.s";
 const BASE_URL_KUWO = "https://www.kuwo.cn";
 const URL_SEARCH_KUWO = "/api/www/search/searchMusicBykeyWord";
 const URL_MP3_KUWO = "https://antiserver.kuwo.cn/anti.s";
