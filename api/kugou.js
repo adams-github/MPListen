@@ -77,8 +77,7 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				if (typeof successCb === 'function') {
 					successCb({
 						url: res.data.play_url,
-						img: res.data.img,
-						lyrics: res.data.lyrics
+						img: res.data.img
 					});
 				}
 			} else {

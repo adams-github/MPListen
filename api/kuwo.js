@@ -97,10 +97,10 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 		if (typeof successCb === 'function') {
 			let songList = [];
 			res.abslist.forEach((item, index) => {
-				let songName = item.NAME;
-				if(item.NAME.indexOf('-') != -1){
-					songName = item.NAME.substr(0, item.NAME.indexOf('-'));
-					let subTitle = item.NAME.substr(item.NAME.indexOf('-') + 1);
+				let songName = item.SONGNAME;
+				if(item.SONGNAME.indexOf('-') != -1){
+					songName = item.SONGNAME.substr(0, item.SONGNAME.indexOf('-'));
+					let subTitle = item.SONGNAME.substr(item.SONGNAME.indexOf('-') + 1);
 				}
 				songList.push({
 					platform: 'kuwo',

@@ -264,7 +264,7 @@
 					console.log(data.url);
 					this.isLoadingSong = false;
 					uni.hideLoading();
-					item.url = data;
+					item.url = data.url;
 					bgMp3Player.play(item);
 				}, (error) => {
 					this.requestError(error);
