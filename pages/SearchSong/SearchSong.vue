@@ -239,7 +239,6 @@
 
 			kuwoSongUrl(item) {
 				kuwoJs.kuwoSongUrl(item.id, (data) => {
-					console.log(data);
 					this.isLoadingSong = false;
 					uni.hideLoading();
 					item.url = data;
@@ -250,7 +249,6 @@
 			},
 			qqSongUrl(item) {
 				qqJs.qqSongUrl(item.id, (data) => {
-					console.log(data);
 					this.isLoadingSong = false;
 					uni.hideLoading();
 					item.url = data;
@@ -261,7 +259,6 @@
 			},
 			kugouSongData(item) {
 				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
-					console.log(data.url);
 					this.isLoadingSong = false;
 					uni.hideLoading();
 					item.url = data.url;
@@ -272,7 +269,6 @@
 			},
 			miguSongUrl(item) {
 				// miguJs.miguSongUrl(item.id, (data) => {
-				// 	console.log(data);
 				// 	this.isLoadingSong = false;
 				// 	uni.hideLoading();
 				//  item.url = data;
@@ -283,7 +279,6 @@
 			},
 			neteaseSongUrl(item) {
 				// neteaseJs.neteaseSongUrl(item.id, (data) => {
-				// 	console.log(data);
 				// 	this.isLoadingSong = false;
 				// 	uni.hideLoading();
 				//  item.url = data;

@@ -24,9 +24,6 @@
 					url: "/pages/SearchSong/SearchSong"
 				})
 			},
-			onPlatformSelected(val) {
-
-			}
 		}
 
 	}

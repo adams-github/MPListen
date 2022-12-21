@@ -11,6 +11,7 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 	const request_data = {
 		keyword: label,
 		page: curPage,
+		platform: 'WebFilter'
 	};
 	const request_method = "GET";
 	const request_header = {};
