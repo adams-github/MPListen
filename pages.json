@@ -1,13 +1,6 @@
 {
 	"pages": [{
-		"path": "pages/SongSheet/SongSheet",
-		"style": {
-			"navigationBarTitleText": "MPListen",
-			"enablePullDownRefresh": false
-		}
-
-	}, {
-		"path": "pages/RecentPlay/RecentPlay",
+		"path": "pages/SongLibrary/SongLibrary",
 		"style": {
 			"navigationBarTitleText": "MPListen",
 			"enablePullDownRefresh": false
@@ -15,6 +8,13 @@
 
 	}, {
 		"path": "pages/SearchSong/SearchSong",
+		"style": {
+			"navigationBarTitleText": "MPListen",
+			"enablePullDownRefresh": false
+		}
+
+	}, {
+		"path": "pages/RecentPlay/RecentPlay",
 		"style": {
 			"navigationBarTitleText": "MPListen",
 			"enablePullDownRefresh": false
@@ -28,23 +28,23 @@
 		"app-plus": {
 			"background": "#FAFAFA"
 		}
-	},
-	"tabBar": {
-		"selectedColor": "#22D59C",
-		"color": "#b2b2b2",
-		"borderStyle": "white",
-		"list": [{
-				"pagePath": "pages/SongSheet/SongSheet",
-				"text": "歌单",
-				"iconPath": "static/ic_main_songsheet.png",
-				"selectedIconPath": "static/ic_main_songsheet_active.png"
-			},
-			{
-				"pagePath": "pages/RecentPlay/RecentPlay",
-				"text": "最近",
-				"iconPath": "static/ic_main_recent.png",
-				"selectedIconPath": "static/ic_main_recent_active.png"
-			}
-		]
 	}
+	// "tabBar": {
+	// 	"selectedColor": "#22D59C",
+	// 	"color": "#b2b2b2",
+	// 	"borderStyle": "white",
+	// 	"list": [{
+	// 			"pagePath": "pages/SongSheet/SongSheet",
+	// 			"text": "乐库",
+	// 			"iconPath": "static/ic_main_musiclib.png",
+	// 			"selectedIconPath": "static/ic_main_musiclib_active.png"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/RecentPlay/RecentPlay",
+	// 			"text": "最近",
+	// 			"iconPath": "static/ic_main_recent.png",
+	// 			"selectedIconPath": "static/ic_main_recent_active.png"
+	// 		}
+	// 	]
+	// }
 }
