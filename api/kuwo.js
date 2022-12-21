@@ -73,7 +73,18 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 		encoding: 'utf8',
 		rformat: 'json',
 		mobi: 1,
-		display_type: 2
+		display_type: 2,
+		vipver: '10.3.2.0',
+		stype: 'comprehensive',
+		
+		user: 'fa205f414ddefc1e',
+		android_id: 'fa205f414ddefc1e',
+		prod: 'kwplayer_ar_10.3.2.0',
+		corp: 'kuwo',
+		source: 'kwplayer_ar_10.3.2.0_40.apk',
+		loginUid: 0,
+		loginSid: 0,
+		client: 'kt'
 	};
 	const request_method = "GET";
 	const request_header = {};
@@ -86,10 +97,15 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 		if (typeof successCb === 'function') {
 			let songList = [];
 			res.abslist.forEach((item, index) => {
+				let songName = item.NAME;
+				if(item.NAME.indexOf('-') != -1){
+					songName = item.NAME.substr(0, item.NAME.indexOf('-'));
+					let subTitle = item.NAME.substr(item.NAME.indexOf('-') + 1);
+				}
 				songList.push({
 					platform: 'kuwo',
 					id: item.DC_TARGETID,
-					name: item.NAME,
+					name: songName,
 					url: '',
 					singer: item.ARTIST,
 					albumName: item.ALBUM,
