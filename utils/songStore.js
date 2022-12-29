@@ -13,9 +13,6 @@ let lastSong; //上一首歌
 let curPlayingSong;
 let nextPlayIndex; //下一首要播放的歌的下标
 
-function findIndex(item) {
-	return false;
-}
 
 songStore.loadAllSongs = function() {
 	if (typeof songList === 'undefined' || songList == null || songList.length == 0) {
@@ -103,7 +100,7 @@ songStore.addSong = function(song) {
 			nextPlayIndex++;
 		}
 	} else {
-		const index = songList.indexOf(item);
+		const index = songList.findIndex((ele) => ele.id === song.id && ele.platform == song.platform);
 		const songArr = songList.splice(index, 1);
 		songList.unshift(songArr[0]);
 		nextPlayIndex = index + 1;
@@ -240,7 +237,7 @@ songStore.getNextSong = function() {
 
 songStore.getPreSong = function() {
 	if (typeof lastSong != 'undefined' && lastSong != null) {
-		const index = songList.indexOf(lastSong);
+		const index = songList.findIndex((ele) => ele.id === lastSong.id && ele.platform == lastSong.platform);
 		const songArr = songList.splice(index, 1);
 		songList.unshift(songArr[0]);
 		uni.setStorage({
