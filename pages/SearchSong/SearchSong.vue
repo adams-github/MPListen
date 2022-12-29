@@ -1,4 +1,5 @@
 <template>
+	<page-meta :page-style="'overflow:'+(show?'hidden':'visible')"></page-meta>
 	<view class="view-container">
 		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"
 			@cancel="inputCancel"></uni-search-bar>
@@ -8,7 +9,7 @@
 			<view class="divide-line"></view>
 		</view>
 
-		<view class="list_content">
+		<view class="list_content" :class="{'list_content-margin' : showController === true}">
 			<scroll-view scroll-y scroll-with-animation>
 				<view>
 					<block v-for="(item, index) in songList" :key="index">
@@ -23,17 +24,31 @@
 					@clickLoadMore="search(1)" v-show="isShowLoadMore"></uni-load-more>
 			</scroll-view>
 		</view>
+
+		<view class="controller-sticky" v-show="showController">
+			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus"
+				@clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn" @clickList="onClickListBtn">
+
+			</MusicController>
+		</view>
+
+		<uni-popup ref="popup" background-color="#fff" @change="change" >
+			<playList :playing_song="playingSong"></playList>
+		</uni-popup>
+		
+
 	</view>
 </template>
 
 <script>
+	import songStore from '@/utils/songStore.js'
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
 	// import neteaseJs from '@/api/netease.js'
 	// import miguJs from '@/api/migu.js'
 
-	import bgMp3Player from '@/utils/bgPlayer.js'
+	import bgPlayer from '@/utils/bgPlayer.js'
 
 	export default {
 		data() {
@@ -75,8 +90,49 @@
 				kugouCurPage: 1,
 				kuwoCurPage: 1,
 				miguCurPage: 1,
-				songList: []
+				songList: [],
+				showController: false,
+				picUrl: '',
+				songName: '',
+				playStatus: false,
+				playingSong: {},
+				show: false,
 			};
+		},
+		onLoad() {
+			this.showController = songStore.getSongList().length > 0;
+		},
+		onShow() {
+			bgPlayer.setOnEnded(() => {
+				this.picUrl = songStore.getCurPlayingSong().albumUrl;
+				this.songName = songStore.getCurPlayingSong().name;
+			});
+			bgPlayer.setOnPaused(() => {
+				this.playStatus = false;
+				this.playingSong = {};
+			});
+			bgPlayer.setOnStoped(() => {
+				this.playStatus = false;
+				this.playingSong = {};
+			});
+			bgPlayer.setOnPlayed(() => {
+				this.playStatus = true;
+				this.playingSong = songStore.getCurPlayingSong();
+			});
+			this.playStatus = bgPlayer.isPlaying();
+			this.picUrl = songStore.getCurPlayingSong().albumUrl;
+			this.songName = songStore.getCurPlayingSong().name;
+			if (this.playStatus) {
+				this.playingSong = songStore.getCurPlayingSong();
+			} else {
+				this.playingSong = {};
+			}
+		},
+		onHide() {
+			bgPlayer.setOnEnded(null);
+			bgPlayer.setOnPaused(null);
+			bgPlayer.setOnStoped(null);
+			bgPlayer.setOnPlayed(null);
 		},
 		onBackPress() {
 			uni.hideNavigationBarLoading();
@@ -239,30 +295,21 @@
 
 			kuwoSongUrl(item) {
 				kuwoJs.kuwoSongUrl(item.id, (data) => {
-					this.isLoadingSong = false;
-					uni.hideLoading();
-					item.url = data;
-					bgMp3Player.play(item);
+					this.requestSongUrlSuccess(item, data);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			qqSongUrl(item) {
 				qqJs.qqSongUrl(item.id, (data) => {
-					this.isLoadingSong = false;
-					uni.hideLoading();
-					item.url = data;
-					bgMp3Player.play(item);
+					this.requestSongUrlSuccess(item, data);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			kugouSongData(item) {
 				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
-					this.isLoadingSong = false;
-					uni.hideLoading();
-					item.url = data.url;
-					bgMp3Player.play(item);
+					this.requestSongUrlSuccess(item, data);
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -272,7 +319,8 @@
 				// 	this.isLoadingSong = false;
 				// 	uni.hideLoading();
 				//  item.url = data;
-				// 	bgMp3Player.play(item);
+				//  songStore.addSong(item);
+				// 	bgPlayer.play(item);
 				// }, (error) => {
 				// 	this.requestError(error);
 				// });
@@ -282,11 +330,44 @@
 				// 	this.isLoadingSong = false;
 				// 	uni.hideLoading();
 				//  item.url = data;
-				// 	bgMp3Player.play(item);
+				//  songStore.addSong(item);
+				// 	bgPlayer.play(item);
 				// }, (error) => {
 				// 	this.requestError(error);
 				// });
+			},
+			requestSongUrlSuccess(item, data) {
+				this.isLoadingSong = false;
+				uni.hideLoading();
+				item.url = data;
+				songStore.addSong(item);
+				if (!this.showController) {
+					this.showController = true;
+				}
+				this.picUrl = item.albumUrl;
+				this.songName = item.name;
+				bgPlayer.play(item);
+			},
+			onClickPlayBtn() {
+				if (this.playStatus) {
+					bgPlayer.pause();
+				} else {
+					bgPlayer.replay();
+				}
+			},
+			onClickNextBtn() {
+				const nextSong = songStore.getNextSong();
+				this.picUrl = nextSong.albumUrl;
+				this.songName = nextSong.name;
+				bgPlayer.play(nextSong);
+			},
+			onClickListBtn() {
+				this.$refs.popup.open('bottom');
+			},
+			change(e) {
+				this.show = e.show;
 			}
+
 		},
 		watch: {
 			songList: {
@@ -336,6 +417,17 @@
 			.item-hover {
 				background-color: #F0F0F0;
 			}
+
+			&-margin {
+				margin: 10px 0 50px;
+			}
+		}
+
+		.controller-sticky {
+			width: 100%;
+			position: fixed;
+			z-index: 99;
+			bottom: 0;
 		}
 	}
 </style>

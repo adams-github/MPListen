@@ -1,7 +1,13 @@
 <script>
+	import songStore from '@/utils/songStore.js'
 	export default {
 		onLaunch: function() {
 			console.log('App Launch')
+			songStore.loadAllSongs();
+			songStore.loadCurPlaySong();
+			songStore.loadPlayMode();
+			songStore.loadNextIndex();
+			songStore.loadLastSong();
 		},
 		onShow: function() {
 			console.log('App Show')
