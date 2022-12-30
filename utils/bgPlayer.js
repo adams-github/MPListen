@@ -10,7 +10,7 @@ function getBpManager(){
 	if(typeof bgAudioManager === 'undefined' || bgAudioManager == null){
 		bgAudioManager = uni.getBackgroundAudioManager();
 		bgAudioManager.onError((res) => {
-			bgPlayer.playNext();
+			// bgPlayer.playNext();
 		});
 		bgAudioManager.onPrev((res) => {
 			bgPlayer.playPre();

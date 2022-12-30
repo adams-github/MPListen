@@ -14,7 +14,8 @@
 				<view>
 					<block v-for="(item, index) in songList" :key="index">
 						<view class="item-box" hover-class="item-hover" @click="itemClick(item)">
-							<text style="color: #22D59C; font-size: 16px;">{{item.name}}</text>
+							<text class="item-songname"
+								:class="{'item-songname-vip' : item.isFree != true}">{{item.name}}</text>
 							<text style="color: #7d7d7d; font-size: 13px; margin-top: 3px;">
 								{{item.singer + (item.albumName != ''? ' -' + '《' + item.albumName + '》' : '')}}</text>
 						</view>
@@ -32,22 +33,22 @@
 			</MusicController>
 		</view>
 
-		<uni-popup ref="popup" background-color="#fff" @change="change" >
+		<uni-popup ref="popup" background-color="#fff" @change="change">
 			<playList :playing_song="playingSong"></playList>
 		</uni-popup>
-		
+
 
 	</view>
 </template>
 
 <script>
-	import songStore from '@/utils/songStore.js'
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
 	// import neteaseJs from '@/api/netease.js'
 	// import miguJs from '@/api/migu.js'
 
+	import songStore from '@/utils/songStore.js'
 	import bgPlayer from '@/utils/bgPlayer.js'
 
 	export default {
@@ -118,10 +119,14 @@
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
 			});
 			this.playStatus = bgPlayer.isPlaying();
-			this.picUrl = songStore.getCurPlayingSong().albumUrl;
-			this.songName = songStore.getCurPlayingSong().name;
+			if (typeof songStore.getCurPlayingSong() != 'undefined') {
+				this.picUrl = songStore.getCurPlayingSong().albumUrl;
+				this.songName = songStore.getCurPlayingSong().name;
+			}
 			if (this.playStatus) {
 				this.playingSong = songStore.getCurPlayingSong();
 			} else {
@@ -273,6 +278,15 @@
 				}
 			},
 			itemClick(item) {
+				if (item.isFree != true) {
+					uni.showToast({
+						title: '没有版权或需要VIP',
+						icon: 'none',
+						position: 'bottom'
+					});
+					return;
+				}
+
 				uni.showLoading();
 				switch (this.platformIndex) {
 					case 0:
@@ -309,29 +323,22 @@
 			},
 			kugouSongData(item) {
 				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
-					this.requestSongUrlSuccess(item, data);
+					item.albumUrl = data.img;
+					this.requestSongUrlSuccess(item, data.url);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			miguSongUrl(item) {
 				// miguJs.miguSongUrl(item.id, (data) => {
-				// 	this.isLoadingSong = false;
-				// 	uni.hideLoading();
-				//  item.url = data;
-				//  songStore.addSong(item);
-				// 	bgPlayer.play(item);
+				// 	this.requestSongUrlSuccess(item, data);
 				// }, (error) => {
 				// 	this.requestError(error);
 				// });
 			},
 			neteaseSongUrl(item) {
 				// neteaseJs.neteaseSongUrl(item.id, (data) => {
-				// 	this.isLoadingSong = false;
-				// 	uni.hideLoading();
-				//  item.url = data;
-				//  songStore.addSong(item);
-				// 	bgPlayer.play(item);
+				// 	this.requestSongUrlSuccess(item, data);
 				// }, (error) => {
 				// 	this.requestError(error);
 				// });
@@ -412,6 +419,14 @@
 				flex-direction: column;
 				padding: 10px 15px;
 
+				.item-songname {
+					color: #22D59C;
+					font-size: 16px;
+
+					&-vip {
+						color: #7d7d7d;
+					}
+				}
 			}
 
 			.item-hover {

@@ -43,7 +43,8 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.artist,
 						albumName: item.album,
 						albumUrl: item.albumpic,
-						albumId: item.albumid
+						albumId: item.albumid,
+						isFree: true
 					})
 				});
 				successCb(songList);
@@ -76,7 +77,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 		display_type: 2,
 		vipver: '10.3.2.0',
 		stype: 'comprehensive',
-		
+
 		user: 'fa205f414ddefc1e',
 		android_id: 'fa205f414ddefc1e',
 		prod: 'kwplayer_ar_10.3.2.0',
@@ -98,7 +99,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 			let songList = [];
 			res.abslist.forEach((item, index) => {
 				let songName = item.SONGNAME;
-				if(item.SONGNAME.indexOf('-') != -1){
+				if (item.SONGNAME.indexOf('-') != -1) {
 					songName = item.SONGNAME.substr(0, item.SONGNAME.indexOf('-'));
 					let subTitle = item.SONGNAME.substr(item.SONGNAME.indexOf('-') + 1);
 				}
@@ -110,7 +111,8 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					singer: item.ARTIST,
 					albumName: item.ALBUM,
 					albumUrl: item.hts_MVPIC,
-					albumId: item.ALBUMID
+					albumId: item.ALBUMID,
+					isFree: true
 				})
 			});
 			successCb(songList);

@@ -25,15 +25,40 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 			if (typeof successCb === 'function') {
 				let songList = [];
 				res.data.lists.forEach((item, index) => {
+					let free = item.PayType == 0;
+					let songId = item.FileHash;
+					let AlbumID = item.AlbumID;
+					if (!free) {
+						free = item.PayType != 2 && item.trans_param.cpy_attr0 == 0;
+					}
+					if (!free) {
+						// item.Grp.forEach((ele, idx) => {
+						// 	if (ele.PayType != 2 && ele.trans_param.cpy_attr0 == 0) {
+						// 		songId = ele.FileHash;
+						// 		AlbumID = ele.AlbumID;
+						// 		free = true;
+						// 		break;
+						// 	}
+						// });
+						for (let i = 0; i < item.Grp.length; i++) {
+							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 == 0) {
+								songId = item.Grp[i].FileHash;
+								AlbumID = item.Grp[i].AlbumID;
+								free = true;
+								break;
+							}
+						}
+					}
 					songList.push({
 						platform: 'kugou',
-						id: item.FileHash,
+						id: songId,
 						name: item.SongName,
 						url: '',
 						singer: item.Singers[0].name,
 						albumName: item.AlbumName,
 						albumUrl: '',
-						albumId: item.AlbumID
+						albumId: AlbumID,
+						isFree: free
 					})
 				});
 				successCb(songList);
@@ -78,7 +103,8 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				if (typeof successCb === 'function') {
 					successCb({
 						url: res.data.play_url,
-						img: res.data.img
+						img: res.data.img,
+						lyrics:res.data.lyrics
 					});
 				}
 			} else {

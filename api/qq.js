@@ -47,7 +47,8 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.singer[0].name,
 						albumName: item.album.name,
 						albumUrl: '',
-						albumId: item.id
+						albumId: item.id,
+						isFree: true
 					})
 				});
 				successCb(songList);

@@ -51,6 +51,8 @@
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
 			});
 			this.playStatus = bgPlayer.isPlaying();
 			if (this.playStatus) {
