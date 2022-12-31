@@ -308,8 +308,14 @@
 			},
 
 			kuwoSongUrl(item) {
-				kuwoJs.kuwoSongUrl(item.id, (data) => {
-					this.requestSongUrlSuccess(item, data);
+				//获取图片url, 再获取歌曲url
+				kuwoJs.kuwoSongInfo(item.id, (data) => {
+					item.albumUrl = data.img;
+					kuwoJs.kuwoSongUrl(item.id, (data) => {
+						this.requestSongUrlSuccess(item, data);
+					}, (error) => {
+						this.requestError(error);
+					});
 				}, (error) => {
 					this.requestError(error);
 				});

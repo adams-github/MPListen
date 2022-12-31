@@ -1,9 +1,12 @@
 <template>
 	<view class="container">
 		<view class="controller-box">
-			<image class="picture" :src="picUrl" @click="onClickPicture"></image>
-			<text style="color: black; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%;">{{songName}}</text>
-			<image class="play" :src="playStatus ? require('../../static/ic_main_pause.png'):require('../../static/ic_main_play.png')" @click="onClickPlay"></image>
+			<image class="picture" :src="picUrl" @click="onClickPicture" @error="loadImgError"></image>
+			<text
+				style="color: black; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%;">{{songName}}</text>
+			<image class="play"
+				:src="playStatus ? require('../../static/ic_main_pause.png'):require('../../static/ic_main_play.png')"
+				@click="onClickPlay"></image>
 			<image class="next" src="../../static/ic_main_next.png" @click="onClickNext"></image>
 			<image class="list" src="../../static/ic_main_songsheet_active.png" @click="onClickList"></image>
 		</view>
@@ -32,11 +35,7 @@
 			pic_url: {
 				immediate: true,
 				handler(val) {
-					if (typeof val != 'undefined' && val != null && val != ''){
-						this.picUrl = val;
-					}else{
-						this.picUrl = '../../static/ic_main_cd_default.jpg';
-					}
+					this.picUrl = val;
 				}
 			},
 			song_name: {
@@ -54,22 +53,25 @@
 		},
 		data() {
 			return {
-				picUrl: '../../static/ic_main_cd_default.jpg',
+				picUrl: '',
 				songName: '',
 				playStatus: false
 			};
 		},
-		methods:{
-			onClickPicture(){
+		methods: {
+			loadImgError() {
+				this.picUrl = '../../static/ic_main_cd_default.jpg';
+			},
+			onClickPicture() {
 				this.$emit("clickPic");
 			},
-			onClickPlay(){
+			onClickPlay() {
 				this.$emit("clickPlay");
 			},
-			onClickNext(){
+			onClickNext() {
 				this.$emit("clickNext");
 			},
-			onClickList(){
+			onClickList() {
 				this.$emit("clickList");
 			}
 		}

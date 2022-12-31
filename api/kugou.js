@@ -25,12 +25,12 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 			if (typeof successCb === 'function') {
 				let songList = [];
 				res.data.lists.forEach((item, index) => {
-					let free = item.PayType == 0;
+					let free = item.PayType != 2 && item.trans_param.cpy_attr0 == 0;
 					let songId = item.FileHash;
+					let songName = item.SongName;
 					let AlbumID = item.AlbumID;
-					if (!free) {
-						free = item.PayType != 2 && item.trans_param.cpy_attr0 == 0;
-					}
+					let AlbumName = item.AlbumName;
+					let singerName = item.SingerName;
 					if (!free) {
 						// item.Grp.forEach((ele, idx) => {
 						// 	if (ele.PayType != 2 && ele.trans_param.cpy_attr0 == 0) {
@@ -43,7 +43,10 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 						for (let i = 0; i < item.Grp.length; i++) {
 							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 == 0) {
 								songId = item.Grp[i].FileHash;
+								songName = item.Grp[i].SongName;
 								AlbumID = item.Grp[i].AlbumID;
+								AlbumName = item.Grp[i].AlbumName;
+								singerName = item.Grp[i].SingerName;
 								free = true;
 								break;
 							}
@@ -52,10 +55,10 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 					songList.push({
 						platform: 'kugou',
 						id: songId,
-						name: item.SongName,
+						name: songName,
 						url: '',
-						singer: item.Singers[0].name,
-						albumName: item.AlbumName,
+						singer: singerName,
+						albumName: AlbumName,
 						albumUrl: '',
 						albumId: AlbumID,
 						isFree: free
@@ -109,7 +112,7 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('酷狗没有版权或需要VIP');
+					errorCb('酷狗没有音源或需要VIP');
 				}
 			}
 		} else {

@@ -2,6 +2,7 @@ import requester from "@/utils/request.js"
 
 const BASE_URL_QQ = "https://u.y.qq.com";
 const URL_SEARCH_QQ = "/cgi-bin/musicu.fcg";
+const URL_LYRIC_QQ = "https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg";
 
 let qqJs = {};
 
@@ -39,16 +40,46 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 			if (typeof successCb === 'function') {
 				let songList = [];
 				res.req.data.body.song.list.forEach((item, index) => {
+					let free = item.pay.pay_play == 0 && item.action.alert != 0;
+					let songId = item.mid;
+					let songName = item.name;
+					let singerName = '';
+					let album_name = item.album.name;
+					item.singer.forEach((singer_name, idx) => {
+						if (idx != 0) {
+							singerName += '、';
+						}
+						singerName += singer_name.name;
+					});
+					if (!free) {
+						for (let i = 0; i < item.grp.length; i++) {
+							if (item.grp[i].pay.pay_play == 0 && item.grp[i].action.alert != 0) {
+								songId = item.grp[i].mid;
+								songName = item.grp[i].name;
+								album_name = item.grp[i].album.name;
+								singerName = '';
+								item.grp[i].singer.forEach((singer_name, idx) => {
+									if (idx != 0) {
+										singerName += '、';
+									}
+									singerName += singer_name.name;
+								});
+								free = true;
+								break;
+							}
+						}
+					}
 					songList.push({
 						platform: 'qq',
-						id: item.mid,
-						name: item.name,
+						id: songId,
+						name: songName,
 						url: '',
-						singer: item.singer[0].name,
-						albumName: item.album.name,
-						albumUrl: '',
+						singer: singerName,
+						albumName: album_name,
+						albumUrl: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
+							item.album.mid + '.jpg',
 						albumId: item.id,
-						isFree: true
+						isFree: free
 					})
 				});
 				successCb(songList);
@@ -67,7 +98,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 }
 
 /**
- * 通过歌曲的id来获取mp3的播放连接，大概率也是有播放期限限制的(路径带有日期)
+ * 通过歌曲的id来获取mp3的播放连接，大概率是有播放期限限制的(路径带有日期)
  */
 qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 	const request_url = BASE_URL_QQ + URL_SEARCH_QQ;
@@ -112,7 +143,7 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('QQ没有版权或需要VIP');
+					errorCb('QQ没有音源或需要VIP');
 				}
 			}
 		} else {
@@ -127,5 +158,40 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 		}
 	});
 };
+
+qqJs.qqlyric = function(songId, successCb, errorCb) {
+	const request_url = URL_LYRIC_QQ;
+	const request_data = {
+		songmid: songId,
+		g_tk: 5381,
+		format: 'json',
+		inCharset: 'utf8',
+		outCharset: 'utf-8',
+		nobase64: 1
+	}
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (res.code === 0) {
+			if (typeof successCb === 'function') {
+				successCb(res.lyric);
+			}
+		} else {
+			if (typeof errorCb === 'function') {
+				errorCb("请求失败: qqlyric()");
+			}
+		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
 
 export default qqJs

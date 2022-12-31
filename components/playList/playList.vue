@@ -20,7 +20,7 @@
 						<text class="item-singer"
 							:class="{'item-singer-playing' : playingIndex === index}">{{item.singer}}</text>
 					</view>
-					<uni-icons style="margin-right: 15px;" type="closeempty" @tap.native.stop="remove(index)">
+					<uni-icons style=" margin-right: 15px;" type="closeempty" size="20" @tap.native.stop="remove(index)">
 					</uni-icons>
 				</view>
 			</block>

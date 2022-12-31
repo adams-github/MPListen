@@ -55,14 +55,14 @@
 				this.songName = this.playingSong.name;
 			});
 			this.playStatus = bgPlayer.isPlaying();
+			if (typeof songStore.getCurPlayingSong() != 'undefined') {
+				this.picUrl = songStore.getCurPlayingSong().albumUrl;
+				this.songName = songStore.getCurPlayingSong().name;
+			}
 			if (this.playStatus) {
 				this.playingSong = songStore.getCurPlayingSong();
 			} else {
 				this.playingSong = {};
-			}
-			if (typeof songStore.getCurPlayingSong() != 'undefined') {
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
 			}
 		},
 		onHide() {

@@ -4,6 +4,7 @@ const URL_KUWO_SERACH = "https://search.kuwo.cn/r.s";
 const BASE_URL_KUWO = "https://www.kuwo.cn";
 const URL_SEARCH_KUWO = "/api/www/search/searchMusicBykeyWord";
 const URL_MP3_KUWO = "https://antiserver.kuwo.cn/anti.s";
+const URL_MP3_INFO_KUWO = "https://m.kuwo.cn/newh5/singles/songinfoandlrc";
 
 let kuwoJs = {}
 
@@ -110,7 +111,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					url: '',
 					singer: item.ARTIST,
 					albumName: item.ALBUM,
-					albumUrl: item.hts_MVPIC,
+					albumUrl: '',
 					albumId: item.ALBUMID,
 					isFree: true
 				})
@@ -142,7 +143,41 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 		request_header
 	}).then((res) => {
 		if (typeof successCb === 'function') {
-			successCb(res)
+			successCb(res);
+		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
+	const request_url = URL_MP3_INFO_KUWO;
+	const request_data = {
+		musicId: songId
+	};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (res.status === 200) {
+			if (typeof successCb === 'function') {
+				let data = {
+					lrclist: res.data.lrclist,
+					img: res.data.songinfo.pic
+				}
+				successCb(data);
+			}
+		} else {
+			if (typeof errorCb === 'function') {
+				errorCb(res.msg);
+			}
 		}
 	}).catch((error) => {
 		console.log(error);
