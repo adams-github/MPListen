@@ -130,7 +130,7 @@
 			position: fixed;
 			z-index: 99;
 			bottom: 0;
-			box-shadow: 0px -10px 20px rgb(235, 235, 235);
+			box-shadow: 0px -5px 10px rgb(245, 245, 245);
 		}
 	}
 </style>
