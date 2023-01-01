@@ -43,8 +43,8 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 					let free = item.pay.pay_play == 0 && item.action.alert != 0;
 					let songId = item.mid;
 					let songName = item.name;
-					let singerName = '';
 					let album_name = item.album.name;
+					let singerName = '';
 					item.singer.forEach((singer_name, idx) => {
 						if (idx != 0) {
 							singerName += '、';
@@ -78,7 +78,6 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						albumName: album_name,
 						albumUrl: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
 							item.album.mid + '.jpg',
-						albumId: item.id,
 						isFree: free
 					})
 				});
@@ -159,6 +158,9 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 	});
 };
 
+/**
+ * qq平台的歌词接口对header中的referer字段做了判断，所以qq平台的歌词无法获取
+ */
 qqJs.qqlyric = function(songId, successCb, errorCb) {
 	const request_url = URL_LYRIC_QQ;
 	const request_data = {
@@ -170,7 +172,10 @@ qqJs.qqlyric = function(songId, successCb, errorCb) {
 		nobase64: 1
 	}
 	const request_method = "GET";
-	const request_header = {};
+	const request_header = {
+		'content-type':'text/html;charset=utf-8',
+		'referer':'https://y.qq.com/'
+	};
 	requester.request({
 		request_url,
 		request_data,
@@ -194,4 +199,4 @@ qqJs.qqlyric = function(songId, successCb, errorCb) {
 	});
 }
 
-export default qqJs
+export default qqJs;

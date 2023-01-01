@@ -2,6 +2,7 @@
 // #ifndef VUE3
 import Vue from 'vue'
 import App from './App'
+import 'weapp-cookie'
 
 Vue.config.productionTip = false
 

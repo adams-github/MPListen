@@ -263,5 +263,9 @@ songStore.getPreSong = function() {
 	}
 }
 
+songStore.getSongByIndex = function(index){
+	return songList[index];
+}
+
 
 export default songStore;

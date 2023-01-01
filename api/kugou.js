@@ -32,14 +32,6 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 					let AlbumName = item.AlbumName;
 					let singerName = item.SingerName;
 					if (!free) {
-						// item.Grp.forEach((ele, idx) => {
-						// 	if (ele.PayType != 2 && ele.trans_param.cpy_attr0 == 0) {
-						// 		songId = ele.FileHash;
-						// 		AlbumID = ele.AlbumID;
-						// 		free = true;
-						// 		break;
-						// 	}
-						// });
 						for (let i = 0; i < item.Grp.length; i++) {
 							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 == 0) {
 								songId = item.Grp[i].FileHash;
@@ -129,4 +121,4 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 	});
 }
 
-export default kugouJs
+export default kugouJs;

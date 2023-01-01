@@ -1,6 +1,4 @@
 import requester from "@/utils/request.js"
-// import md5 from "@/utils/lib/md5.js"
-// import util from "@/utils/lib/util.js"
 import forge from "@/utils/lib/index.js"
 
 
@@ -74,13 +72,14 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 					songList.push({
 						platform: 'migu',
 						id: item.id,
-						name: item.songName,
+						name: item.name,
 						quality: item.toneControl,
 						url: '',
 						singer: item.singer,
 						albumName: item.album,
 						albumUrl: item.albumImgs[0].img,
-						isFree: item.vipType === ''
+						isFree: (typeof item.listenFlag === 'undefined' || item.listenFlag ==
+							'4' || item.listenFlag == '7') && item.isInSalesPeriod != '1'
 					})
 				});
 				successCb(songList);

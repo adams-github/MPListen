@@ -16,7 +16,7 @@
 						<view class="item-box" hover-class="item-hover" @click="itemClick(item)">
 							<text class="item-songname"
 								:class="{'item-songname-vip' : item.isFree != true}">{{item.name}}</text>
-							<text style="color: #7d7d7d; font-size: 13px; margin-top: 3px;">
+							<text class="item-songInfo" :class="{'item-songInfo-vip' : item.isFree != true}">
 								{{item.singer + (item.albumName != ''? ' -' + '《' + item.albumName + '》' : '')}}</text>
 						</view>
 					</block>
@@ -34,10 +34,13 @@
 		</view>
 
 		<uni-popup ref="popup" background-color="#fff" @change="change">
-			<playList :playing_song="playingSong"></playList>
+			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onDeleteItemClick="onClickSongDelete"></playList>
 		</uni-popup>
 
-
+		<uni-popup ref="alertDialog" type="dialog">
+			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
+				@confirm="onDeleteConfirm" ></uni-popup-dialog>
+		</uni-popup>
 	</view>
 </template>
 
@@ -67,11 +70,11 @@
 						"id": 2
 					},
 					{
-						"label": "咪咕音乐",
+						"label": "网易云音乐",
 						"id": 3
 					},
 					{
-						"label": "网易云音乐",
+						"label": "咪咕音乐",
 						"id": 4
 					},
 				],
@@ -97,6 +100,9 @@
 				songName: '',
 				playStatus: false,
 				playingSong: {},
+				tempDeleteIndex: -1,
+				deleteIndex: -1,
+				deleteInfo:'',
 				show: false,
 			};
 		},
@@ -179,10 +185,10 @@
 						this.exceQQSearch(label);
 						break;
 					case 3:
-						this.exceMiguSearch(label);
+						this.exceNeteaseSearch(label);
 						break;
 					case 4:
-						this.exceNeteaseSearch(label);
+						this.exceMiguSearch(label);
 						break;
 				}
 			},
@@ -237,7 +243,11 @@
 				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
-					this.requestError(error);
+					if (error == -462) {
+						this.exceNeteaseSearch(label);
+					} else {
+						this.requestError(error);
+					}
 				});
 			},
 			exceMiguSearch(label) {
@@ -299,10 +309,10 @@
 						this.qqSongUrl(item);
 						break;
 					case 3:
-						this.miguSongUrl(item);
+						this.neteaseSongUrl(item);
 						break;
 					case 4:
-						this.neteaseSongUrl(item);
+						this.miguSongUrl(item);
 						break;
 				}
 			},
@@ -346,7 +356,11 @@
 				neteaseJs.neteaseSongUrl(item.id, (data) => {
 					this.requestSongUrlSuccess(item, data);
 				}, (error) => {
-					this.requestError(error);
+					if (error == -462) {
+						this.neteaseSongUrl(item);
+					} else {
+						this.requestError(error);
+					}
 				});
 			},
 			requestSongUrlSuccess(item, data) {
@@ -375,7 +389,17 @@
 				bgPlayer.play(nextSong);
 			},
 			onClickListBtn() {
+				this.deleteIndex = -1;
 				this.$refs.popup.open('bottom');
+			},
+			onClickSongDelete(index){
+				this.tempDeleteIndex = index;
+				const deleteSong = songStore.getSongByIndex(index);
+				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
+				this.$refs.alertDialog.open()
+			},
+			onDeleteConfirm(){
+				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
 				this.show = e.show;
@@ -430,7 +454,17 @@
 					font-size: 16px;
 
 					&-vip {
-						color: #7d7d7d;
+						color: #c7c7c7;
+					}
+				}
+
+				.item-songInfo {
+					color: #7d7d7d;
+					font-size: 13px;
+					margin-top: 3px;
+
+					&-vip {
+						color: #c7c7c7;
 					}
 				}
 			}

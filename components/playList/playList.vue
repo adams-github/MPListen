@@ -20,8 +20,11 @@
 						<text class="item-singer"
 							:class="{'item-singer-playing' : playingIndex === index}">{{item.singer}}</text>
 					</view>
-					<uni-icons style=" margin-right: 15px;" type="closeempty" size="20" @tap.native.stop="remove(index)">
-					</uni-icons>
+					<view style="height: 30px; padding: 0 15px; display: flex; align-items: center;"
+						@tap.native.stop="remove(index)">
+						<uni-icons type="closeempty" size="20">
+						</uni-icons>
+					</view>
 				</view>
 			</block>
 		</scroll-view>
@@ -34,12 +37,17 @@
 
 	export default {
 		name: "playList",
+		emits: ['onDeleteItemClick'],
 		props: {
 			playing_song: {
 				type: Object,
 				default: () => {
 					return {};
 				}
+			},
+			delete_index: {
+				type: Number,
+				default: -1
 			}
 		},
 		watch: {
@@ -53,6 +61,18 @@
 					this.playingSong = val;
 					if (typeof this.songList != 'undefined' && this.songList != null && this.songList.length > 0) {
 						this.playingIndex = this.songList.findIndex(this.findIndex);
+					}
+				}
+			},
+			delete_index: {
+				immediate: true,
+				handler(val) {
+					if (val != -1) {
+						this.songCount--;
+						songStore.removeSong(val);
+						if (val == this.playingIndex) {
+							this.playingIndex = -1;
+						}
 					}
 				}
 			}
@@ -97,11 +117,7 @@
 				songStore.clickSong(index);
 			},
 			remove(index) {
-				this.songCount--;
-				songStore.removeSong(index);
-				if (index == this.playingIndex) {
-					this.playingIndex = -1;
-				}
+				this.$emit("onDeleteItemClick", index);
 			},
 			findIndex(item) {
 				return item.id === this.playingSong.id && item.platform === this.playingSong.platform;
@@ -139,7 +155,7 @@
 			max-height: 350px;
 
 			.item-box {
-				width: 100%;
+				width: 70%;
 				display: flex;
 				flex-direction: column;
 				justify-content: center;

@@ -112,7 +112,6 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					singer: item.ARTIST,
 					albumName: item.ALBUM,
 					albumUrl: '',
-					albumId: item.ALBUMID,
 					isFree: true
 				})
 			});
@@ -187,4 +186,4 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 	});
 }
 
-export default kuwoJs
+export default kuwoJs;

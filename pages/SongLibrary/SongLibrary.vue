@@ -13,9 +13,13 @@
 		</view>
 
 		<uni-popup ref="popup" background-color="#fff" type="bottom" @change="change">
-			<playList :playing_song="playingSong"></playList>
+			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onDeleteItemClick="onClickSongDelete"></playList>
 		</uni-popup>
 		
+		<uni-popup ref="alertDialog" type="dialog">
+			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
+				@confirm="onDeleteConfirm" ></uni-popup-dialog>
+		</uni-popup>
 	</view>
 </template>
 
@@ -30,6 +34,9 @@
 				songName: '',
 				playStatus: false,
 				playingSong: {},
+				tempDeleteIndex: -1,
+				deleteIndex: -1,
+				deleteInfo:'',
 				show: false,
 			};
 		},
@@ -91,7 +98,17 @@
 				bgPlayer.play(nextSong);
 			},
 			onClickListBtn() {
+				this.deleteIndex = -1;
 				this.$refs.popup.open('bottom');
+			},
+			onClickSongDelete(index){
+				this.tempDeleteIndex = index;
+				const deleteSong = songStore.getSongByIndex(index);
+				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
+				this.$refs.alertDialog.open()
+			},
+			onDeleteConfirm(){
+				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
 				this.show = e.show;
