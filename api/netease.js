@@ -1,39 +1,14 @@
 import requester from "@/utils/request.js"
-import forge from 'node-forge'
+// import md5 from "@/utils/lib/md5.js"
+// import util from "@/utils/lib/util.js"
+import forge from "@/utils/lib/index.js"
+
 
 const BASE_URL_NETEASE = "https://music.163.com";
 const URL_SEARCH_NETEASE = "/api/search/pc";
 const URL_MP3_NETEASE = "/eapi/song/enhance/player/url";
 
 let neteaseJs = {};
-
-
-function eapi(url, object) {
-	const eapiKey = 'e82ckenh8dichen8';
-	const text = typeof object === 'object' ? JSON.stringify(object) : object;
-	const message = 'nobody' + url + 'use' + text + 'md5forencrypt';
-	const digest = forge.md5
-		.create()
-		.update(forge.util.encodeUtf8(message))
-		.digest()
-		.toHex();
-	const data = url + '-36cd479b6b5-' + text + '-36cd479b6b5-' + digest;
-
-	return {
-		params: aes_encrypt(data, eapiKey, 'AES-ECB').toHex().toUpperCase(),
-	};
-}
-
-function aes_encrypt(text, sec_key, algo) {
-	const cipher = forge.cipher.createCipher(algo, sec_key);
-	cipher.start({
-		iv: '0102030405060708'
-	});
-	cipher.update(forge.util.createBuffer(text));
-	cipher.finish();
-
-	return cipher.output;
-}
 
 /**
  * 网易云的接口必须加上cookie，不然会返回-462的报错
@@ -89,6 +64,35 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 		}
 	});
 };
+
+
+function eapi(url, object) {
+	const eapiKey = 'e82ckenh8dichen8';
+	const text = typeof object === 'object' ? JSON.stringify(object) : object;
+	const message = 'nobody' + url + 'use' + text + 'md5forencrypt';
+	const digest = forge.md5
+		.create()
+		.update(forge.util.encodeUtf8(message))
+		.digest()
+		.toHex();
+	const data = url + '-36cd479b6b5-' + text + '-36cd479b6b5-' + digest;
+
+	return {
+		params: aes_encrypt(data, eapiKey, 'AES-ECB').toHex().toUpperCase(),
+	};
+}
+
+function aes_encrypt(text, sec_key, algo) {
+	const cipher = forge.cipher.createCipher(algo, sec_key);
+	cipher.start({
+		iv: '0102030405060708'
+	});
+	cipher.update(forge.util.createBuffer(text));
+	cipher.finish();
+
+	return cipher.output;
+}
+
 
 /**
  * 通过歌曲的id来获取mp3的播放连接，大概率也是有播放期限限制的(路径带有日期)

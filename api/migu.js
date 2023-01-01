@@ -1,7 +1,7 @@
 import requester from "@/utils/request.js"
-// import forge from 'node-forge'
-import md5 from "@/utils/md5.js"
-import util from "@/utils/util.js"
+// import md5 from "@/utils/lib/md5.js"
+// import util from "@/utils/lib/util.js"
+import forge from "@/utils/lib/index.js"
 
 
 const BASE_URL_MIGU = "https://jadeite.migu.cn";
@@ -44,7 +44,7 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 		sort: 1
 	};
 
-	const deviceId = md5
+	const deviceId = forge.md5
 		.create()
 		.update(uuid().replace(/-/g, ''))
 		.digest()
@@ -52,7 +52,7 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 		.toLocaleUpperCase(); // 设备的UUID
 	const timestamp = new Date().getTime();
 	const text = label + signature_md5 + 'yyapp2d16148780a1dcc7408e06336b98cfd50' + deviceId + timestamp;
-	const sign = md5.create().update(util.encodeUtf8(text)).digest().toHex();
+	const sign = forge.md5.create().update(forge.util.encodeUtf8(text)).digest().toHex();
 
 	const request_method = "GET";
 	const request_header = {

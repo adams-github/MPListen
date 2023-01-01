@@ -123,24 +123,17 @@ util.isNodejs =
 //   return typeof self === 'undefined' ? window : self;
 // })();
 
+//对globalScope重新定义，不然在小程序会报错：Cannot read property 'crypto' of undefined
 util.globalScope = {
-	crypto:{
-	        getRandomValues(array){
-	            for (var i = 0, l = array.length; i < l; i++) {
-	                let r = Math.floor(Math.random() * 3)+8;
-	                array[i] = +Math.random().toFixed(r).split(".")[1]
-	            }
-	            return array;
-	        }
-	    }
-}
-
-util.getRandomValues = function(array){
-	for (var i = 0, l = array.length; i < l; i++) {
-	    let r = Math.floor(Math.random() * 3)+8;
-	    array[i] = +Math.random().toFixed(r).split(".")[1]
-	}
-	return array;
+    crypto:{
+        getRandomValues(array){
+            for (var i = 0, l = array.length; i < l; i++) {
+                let r = Math.floor(Math.random() * 3)+8;
+                array[i] = +Math.random().toFixed(r).split(".")[1]
+            }
+            return array;
+        }
+    }
 }
 
 // define isArray

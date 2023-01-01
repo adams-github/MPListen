@@ -45,7 +45,7 @@
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
-	// import neteaseJs from '@/api/netease.js'
+	import neteaseJs from '@/api/netease.js'
 	import miguJs from '@/api/migu.js'
 
 	import songStore from '@/utils/songStore.js'
@@ -234,11 +234,11 @@
 				} else {
 					this.neteaseCurPage++;
 				}
-				// neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
-				// 	this.requestListSuccess(data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
+					this.requestListSuccess(data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			exceMiguSearch(label) {
 				if (this.isRefreshing) {
@@ -343,11 +343,11 @@
 				});
 			},
 			neteaseSongUrl(item) {
-				// neteaseJs.neteaseSongUrl(item.id, (data) => {
-				// 	this.requestSongUrlSuccess(item, data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				neteaseJs.neteaseSongUrl(item.id, (data) => {
+					this.requestSongUrlSuccess(item, data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			requestSongUrlSuccess(item, data) {
 				this.isLoadingSong = false;
