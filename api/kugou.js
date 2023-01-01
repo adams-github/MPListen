@@ -112,7 +112,7 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('酷狗没有音源或需要VIP');
+					errorCb('需要酷狗VIP或没有音源');
 				}
 			}
 		} else {

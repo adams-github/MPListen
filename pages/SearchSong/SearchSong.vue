@@ -46,7 +46,7 @@
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
 	// import neteaseJs from '@/api/netease.js'
-	// import miguJs from '@/api/migu.js'
+	import miguJs from '@/api/migu.js'
 
 	import songStore from '@/utils/songStore.js'
 	import bgPlayer from '@/utils/bgPlayer.js'
@@ -246,11 +246,11 @@
 				} else {
 					this.miguCurPage++;
 				}
-				// miguJs.miguSearch(label, this.miguCurPage, (data) => {
-				// 	this.requestListSuccess(data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				miguJs.miguSearch(label, this.miguCurPage, (data) => {
+					this.requestListSuccess(data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			requestListSuccess(data) {
 				if (this.isRefreshing) {
@@ -336,11 +336,11 @@
 				});
 			},
 			miguSongUrl(item) {
-				// miguJs.miguSongUrl(item.id, (data) => {
-				// 	this.requestSongUrlSuccess(item, data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				miguJs.miguSongUrl(item.id, item.quality, (data) => {
+					this.requestSongUrlSuccess(item, data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			neteaseSongUrl(item) {
 				// neteaseJs.neteaseSongUrl(item.id, (data) => {

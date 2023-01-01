@@ -13,13 +13,6 @@
 			"enablePullDownRefresh": false
 		}
 
-	}, {
-		"path": "pages/RecentPlay/RecentPlay",
-		"style": {
-			"navigationBarTitleText": "MPListen",
-			"enablePullDownRefresh": false
-		}
-
 	}],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

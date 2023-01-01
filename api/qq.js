@@ -143,7 +143,7 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('QQ没有音源或需要VIP');
+					errorCb('需要QQ VIP或没有音源');
 				}
 			}
 		} else {

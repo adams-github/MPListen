@@ -70,7 +70,8 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.artists[0].name,
 						albumName: item.album.name,
 						albumUrl: item.album.picUrl,
-						albumId: item.album.id
+						albumId: item.album.id,
+						isFree:true
 					})
 				});
 				successCb(songList);
@@ -118,7 +119,7 @@ neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('网易没有版权或需要VIP');
+					errorCb('网易没有音源或需要VIP');
 				}
 			}
 		} else {
