@@ -102,6 +102,7 @@
 				this.$refs.popup.open('bottom');
 			},
 			onClickSongDelete(index){
+				this.deleteIndex = -1;
 				this.tempDeleteIndex = index;
 				const deleteSong = songStore.getSongByIndex(index);
 				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
@@ -129,6 +130,7 @@
 			position: fixed;
 			z-index: 99;
 			bottom: 0;
+			box-shadow: 0px -10px 20px rgb(235, 235, 235);
 		}
 	}
 </style>

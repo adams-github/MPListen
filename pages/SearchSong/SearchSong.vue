@@ -6,7 +6,6 @@
 		<view class="tab-sticky">
 			<CommonTabs bgColor="#FAFAFA" :tabsData="tabsData" :defaultIndex="0" @onTabItemClick="onPlatformSelected">
 			</CommonTabs>
-			<view class="divide-line"></view>
 		</view>
 
 		<view class="list_content" :class="{'list_content-margin' : showController === true}">
@@ -290,7 +289,7 @@
 			itemClick(item) {
 				if (item.isFree != true) {
 					uni.showToast({
-						title: '没有版权或需要VIP',
+						title: '需要VIP或没有音源',
 						icon: 'none',
 						position: 'bottom'
 					});
@@ -393,6 +392,7 @@
 				this.$refs.popup.open('bottom');
 			},
 			onClickSongDelete(index){
+				this.deleteIndex = -1;
 				this.tempDeleteIndex = index;
 				const deleteSong = songStore.getSongByIndex(index);
 				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
@@ -433,12 +433,7 @@
 			top: 0;
 			display: flex;
 			flex-direction: column;
-
-			.divide-line {
-				width: 100%;
-				height: 1px;
-				background-color: #F0F0F0;
-			}
+			box-shadow: 0px 20px 20px rgb(235, 235, 235);
 		}
 
 		.list_content {
@@ -483,6 +478,7 @@
 			position: fixed;
 			z-index: 99;
 			bottom: 0;
+			box-shadow: 0px -10px 20px rgb(235, 235, 235);
 		}
 	}
 </style>

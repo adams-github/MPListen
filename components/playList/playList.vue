@@ -164,7 +164,6 @@
 				.item-songname {
 					color: #3a3a3a;
 					font-size: 13px;
-					max-width: 50%;
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;
@@ -178,7 +177,6 @@
 				.item-singer {
 					color: #7d7d7d;
 					font-size: 10px;
-					max-width: 50%;
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;
