@@ -101,11 +101,13 @@ songStore.addSong = function(song) {
 		}
 	} else {
 		const index = songList.findIndex((ele) => ele.id === song.id && ele.platform == song.platform);
-		const songArr = songList.splice(index, 1);
-		songList.unshift(songArr[0]);
-		nextPlayIndex = index + 1;
-		if (nextPlayIndex >= songList.length) {
-			nextPlayIndex = songList.length > 1 ? 1 : 0;
+		if (index >= 0) {
+			const songArr = songList.splice(index, 1);
+			songList.unshift(songArr[0]);
+			nextPlayIndex = index + 1;
+			if (nextPlayIndex >= songList.length) {
+				nextPlayIndex = songList.length > 1 ? 1 : 0;
+			}
 		}
 	}
 
@@ -191,8 +193,10 @@ songStore.clickSong = function(index) {
 	 * 移动到点击的歌到播放列表的第一位
 	 */
 	const songArr = songList.splice(index, 1);
-	curPlayingSong = songArr[0];
-	songList.unshift(curPlayingSong);
+	if (songArr[0] != null) {
+		curPlayingSong = songArr[0];
+		songList.unshift(curPlayingSong);
+	}
 	uni.setStorage({
 		key: CUR_SONG,
 		data: curPlayingSong
@@ -222,8 +226,8 @@ songStore.getNextSong = function() {
 		return null;
 	}
 	if (playMode == 2) {
-		//返回2 - songList.length中的随机数
-		const index = Math.floor(Math.random() * songList.length + 2);
+		//返回1 - songList.length - 1中的随机数
+		const index = Math.floor(Math.random() * songList.length - 1) + 1;
 		songStore.clickSong(index);
 		return curPlayingSong;
 	} else if (playMode == 1) {
@@ -238,8 +242,10 @@ songStore.getNextSong = function() {
 songStore.getPreSong = function() {
 	if (typeof lastSong != 'undefined' && lastSong != null) {
 		const index = songList.findIndex((ele) => ele.id === lastSong.id && ele.platform == lastSong.platform);
-		const songArr = songList.splice(index, 1);
-		songList.unshift(songArr[0]);
+		if (index >= 0) {
+			const songArr = songList.splice(index, 1);
+			songList.unshift(songArr[0]);
+		}
 		uni.setStorage({
 			key: KEY_SONGLIST,
 			data: songList,
@@ -263,7 +269,7 @@ songStore.getPreSong = function() {
 	}
 }
 
-songStore.getSongByIndex = function(index){
+songStore.getSongByIndex = function(index) {
 	return songList[index];
 }
 

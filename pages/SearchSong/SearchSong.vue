@@ -26,19 +26,20 @@
 		</view>
 
 		<view class="controller-sticky" v-show="showController">
-			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus"
+			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" @clickPic="onClickPic"
 				@clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn" @clickList="onClickListBtn">
 
 			</MusicController>
 		</view>
 
 		<uni-popup ref="popup" background-color="#fff" @change="change">
-			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onDeleteItemClick="onClickSongDelete"></playList>
+			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onItemClick="onClickSongItem"
+				@onDeleteItemClick="onClickSongDelete"></playList>
 		</uni-popup>
 
 		<uni-popup ref="alertDialog" type="dialog">
 			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
-				@confirm="onDeleteConfirm" ></uni-popup-dialog>
+				@confirm="onDeleteConfirm"></uni-popup-dialog>
 		</uni-popup>
 	</view>
 </template>
@@ -101,7 +102,7 @@
 				playingSong: {},
 				tempDeleteIndex: -1,
 				deleteIndex: -1,
-				deleteInfo:'',
+				deleteInfo: '',
 				show: false,
 			};
 		},
@@ -227,6 +228,7 @@
 				} else {
 					this.kuwoCurPage++;
 				}
+
 				kuwoJs.kuwoSearchForWX(label, this.kuwoCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
@@ -374,6 +376,14 @@
 				this.songName = item.name;
 				bgPlayer.play(item);
 			},
+			onClickPic() {
+				if (typeof songStore.getCurPlayingSong() != 'undefined' &&
+					songStore.getCurPlayingSong() != null) {
+					uni.navigateTo({
+						url: "/pages/SongDetail/SongDetail"
+					});
+				}
+			},
 			onClickPlayBtn() {
 				if (this.playStatus) {
 					bgPlayer.pause();
@@ -391,14 +401,20 @@
 				this.deleteIndex = -1;
 				this.$refs.popup.open('bottom');
 			},
-			onClickSongDelete(index){
+			onClickSongItem() {
+				this.playStatus = false;
+				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
+			},
+			onClickSongDelete(index) {
 				this.deleteIndex = -1;
 				this.tempDeleteIndex = index;
 				const deleteSong = songStore.getSongByIndex(index);
 				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
 				this.$refs.alertDialog.open()
 			},
-			onDeleteConfirm(){
+			onDeleteConfirm() {
 				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
@@ -433,7 +449,7 @@
 			top: 0;
 			display: flex;
 			flex-direction: column;
-			box-shadow: 0px 10px 10px rgb(245, 245, 245);
+			box-shadow: 0px 20px 20px rgb(240, 240, 240);
 		}
 
 		.list_content {

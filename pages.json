@@ -13,6 +13,14 @@
 			"enablePullDownRefresh": false
 		}
 
+	}, {
+		"path": "pages/SongDetail/SongDetail",
+		"style": {
+			"navigationBarTitleText": "",
+			"enablePullDownRefresh": false,
+			"navigationStyle": "custom"
+		}
+
 	}],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

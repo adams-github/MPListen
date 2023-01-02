@@ -22,8 +22,7 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 	const request_method = "GET";
 	const request_header = {
 		'referer': 'https://www.kuwo.cn',
-		'csrf': 'RVFEJULHRY',
-		'cookie': 'kw_token=RVFEJULHRY'
+		'csrf': 'PA2FX2RWJ4H',
 	};
 	requester.request({
 		request_url,
@@ -44,7 +43,6 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.artist,
 						albumName: item.album,
 						albumUrl: item.albumpic,
-						albumId: item.albumid,
 						isFree: true
 					})
 				});
@@ -167,9 +165,13 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 	}).then((res) => {
 		if (res.status === 200) {
 			if (typeof successCb === 'function') {
+				let picUrl = res.data.songinfo.pic;
+				if (picUrl.indexOf('240') != -1){
+					picUrl = picUrl.replace('240', '700');
+				}
 				let data = {
 					lrclist: res.data.lrclist,
-					img: res.data.songinfo.pic
+					img: picUrl
 				}
 				successCb(data);
 			}

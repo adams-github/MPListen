@@ -69,6 +69,14 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 							}
 						}
 					}
+					let picUrl = '../../static/ic_main_cd_default.jpg';
+					if (item.album.mid != '') {
+						picUrl = 'https://y.gtimg.cn/music/photo_new/T002R500x500M000' +
+							item.album.mid + '.jpg';
+					} else if (item.singer[0].mid != '') {
+						picUrl = 'https://y.qq.com/music/photo_new/T001R500x500M000' +
+							item.singer[0].mid + '.jpg';
+					}
 					songList.push({
 						platform: 'qq',
 						id: songId,
@@ -76,8 +84,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						url: '',
 						singer: singerName,
 						albumName: album_name,
-						albumUrl: 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
-							item.album.mid + '.jpg',
+						albumUrl: picUrl,
 						isFree: free
 					})
 				});
@@ -173,8 +180,8 @@ qqJs.qqlyric = function(songId, successCb, errorCb) {
 	}
 	const request_method = "GET";
 	const request_header = {
-		'content-type':'text/html;charset=utf-8',
-		'referer':'https://y.qq.com/'
+		'content-type': 'text/html;charset=utf-8',
+		'referer': 'https://y.qq.com/'
 	};
 	requester.request({
 		request_url,

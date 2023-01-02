@@ -37,7 +37,7 @@
 
 	export default {
 		name: "playList",
-		emits: ['onDeleteItemClick'],
+		emits: ['onItemClick', 'onDeleteItemClick'],
 		props: {
 			playing_song: {
 				type: Object,
@@ -113,11 +113,20 @@
 			},
 			itemClick(index) {
 				const clickSong = this.songList[index];
-				bgPlayer.play(clickSong);
 				songStore.clickSong(index);
+				this.$emit("onItemClick", index);
+				bgPlayer.play(clickSong);
 			},
 			remove(index) {
-				this.$emit("onDeleteItemClick", index);
+				if (this.songList[index] == null || typeof this.songList[index] === 'undefined') {
+					this.songCount--;
+					songStore.removeSong(index);
+					if (index == this.playingIndex) {
+						this.playingIndex = -1;
+					}
+				} else {
+					this.$emit("onDeleteItemClick", index);
+				}
 			},
 			findIndex(item) {
 				return item.id === this.playingSong.id && item.platform === this.playingSong.platform;
