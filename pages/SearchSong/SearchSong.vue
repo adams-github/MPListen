@@ -404,7 +404,6 @@
 			},
 			onClickSongItem() {
 				this.playStatus = false;
-				// this.playingSong = songStore.getCurPlayingSong();
 				this.picUrl = songStore.getCurPlayingSong().albumUrl;
 				this.songName = songStore.getCurPlayingSong().name;
 			},

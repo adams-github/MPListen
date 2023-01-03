@@ -8,10 +8,11 @@ import miguJs from '@/api/migu.js'
 // 全局音频播放管理
 let bgPlayer = {};
 
-let bgAudioManager;
+let isInited = false;
 let curPlayingSong;
 let playSeek = 0; //播放进度，单位s
 let errorTime = 0; //播放出错次数
+let isPlaying = false;
 
 /**
  * 重新获取播放链接
@@ -75,13 +76,15 @@ function requestSongUrlFailed(error) {
 }
 
 function getBpManager() {
-	if (typeof bgAudioManager === 'undefined' || bgAudioManager == null) {
-		bgAudioManager = uni.getBackgroundAudioManager();
-		bgAudioManager.onError((res) => {
+	if (!isInited) {
+		isInited = true;
+		uni.getBackgroundAudioManager().onError((res) => {
+			uni.getBackgroundAudioManager().stop();
+			isPlaying = false;
 			console.log(res);
 			//播放连接失效都是出现下面两种报错：{errCode: 10004, errMsg: "errCode:55, err:unknow format"}
-			if ((res.errCode == 10004 || res.errMsg == 'setBackgroundAudioState:fail timeout') && errorTime ==
-				0) {
+			if ((res.errCode == 10004 || res.errMsg == 'setBackgroundAudioState:fail timeout') &&
+				errorTime == 0) {
 				//这时候播放连接已经失效，需要重新获取
 				updatePlayUrl();
 			} else {
@@ -93,24 +96,25 @@ function getBpManager() {
 			}
 			errorTime++;
 		});
-		bgAudioManager.onTimeUpdate((res) => {
+		uni.getBackgroundAudioManager().onTimeUpdate((res) => {
 			playSeek = getBpManager().currentTime;
 		});
-		bgAudioManager.onPrev((res) => {
+		uni.getBackgroundAudioManager().onPrev((res) => {
 			bgPlayer.playPre();
 		});
-		bgAudioManager.onNext((res) => {
+		uni.getBackgroundAudioManager().onNext((res) => {
 			bgPlayer.playNext();
 		});
 	}
-	return bgAudioManager;
+	return uni.getBackgroundAudioManager();
 }
 
 /**
  * 获取播放状态，true 表示暂停或停止，false 表示正在播放
  */
 bgPlayer.isPlaying = function() {
-	return !getBpManager().paused && typeof getBpManager().src != 'undefined' && getBpManager().src != null &&
+	return !getBpManager().paused && isPlaying && typeof getBpManager().src != 'undefined' && getBpManager().src !=
+		null &&
 		getBpManager().src != '';
 }
 
@@ -128,12 +132,13 @@ bgPlayer.play = function(song) {
 		curPlayingSong != null &&
 		curPlayingSong.id == song.id &&
 		curPlayingSong.platform == song.platform) {
-		return;
+		getBpManager().stop();
 	}
 	songStore.curPlayingSong = song;
 	curPlayingSong = song;
 	playSeek = 0;
 	errorTime = 0;
+	isPlaying = false;
 
 	getBpManager().title = song.name;
 	getBpManager().singer = song.singer;
@@ -153,10 +158,12 @@ bgPlayer.replay = function() {
 
 bgPlayer.pause = function() {
 	getBpManager().pause();
+	isPlaying = false;
 }
 
 bgPlayer.stop = function() {
 	getBpManager().stop();
+	isPlaying = false;
 }
 
 bgPlayer.playPre = function() {
@@ -165,6 +172,7 @@ bgPlayer.playPre = function() {
 		bgPlayer.play(preSong);
 	} else {
 		bgPlayer.stop();
+		isPlaying = false;
 	}
 }
 
@@ -174,6 +182,7 @@ bgPlayer.playNext = function() {
 		bgPlayer.play(nextSong);
 	} else {
 		bgPlayer.stop();
+		isPlaying = false;
 	}
 }
 
@@ -189,6 +198,7 @@ bgPlayer.seekTo = function(pos) {
  */
 bgPlayer.setOnCanPlay = function(onCanPlayCb) {
 	getBpManager().onCanplay(() => {
+		isPlaying = true;
 		if (typeof onCanPlayCb === 'function') {
 			onCanPlayCb();
 		}
@@ -201,6 +211,7 @@ bgPlayer.setOnCanPlay = function(onCanPlayCb) {
  */
 bgPlayer.setOnEnded = function(endedCb) {
 	getBpManager().onEnded(() => {
+		isPlaying = false;
 		bgPlayer.playNext();
 		if (typeof endedCb === 'function') {
 			endedCb();
@@ -210,6 +221,7 @@ bgPlayer.setOnEnded = function(endedCb) {
 
 bgPlayer.setOnStoped = function(stopedCb) {
 	getBpManager().onStop(() => {
+		isPlaying = false;
 		if (typeof stopedCb === 'function') {
 			stopedCb();
 		}
@@ -218,6 +230,7 @@ bgPlayer.setOnStoped = function(stopedCb) {
 
 bgPlayer.setOnPaused = function(pausedCb) {
 	getBpManager().onPause(() => {
+		isPlaying = false;
 		if (typeof pausedCb === 'function') {
 			pausedCb();
 		}
@@ -226,6 +239,7 @@ bgPlayer.setOnPaused = function(pausedCb) {
 
 bgPlayer.setOnPlayed = function(playedCb) {
 	getBpManager().onPlay(() => {
+		isPlaying = true;
 		if (typeof playedCb === 'function') {
 			playedCb();
 		}

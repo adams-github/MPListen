@@ -1,17 +1,14 @@
 const KEY_SONGLIST = "song_list";
 const PLAY_MODE = "play_mode";
-const CUR_SONG = "cur_song";
-const LAST_SONG = "last_song";
-const NEXT_INDEX = "next_index";
-
+const CUR_INDEX = "cur_index";
+const RANDOM_INDEX = "random_index";
 
 let songStore = {};
 
 let songList = []; //播放列表
 let playMode; //播放模式， 0：单曲循环， 1：顺序播放，2：随机播放
-let lastSong; //上一首歌
-let curPlayingSong;
-let nextPlayIndex; //下一首要播放的歌的下标
+let playingIndex = 0; //当前播放对应的index
+let randomIndex = -1;
 
 
 songStore.loadAllSongs = function() {
@@ -27,6 +24,24 @@ songStore.loadAllSongs = function() {
 			}
 		});
 	}
+}
+
+songStore.loadPlayingIndex = function() {
+	uni.getStorage({
+		key: CUR_INDEX,
+		success: function(res) {
+			playingIndex = res.data;
+		}
+	});
+}
+
+songStore.loadRandomIndex = function() {
+	uni.getStorage({
+		key: RANDOM_INDEX,
+		success: function(res) {
+			randomIndex = res.data;
+		}
+	});
 }
 
 songStore.loadPlayMode = function() {
@@ -45,39 +60,17 @@ songStore.loadPlayMode = function() {
 	});
 }
 
-songStore.loadCurPlaySong = function() {
-	uni.getStorage({
-		key: CUR_SONG,
-		success: function(res) {
-			curPlayingSong = res.data;
-		}
-	});
-}
-
-songStore.loadLastSong = function() {
-	uni.getStorage({
-		key: LAST_SONG,
-		success: function(res) {
-			lastSong = res.data;
-		}
-	});
-}
-
-songStore.loadNextIndex = function() {
-	uni.getStorage({
-		key: NEXT_INDEX,
-		success: function(res) {
-			nextPlayIndex = res.data;
-		}
-	});
-}
-
 songStore.getSongList = function() {
 	return songList;
 }
 
 songStore.getCurPlayingSong = function() {
-	return curPlayingSong;
+	if (playMode == 2) {
+		return songList[randomIndex];
+	} else {
+		return songList[playingIndex];
+	}
+
 }
 
 songStore.getPlayMode = function() {
@@ -94,72 +87,29 @@ songStore.addSong = function(song) {
 			songList.pop();
 		}
 		songList.unshift(song);
-		if (songList.length == 1) {
-			nextPlayIndex = 0;
-		} else {
-			nextPlayIndex++;
-		}
+		uni.setStorage({
+			key: KEY_SONGLIST,
+			data: songList,
+			success: function() {
+				console.log('addSong.success');
+			}
+		});
+		playingIndex = 0;
 	} else {
 		const index = songList.findIndex((ele) => ele.id === song.id && ele.platform == song.platform);
 		if (index >= 0) {
-			const songArr = songList.splice(index, 1);
-			songList.unshift(songArr[0]);
-			nextPlayIndex = index + 1;
-			if (nextPlayIndex >= songList.length) {
-				nextPlayIndex = songList.length > 1 ? 1 : 0;
-			}
+			playingIndex = index;
 		}
 	}
 
-	if (typeof curPlayingSong != 'undefined' && curPlayingSong != null) {
-		if (song.id != curPlayingSong.id || song.platform != curPlayingSong.platform) {
-			lastSong = curPlayingSong;
-			curPlayingSong = song;
-		}
-	} else {
-		curPlayingSong = song;
-	}
-
 	uni.setStorage({
-		key: KEY_SONGLIST,
-		data: songList,
-		success: function() {
-			console.log('addSong.success');
-		}
+		key: CUR_INDEX,
+		data: playingIndex
 	});
-	uni.setStorage({
-		key: CUR_SONG,
-		data: song
-	});
-	uni.setStorage({
-		key: NEXT_INDEX,
-		data: nextPlayIndex
-	});
-
-	if (typeof lastSong != 'undefined' && lastSong != null) {
-		uni.setStorage({
-			key: LAST_SONG,
-			data: lastSong
-		});
-	}
 }
 
 songStore.removeSong = function(index) {
 	songList.splice(index, 1);
-	if (index < nextPlayIndex) {
-		nextPlayIndex--;
-		uni.setStorage({
-			key: NEXT_INDEX,
-			data: nextPlayIndex
-		});
-	}
-	if (nextPlayIndex >= songList.length) {
-		nextPlayIndex = songList.length > 1 ? 1 : 0;
-		uni.setStorage({
-			key: NEXT_INDEX,
-			data: nextPlayIndex
-		});
-	}
 	uni.setStorage({
 		key: KEY_SONGLIST,
 		data: songList,
@@ -167,16 +117,25 @@ songStore.removeSong = function(index) {
 			console.log('removeSong.success');
 		}
 	});
+	if (index < playingIndex) {
+		playingIndex--;
+		uni.setStorage({
+			key: CUR_INDEX,
+			data: playingIndex
+		});
+	} else if (playingIndex >= songList.length) {
+		nextPlayIndex = 0;
+		uni.setStorage({
+			key: CUR_INDEX,
+			data: playingIndex
+		});
+	}
 }
 
 songStore.updateUrl = function(newUrl) {
-	curPlayingSong.url = newUrl;
-	uni.setStorage({
-		key: CUR_SONG,
-		data: curPlayingSong
-	});
-	if (songList[0].id == curPlayingSong.url && songList[0].platform == curPlayingSong.platform) {
-		songList[0].url = newUrl;
+	if (songList[playingIndex].id == curPlayingSong.url && songList[playingIndex].platform == curPlayingSong
+		.platform) {
+		songList[playingIndex].url = newUrl;
 		uni.setStorage({
 			key: KEY_SONGLIST,
 			data: songList,
@@ -187,44 +146,16 @@ songStore.updateUrl = function(newUrl) {
 	}
 }
 
+/**
+ * 记录当前播放到哪一首歌的index
+ */
 songStore.clickSong = function(index) {
-	if (index == 0) return;
+	if (index == playingIndex) return;
 
-	lastSong = curPlayingSong;
+	playingIndex = index;
 	uni.setStorage({
-		key: LAST_SONG,
-		data: lastSong
-	});
-
-	if (playMode == 1) {
-		nextPlayIndex = index + 1;
-		if (nextPlayIndex >= songList.length) {
-			nextPlayIndex = songList.length > 1 ? 1 : 0;
-		}
-		uni.setStorage({
-			key: NEXT_INDEX,
-			data: nextPlayIndex
-		});
-	}
-
-	/**
-	 * 移动到点击的歌到播放列表的第一位
-	 */
-	const songArr = songList.splice(index, 1);
-	if (songArr[0] != null) {
-		curPlayingSong = songArr[0];
-		songList.unshift(curPlayingSong);
-	}
-	uni.setStorage({
-		key: CUR_SONG,
-		data: curPlayingSong
-	});
-	uni.setStorage({
-		key: KEY_SONGLIST,
-		data: songList,
-		success: function() {
-			console.log('clickSong.success');
-		}
+		key: CUR_INDEX,
+		data: playingIndex
 	});
 }
 
@@ -244,53 +175,42 @@ songStore.getNextSong = function() {
 		return null;
 	}
 	if (playMode == 2) {
-		//返回1 - songList.length - 1中的随机数
-		const index = Math.floor(Math.random() * songList.length - 1) + 1;
-		songStore.clickSong(index);
-		return curPlayingSong;
-	} else if (playMode == 1) {
-		songStore.clickSong(nextPlayIndex);
-		return curPlayingSong;
+		//返回0 - songList.length - 1中的随机数
+		randomIndex = Math.floor(Math.random() * songList.length);
+		uni.setStorage({
+			key: RANDOM_INDEX,
+			data: randomIndex
+		})
+		return songList[randomIndex];
 	} else {
-		return curPlayingSong;
+		let index = playingIndex + 1;
+		if (index >= songList.length) {
+			index = 0;
+		}
+		songStore.clickSong(index);
+		return songList[index];
 	}
-
 }
 
 songStore.getPreSong = function() {
-	if (typeof lastSong != 'undefined' && lastSong != null) {
-		const index = songList.findIndex((ele) => ele.id === lastSong.id && ele.platform == lastSong.platform);
-		if (index >= 0) {
-			const songArr = songList.splice(index, 1);
-			songList.unshift(songArr[0]);
-		}
-		if (playMode == 1) {
-			nextPlayIndex--;
-			if (nextPlayIndex == 1 || nextPlayIndex == 0) {
-				nextPlayIndex = songList.length - 1;
-			}
-			uni.setStorage({
-				key: NEXT_INDEX,
-				data: nextPlayIndex
-			});
-		}
+	if (typeof songList === 'undefined' || songList == null) {
+		return null;
+	}
+
+	if (playMode == 2) {
+		randomIndex = Math.floor(Math.random() * songList.length);
 		uni.setStorage({
-			key: KEY_SONGLIST,
-			data: songList
-		});
-		curPlayingSong = lastSong;
-		uni.setStorage({
-			key: CUR_SONG,
-			data: curPlayingSong
-		});
-		lastSong = songList[Math.min((index + 1), (songList.length - 1))];
-		uni.setStorage({
-			key: LAST_SONG,
-			data: lastSong
-		});
-		return curPlayingSong;
+			key: RANDOM_INDEX,
+			data: randomIndex
+		})
+		return songList[randomIndex];
 	} else {
-		return songStore.getNextSong();
+		let index = playingIndex - 1;
+		if (index < 0) {
+			index = songList.length - 1;
+		}
+		songStore.clickSong(index);
+		return songList[index];
 	}
 }
 

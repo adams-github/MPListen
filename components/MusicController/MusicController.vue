@@ -103,24 +103,24 @@
 			}
 
 			.play {
-				width: 30px;
-				height: 30px;
+				width: 25px;
+				height: 25px;
 				position: absolute;
-				right: 85px;
+				right: 90px;
 			}
 
 			.next {
-				width: 30px;
-				height: 30px;
+				width: 25px;
+				height: 25px;
 				position: absolute;
-				right: 45px;
+				right: 50px;
 			}
 
 			.list {
-				width: 30px;
-				height: 30px;
+				width: 25px;
+				height: 25px;
 				position: absolute;
-				right: 5px;
+				right: 10px;
 			}
 
 		}

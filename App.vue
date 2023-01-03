@@ -4,10 +4,9 @@
 		onLaunch: function() {
 			console.log('App Launch')
 			songStore.loadAllSongs();
-			songStore.loadCurPlaySong();
+			songStore.loadPlayingIndex();
+			songStore.loadRandomIndex();
 			songStore.loadPlayMode();
-			songStore.loadNextIndex();
-			songStore.loadLastSong();
 		},
 		onShow: function() {
 			console.log('App Show')
