@@ -1,6 +1,11 @@
 import requester from "@/utils/request.js"
 import forge from "@/utils/lib/index.js"
 
+import polyfill from '@/utils/base64/base64.js';
+const {
+	btoa
+} = polyfill;
+
 
 const BASE_URL_NETEASE = "https://music.163.com";
 const URL_SEARCH_NETEASE = "/api/search/pc";

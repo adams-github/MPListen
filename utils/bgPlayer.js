@@ -10,8 +10,8 @@ let bgPlayer = {};
 
 let bgAudioManager;
 let curPlayingSong;
-let playSeek = 0;//播放进度，单位s
-let errorTime = 0;//播放出错次数
+let playSeek = 0; //播放进度，单位s
+let errorTime = 0; //播放出错次数
 
 /**
  * 重新获取播放链接
@@ -60,8 +60,9 @@ function requestSongUrlSuccess(newUrl) {
 	getBpManager().title = curPlayingSong.name;
 	getBpManager().singer = curPlayingSong.singer;
 	getBpManager().coverImgUrl = curPlayingSong.albumUrl;
+	getBpManager().epname = curPlayingSong.albumName;
+	getBpManager().startTime = playSeek;
 	getBpManager().src = curPlayingSong.url; //设置连接后会自动开始播放
-	getBpManager().seek(playSeek);
 	songStore.updateUrl(newUrl);
 }
 
@@ -80,7 +81,8 @@ function getBpManager() {
 		bgAudioManager.onError((res) => {
 			console.log(res);
 			//播放连接失效都是出现下面两种报错：{errCode: 10004, errMsg: "errCode:55, err:unknow format"}
-			if ((res.errCode == 10004 || res.errMsg == 'setBackgroundAudioState:fail timeout') && errorTime == 0) {
+			if ((res.errCode == 10004 || res.errMsg == 'setBackgroundAudioState:fail timeout') && errorTime ==
+				0) {
 				//这时候播放连接已经失效，需要重新获取
 				updatePlayUrl();
 			} else {
@@ -134,6 +136,7 @@ bgPlayer.play = function(song) {
 	playSeek = 0;
 	errorTime = 0;
 
+	getBpManager().epname = song.albumName;
 	getBpManager().title = song.name;
 	getBpManager().singer = song.singer;
 	getBpManager().coverImgUrl = song.albumUrl;
@@ -237,8 +240,8 @@ bgPlayer.setOnPlayed = function(playedCb) {
 bgPlayer.setTimeUpdate = function(updateCb) {
 	getBpManager().onTimeUpdate(() => {
 		playSeek = getBpManager().currentTime;
-		if (typeof onCanPlayCb === 'function') {
-			onCanPlayCb();
+		if (typeof updateCb === 'function') {
+			updateCb(playSeek);
 		}
 	});
 }

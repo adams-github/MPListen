@@ -10,16 +10,22 @@
 		<text style="color: white; font-size: 12px;">{{playingSong.singer}}</text>
 
 		<view class="img-bordor">
-		
-				<image class="header" :src="picUrl"></image>
-			
+			<image class="header" :src="picUrl"></image>
 		</view>
+
+		<bing-lyric :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
+			:areaStyle="cuAreaStyle"></bing-lyric>
 	</view>
 </template>
 
 <script>
 	import songStore from '@/utils/songStore.js'
 	import bgPlayer from '@/utils/bgPlayer.js'
+	import kugouJs from '@/api/kugou.js'
+	import kuwoJs from '@/api/kuwo.js'
+	import neteaseJs from '@/api/netease.js'
+	import miguJs from '@/api/migu.js'
+	import log from '../../utils/lib/log'
 
 	export default {
 		onLoad() {
@@ -44,6 +50,9 @@
 				this.picUrl = this.playingSong.albumUrl;
 				this.songName = this.playingSong.name;
 			});
+			bgPlayer.setTimeUpdate((data) => {
+				this.curTime = data;
+			});
 			this.playStatus = bgPlayer.isPlaying();
 			this.playingSong = songStore.getCurPlayingSong();
 			if (typeof this.playingSong != 'undefined' &&
@@ -53,8 +62,11 @@
 				uni.setNavigationBarTitle({
 					title: this.songName
 				});
-			}
 
+				if (this.playingSong.platform == 'qq') {
+					this.lyrics = ['[00:00]QQ平台目前无法获取歌词'];
+				}
+			}
 		},
 		onHide() {
 			bgPlayer.setOnEnded(null);
@@ -63,6 +75,7 @@
 			bgPlayer.setOnPlayed(null);
 		},
 		onReady() {
+			this.loadLyrics();
 		},
 		data() {
 			return {
@@ -70,12 +83,108 @@
 				playingSong: {},
 				picUrl: '',
 				songName: '',
-				styles: {}
+				curTime: 0,
+				lyrics: [],
+				styles: {},
+				centerStyle: {
+					btnImg: '../../static/btn.png',
+				},
+				lyricStyle: {
+					color: "#909399",
+					activeColor: '#ffffff',
+					fontSize: '14px',
+					activeFontSize: '20px',
+					lineHeight: '40px',
+					activeLineHeight: '32px',
+					selectedBGColor: 'inherit'
+				},
+				cuAreaStyle: {
+					width: '100vw',
+					height: '20vh',
+					background: 'transparent'
+				},
 			};
 		},
 		methods: {
 			toBack() {
 				uni.navigateBack();
+			},
+			/**
+			 * 加载歌词
+			 * */
+			loadLyrics() {
+				if (typeof this.playingSong === 'undefined' || this.playingSong == null) return;
+
+				if (this.playingSong.platform == 'qq') {
+					this.lyrics = ['[00:00]QQ平台无法获取歌词'];
+				} else {
+					this.lyrics = ['[00:00]加载歌词中...'];
+
+					switch (this.playingSong.platform) {
+						case 'kuwo':
+							kuwoJs.kuwoSongInfo(this.playingSong.id, (data) => {
+								this.handlerKuwoLyrics(data.lrclist);
+							}, (error) => {
+								this.requestError(error);
+							})
+							break;
+						case 'kugou':
+							kugouJs.kugouSongData(this.playingSong.id, this.playingSong.albumId, (data) => {
+								this.handlerKugouLyrics(data.lyrics);
+							}, (error) => {
+								this.requestError(error);
+							})
+							break;
+						case 'netease':
+							neteaseJs.neteaseLyric(this.playingSong.id, (data) => {
+								this.handlerNeteaseLyrics(data);
+							}, (error) => {
+								this.requestError(error);
+							})
+							break;
+						case 'migu':
+							miguJs.miguSonglyric(this.playingSong.lyricUrl, (data) => {
+								this.lyrics = data.split('\r');
+							}, (error) => {
+								this.requestError(error);
+							})
+							break;
+					}
+				}
+			},
+			handlerKuwoLyrics(lrclist) {
+				this.lyrics = [];
+				lrclist.forEach((item, index) => {
+					this.lyrics.push('[' + parseFloat(item.time) + ']' + item.lineLyric);
+				});
+			},
+			handlerKugouLyrics(lyrics) {
+				this.lyrics = [];
+				const lrclist = lyrics.split('\r\n');
+				let add = false;
+				lrclist.forEach((item, index) => {
+					if (add) {
+						this.lyrics.push(item);
+					}
+					if (item == '[offset:0]') {
+						add = true;
+					}
+				});
+			},
+			handlerNeteaseLyrics(lyrics) {
+				this.lyrics = [];
+				const lrclist = lyrics.split('\n');
+				lrclist.forEach((item, index) => {
+					this.lyrics.push(item);
+				});
+			},
+			requestError(error) {
+				uni.showToast({
+					title: error,
+					icon: 'none',
+					position: 'bottom'
+				});
+				this.lyrics = ['[00:00]加载歌词失败，请点击重试'];
 			},
 		}
 	}

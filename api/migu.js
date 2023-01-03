@@ -69,6 +69,8 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 			if (typeof successCb === 'function') {
 				let songList = [];
 				res.songResultData.result.forEach((item, index) => {
+					let lyric_Url = item.lyricUrl;
+					lyric_Url = lyric_Url.replace('http:', 'https:');
 					songList.push({
 						platform: 'migu',
 						id: item.id,
@@ -78,8 +80,11 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.singer,
 						albumName: item.album,
 						albumUrl: item.albumImgs[0].img,
-						isFree: (typeof item.listenFlag === 'undefined' || item.listenFlag ==
-							'4' || item.listenFlag == '7') && item.isInSalesPeriod != '1'
+						lyricUrl: lyric_Url,
+						isFree: (typeof item.listenFlag === 'undefined' || item
+								.listenFlag ==
+								'4' || item.listenFlag == '7') && item.isInSalesPeriod !=
+							'1'
 					})
 				});
 				successCb(songList);
@@ -140,6 +145,26 @@ miguJs.miguSongUrl = function(songId, quality, successCb, errorCb) {
 				errorCb('需要咪咕VIP或没有音源');
 			}
 		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+miguJs.miguSonglyric = function(lyricUrl, successCb, errorCb) {
+	const request_url = lyricUrl;
+	const request_data = {};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		successCb(res);
 	}).catch((error) => {
 		console.log(error);
 		if (typeof errorCb === 'function') {

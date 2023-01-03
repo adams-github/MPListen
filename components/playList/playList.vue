@@ -12,7 +12,7 @@
 
 		<scroll-view scroll-y scroll-with-animation class="scrollview">
 			<block v-for="(item, index) in songList" :key="index">
-				<view style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;"
+				<view style="display: flex; flex-direction: row; justify-content: space-around; align-items: center;"
 					hover-class="item-hover" @click="itemClick(index)">
 					<view class="item-box">
 						<text class="item-songname"
@@ -130,6 +130,20 @@
 			},
 			findIndex(item) {
 				return item.id === this.playingSong.id && item.platform === this.playingSong.platform;
+			},
+			getPlatform(item) {
+				switch (item.platform) {
+					case 'netease':
+						return '网易';
+					case 'kuwo':
+						return '酷我';
+					case 'qq':
+						return 'QQ';
+					case 'kugou':
+						return '酷狗';
+					case 'migu':
+						return '咪咕';
+				}
 			}
 		}
 	}
@@ -169,6 +183,14 @@
 				flex-direction: column;
 				justify-content: center;
 				padding: 10px 15px;
+
+				.platform-tag {
+					color: #7d7d7d;
+					font-size: 8px;
+					border-bottom-width: 1rpx;
+					border-bottom-style: solid;
+					border-bottom-color: #F0F0F0;
+				}
 
 				.item-songname {
 					color: #3a3a3a;
