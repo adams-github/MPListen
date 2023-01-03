@@ -164,9 +164,27 @@ songStore.removeSong = function(index) {
 		key: KEY_SONGLIST,
 		data: songList,
 		success: function() {
-			console.log('addSong.success');
+			console.log('removeSong.success');
 		}
 	});
+}
+
+songStore.updateUrl = function(newUrl) {
+	curPlayingSong.url = newUrl;
+	uni.setStorage({
+		key: CUR_SONG,
+		data: curPlayingSong
+	});
+	if (songList[0].id == curPlayingSong.url && songList[0].platform == curPlayingSong.platform) {
+		songList[0].url = newUrl;
+		uni.setStorage({
+			key: KEY_SONGLIST,
+			data: songList,
+			success: function() {
+				console.log('updateUrl.success');
+			}
+		});
+	}
 }
 
 songStore.clickSong = function(index) {
@@ -205,7 +223,7 @@ songStore.clickSong = function(index) {
 		key: KEY_SONGLIST,
 		data: songList,
 		success: function() {
-			console.log('addSong.success');
+			console.log('clickSong.success');
 		}
 	});
 }
@@ -246,12 +264,19 @@ songStore.getPreSong = function() {
 			const songArr = songList.splice(index, 1);
 			songList.unshift(songArr[0]);
 		}
+		if (playMode == 1) {
+			nextPlayIndex--;
+			if (nextPlayIndex == 1 || nextPlayIndex == 0) {
+				nextPlayIndex = songList.length - 1;
+			}
+			uni.setStorage({
+				key: NEXT_INDEX,
+				data: nextPlayIndex
+			});
+		}
 		uni.setStorage({
 			key: KEY_SONGLIST,
-			data: songList,
-			success: function() {
-				console.log('addSong.success');
-			}
+			data: songList
 		});
 		curPlayingSong = lastSong;
 		uni.setStorage({
