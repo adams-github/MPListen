@@ -1,5 +1,6 @@
 import requester from "@/utils/request.js"
-import forge from 'node-forge'
+import forge from "@/utils/lib/index.js"
+
 
 const BASE_URL_MIGU = "https://jadeite.migu.cn";
 const URL_SEARCH_MIGU = "/music_search/v2/search/searchAll";
@@ -11,10 +12,18 @@ let miguJs = {}
 const signature_md5 = '6cdc72a439cef99a3418d2a78aa28c73';
 
 function uuid() {
-	const temp_url = URL.createObjectURL(new Blob());
-	const strTemp = temp_url.toString();
-	URL.revokeObjectURL(temp_url);
-	return strTemp.substr(strTemp.lastIndexOf('/') + 1);
+	var s = [];
+	var hexDigits = "0123456789abcdef";
+	for (var i = 0; i < 36; i++) {
+		s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+	}
+	s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
+	s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
+	s[8] = s[13] = s[18] = s[23] = "-";
+
+	var uuid = s.join("");
+	uuid = uuid.split("-").join("");
+	return uuid;
 }
 
 miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
@@ -63,12 +72,14 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 					songList.push({
 						platform: 'migu',
 						id: item.id,
-						name: item.songName,
+						name: item.name,
+						quality: item.toneControl,
 						url: '',
 						singer: item.singer,
 						albumName: item.album,
 						albumUrl: item.albumImgs[0].img,
-						albumId: item.albumId
+						isFree: (typeof item.listenFlag === 'undefined' || item.listenFlag ==
+							'4' || item.listenFlag == '7') && item.isInSalesPeriod != '1'
 					})
 				});
 				successCb(songList);
@@ -87,18 +98,32 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 	});
 }
 
-miguJs.miguSongUrl = function(songId, successCb, errorCb) {
+miguJs.miguSongUrl = function(songId, quality, successCb, errorCb) {
 	const request_url = URL_MP3_MIGU;
+	let tone;
+	switch (quality) {
+		case '110000':
+			tone = 'HQ';
+			break;
+		case '111100':
+			tone = 'SQ';
+			break;
+		case '111111':
+			tone = 'ZQ';
+			break;
+		default:
+			tone = 'PQ';
+	}
 	const request_data = {
 		songId: songId,
 		netType: '01',
-		resourceType: '2',
-		toneFlag: 'HQ'
+		resourceType: 'E',
+		toneFlag: tone
 	};
 	const request_method = "GET";
 	const request_header = {
 		'channel': '0146951',
-		'uid':'1234'
+		'uid': '1234'
 	};
 	requester.request({
 		request_url,
@@ -106,13 +131,13 @@ miguJs.miguSongUrl = function(songId, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		if (res.code === '000000' && res.data.url != undefined) {
+		if (res.code === '000000' && res.data.url != undefined && res.data.url != '') {
 			if (typeof successCb === 'function') {
 				successCb(res.data.url)
 			}
 		} else {
 			if (typeof successCb === 'function') {
-				errorCb('咪咕没有版权或需要VIP');
+				errorCb('需要咪咕VIP或没有音源');
 			}
 		}
 	}).catch((error) => {
@@ -123,4 +148,4 @@ miguJs.miguSongUrl = function(songId, successCb, errorCb) {
 	});
 }
 
-export default miguJs
+export default miguJs;

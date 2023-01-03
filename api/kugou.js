@@ -25,15 +25,35 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 			if (typeof successCb === 'function') {
 				let songList = [];
 				res.data.lists.forEach((item, index) => {
+					let free = item.PayType != 2 && item.trans_param.cpy_attr0 == 0;
+					let songId = item.FileHash;
+					let songName = item.SongName;
+					let AlbumID = item.AlbumID;
+					let AlbumName = item.AlbumName;
+					let singerName = item.SingerName;
+					if (!free) {
+						for (let i = 0; i < item.Grp.length; i++) {
+							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 == 0) {
+								songId = item.Grp[i].FileHash;
+								songName = item.Grp[i].SongName;
+								AlbumID = item.Grp[i].AlbumID;
+								AlbumName = item.Grp[i].AlbumName;
+								singerName = item.Grp[i].SingerName;
+								free = true;
+								break;
+							}
+						}
+					}
 					songList.push({
 						platform: 'kugou',
-						id: item.FileHash,
-						name: item.SongName,
+						id: songId,
+						name: songName,
 						url: '',
-						singer: item.Singers[0].name,
-						albumName: item.AlbumName,
+						singer: singerName,
+						albumName: AlbumName,
 						albumUrl: '',
-						albumId: item.AlbumID
+						albumId: AlbumID,
+						isFree: free
 					})
 				});
 				successCb(songList);
@@ -78,12 +98,13 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				if (typeof successCb === 'function') {
 					successCb({
 						url: res.data.play_url,
-						img: res.data.img
+						img: res.data.img,
+						lyrics:res.data.lyrics
 					});
 				}
 			} else {
 				if (typeof errorCb === 'function') {
-					errorCb('酷狗没有版权或需要VIP');
+					errorCb('需要酷狗VIP或没有音源');
 				}
 			}
 		} else {
@@ -100,4 +121,4 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 	});
 }
 
-export default kugouJs
+export default kugouJs;

@@ -4,6 +4,7 @@ const URL_KUWO_SERACH = "https://search.kuwo.cn/r.s";
 const BASE_URL_KUWO = "https://www.kuwo.cn";
 const URL_SEARCH_KUWO = "/api/www/search/searchMusicBykeyWord";
 const URL_MP3_KUWO = "https://antiserver.kuwo.cn/anti.s";
+const URL_MP3_INFO_KUWO = "https://m.kuwo.cn/newh5/singles/songinfoandlrc";
 
 let kuwoJs = {}
 
@@ -21,8 +22,7 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 	const request_method = "GET";
 	const request_header = {
 		'referer': 'https://www.kuwo.cn',
-		'csrf': 'RVFEJULHRY',
-		'cookie': 'kw_token=RVFEJULHRY'
+		'csrf': 'PA2FX2RWJ4H',
 	};
 	requester.request({
 		request_url,
@@ -43,7 +43,7 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.artist,
 						albumName: item.album,
 						albumUrl: item.albumpic,
-						albumId: item.albumid
+						isFree: true
 					})
 				});
 				successCb(songList);
@@ -76,7 +76,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 		display_type: 2,
 		vipver: '10.3.2.0',
 		stype: 'comprehensive',
-		
+
 		user: 'fa205f414ddefc1e',
 		android_id: 'fa205f414ddefc1e',
 		prod: 'kwplayer_ar_10.3.2.0',
@@ -98,7 +98,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 			let songList = [];
 			res.abslist.forEach((item, index) => {
 				let songName = item.SONGNAME;
-				if(item.SONGNAME.indexOf('-') != -1){
+				if (item.SONGNAME.indexOf('-') != -1) {
 					songName = item.SONGNAME.substr(0, item.SONGNAME.indexOf('-'));
 					let subTitle = item.SONGNAME.substr(item.SONGNAME.indexOf('-') + 1);
 				}
@@ -109,8 +109,8 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					url: '',
 					singer: item.ARTIST,
 					albumName: item.ALBUM,
-					albumUrl: item.hts_MVPIC,
-					albumId: item.ALBUMID
+					albumUrl: '',
+					isFree: true
 				})
 			});
 			successCb(songList);
@@ -140,7 +140,7 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 		request_header
 	}).then((res) => {
 		if (typeof successCb === 'function') {
-			successCb(res)
+			successCb(res);
 		}
 	}).catch((error) => {
 		console.log(error);
@@ -150,4 +150,42 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 	});
 }
 
-export default kuwoJs
+kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
+	const request_url = URL_MP3_INFO_KUWO;
+	const request_data = {
+		musicId: songId
+	};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (res.status === 200) {
+			if (typeof successCb === 'function') {
+				let picUrl = res.data.songinfo.pic;
+				if (picUrl.indexOf('240') != -1){
+					picUrl = picUrl.replace('240', '700');
+				}
+				let data = {
+					lrclist: res.data.lrclist,
+					img: picUrl
+				}
+				successCb(data);
+			}
+		} else {
+			if (typeof errorCb === 'function') {
+				errorCb(res.msg);
+			}
+		}
+	}).catch((error) => {
+		console.log(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+export default kuwoJs;

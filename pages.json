@@ -14,10 +14,11 @@
 		}
 
 	}, {
-		"path": "pages/RecentPlay/RecentPlay",
+		"path": "pages/SongDetail/SongDetail",
 		"style": {
-			"navigationBarTitleText": "MPListen",
-			"enablePullDownRefresh": false
+			"navigationBarTitleText": "",
+			"enablePullDownRefresh": false,
+			"navigationStyle": "custom"
 		}
 
 	}],

@@ -20,8 +20,11 @@
 						<text class="item-singer"
 							:class="{'item-singer-playing' : playingIndex === index}">{{item.singer}}</text>
 					</view>
-					<uni-icons style="margin-right: 15px;" type="closeempty" @tap.native.stop="remove(index)">
-					</uni-icons>
+					<view style="height: 30px; padding: 0 15px; display: flex; align-items: center;"
+						@tap.native.stop="remove(index)">
+						<uni-icons type="closeempty" size="20">
+						</uni-icons>
+					</view>
 				</view>
 			</block>
 		</scroll-view>
@@ -34,12 +37,17 @@
 
 	export default {
 		name: "playList",
+		emits: ['onItemClick', 'onDeleteItemClick'],
 		props: {
 			playing_song: {
 				type: Object,
 				default: () => {
 					return {};
 				}
+			},
+			delete_index: {
+				type: Number,
+				default: -1
 			}
 		},
 		watch: {
@@ -53,6 +61,18 @@
 					this.playingSong = val;
 					if (typeof this.songList != 'undefined' && this.songList != null && this.songList.length > 0) {
 						this.playingIndex = this.songList.findIndex(this.findIndex);
+					}
+				}
+			},
+			delete_index: {
+				immediate: true,
+				handler(val) {
+					if (val != -1) {
+						this.songCount--;
+						songStore.removeSong(val);
+						if (val == this.playingIndex) {
+							this.playingIndex = -1;
+						}
 					}
 				}
 			}
@@ -93,14 +113,19 @@
 			},
 			itemClick(index) {
 				const clickSong = this.songList[index];
-				bgPlayer.play(clickSong);
 				songStore.clickSong(index);
+				this.$emit("onItemClick", index);
+				bgPlayer.play(clickSong);
 			},
 			remove(index) {
-				this.songCount--;
-				songStore.removeSong(index);
-				if (index == this.playingIndex) {
-					this.playingIndex = -1;
+				if (this.songList[index] == null || typeof this.songList[index] === 'undefined') {
+					this.songCount--;
+					songStore.removeSong(index);
+					if (index == this.playingIndex) {
+						this.playingIndex = -1;
+					}
+				} else {
+					this.$emit("onDeleteItemClick", index);
 				}
 			},
 			findIndex(item) {
@@ -139,7 +164,7 @@
 			max-height: 350px;
 
 			.item-box {
-				width: 100%;
+				width: 70%;
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
@@ -148,7 +173,6 @@
 				.item-songname {
 					color: #3a3a3a;
 					font-size: 13px;
-					max-width: 50%;
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;
@@ -162,7 +186,6 @@
 				.item-singer {
 					color: #7d7d7d;
 					font-size: 10px;
-					max-width: 50%;
 					overflow: hidden;
 					text-overflow: ellipsis;
 					white-space: nowrap;

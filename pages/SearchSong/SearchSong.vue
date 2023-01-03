@@ -6,7 +6,6 @@
 		<view class="tab-sticky">
 			<CommonTabs bgColor="#FAFAFA" :tabsData="tabsData" :defaultIndex="0" @onTabItemClick="onPlatformSelected">
 			</CommonTabs>
-			<view class="divide-line"></view>
 		</view>
 
 		<view class="list_content" :class="{'list_content-margin' : showController === true}">
@@ -14,8 +13,9 @@
 				<view>
 					<block v-for="(item, index) in songList" :key="index">
 						<view class="item-box" hover-class="item-hover" @click="itemClick(item)">
-							<text style="color: #22D59C; font-size: 16px;">{{item.name}}</text>
-							<text style="color: #7d7d7d; font-size: 13px; margin-top: 3px;">
+							<text class="item-songname"
+								:class="{'item-songname-vip' : item.isFree != true}">{{item.name}}</text>
+							<text class="item-songInfo" :class="{'item-songInfo-vip' : item.isFree != true}">
 								{{item.singer + (item.albumName != ''? ' -' + '《' + item.albumName + '》' : '')}}</text>
 						</view>
 					</block>
@@ -26,28 +26,32 @@
 		</view>
 
 		<view class="controller-sticky" v-show="showController">
-			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus"
+			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" @clickPic="onClickPic"
 				@clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn" @clickList="onClickListBtn">
 
 			</MusicController>
 		</view>
 
-		<uni-popup ref="popup" background-color="#fff" @change="change" >
-			<playList :playing_song="playingSong"></playList>
+		<uni-popup ref="popup" background-color="#fff" @change="change">
+			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onItemClick="onClickSongItem"
+				@onDeleteItemClick="onClickSongDelete"></playList>
 		</uni-popup>
-		
 
+		<uni-popup ref="alertDialog" type="dialog">
+			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
+				@confirm="onDeleteConfirm"></uni-popup-dialog>
+		</uni-popup>
 	</view>
 </template>
 
 <script>
-	import songStore from '@/utils/songStore.js'
 	import qqJs from '@/api/qq.js'
 	import kugouJs from '@/api/kugou.js'
 	import kuwoJs from '@/api/kuwo.js'
-	// import neteaseJs from '@/api/netease.js'
-	// import miguJs from '@/api/migu.js'
+	import neteaseJs from '@/api/netease.js'
+	import miguJs from '@/api/migu.js'
 
+	import songStore from '@/utils/songStore.js'
 	import bgPlayer from '@/utils/bgPlayer.js'
 
 	export default {
@@ -66,11 +70,11 @@
 						"id": 2
 					},
 					{
-						"label": "咪咕音乐",
+						"label": "网易云音乐",
 						"id": 3
 					},
 					{
-						"label": "网易云音乐",
+						"label": "咪咕音乐",
 						"id": 4
 					},
 				],
@@ -96,6 +100,9 @@
 				songName: '',
 				playStatus: false,
 				playingSong: {},
+				tempDeleteIndex: -1,
+				deleteIndex: -1,
+				deleteInfo: '',
 				show: false,
 			};
 		},
@@ -118,10 +125,14 @@
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
 			});
 			this.playStatus = bgPlayer.isPlaying();
-			this.picUrl = songStore.getCurPlayingSong().albumUrl;
-			this.songName = songStore.getCurPlayingSong().name;
+			if (typeof songStore.getCurPlayingSong() != 'undefined') {
+				this.picUrl = songStore.getCurPlayingSong().albumUrl;
+				this.songName = songStore.getCurPlayingSong().name;
+			}
 			if (this.playStatus) {
 				this.playingSong = songStore.getCurPlayingSong();
 			} else {
@@ -174,10 +185,10 @@
 						this.exceQQSearch(label);
 						break;
 					case 3:
-						this.exceMiguSearch(label);
+						this.exceNeteaseSearch(label);
 						break;
 					case 4:
-						this.exceNeteaseSearch(label);
+						this.exceMiguSearch(label);
 						break;
 				}
 			},
@@ -217,6 +228,7 @@
 				} else {
 					this.kuwoCurPage++;
 				}
+
 				kuwoJs.kuwoSearchForWX(label, this.kuwoCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
@@ -229,11 +241,15 @@
 				} else {
 					this.neteaseCurPage++;
 				}
-				// neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
-				// 	this.requestListSuccess(data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
+					this.requestListSuccess(data);
+				}, (error) => {
+					if (error == -462) {
+						this.exceNeteaseSearch(label);
+					} else {
+						this.requestError(error);
+					}
+				});
 			},
 			exceMiguSearch(label) {
 				if (this.isRefreshing) {
@@ -241,11 +257,11 @@
 				} else {
 					this.miguCurPage++;
 				}
-				// miguJs.miguSearch(label, this.miguCurPage, (data) => {
-				// 	this.requestListSuccess(data);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				miguJs.miguSearch(label, this.miguCurPage, (data) => {
+					this.requestListSuccess(data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			requestListSuccess(data) {
 				if (this.isRefreshing) {
@@ -273,6 +289,15 @@
 				}
 			},
 			itemClick(item) {
+				if (item.isFree != true) {
+					uni.showToast({
+						title: '需要VIP或没有音源',
+						icon: 'none',
+						position: 'bottom'
+					});
+					return;
+				}
+
 				uni.showLoading();
 				switch (this.platformIndex) {
 					case 0:
@@ -285,17 +310,23 @@
 						this.qqSongUrl(item);
 						break;
 					case 3:
-						this.miguSongUrl(item);
+						this.neteaseSongUrl(item);
 						break;
 					case 4:
-						this.neteaseSongUrl(item);
+						this.miguSongUrl(item);
 						break;
 				}
 			},
 
 			kuwoSongUrl(item) {
-				kuwoJs.kuwoSongUrl(item.id, (data) => {
-					this.requestSongUrlSuccess(item, data);
+				//获取图片url, 再获取歌曲url
+				kuwoJs.kuwoSongInfo(item.id, (data) => {
+					item.albumUrl = data.img;
+					kuwoJs.kuwoSongUrl(item.id, (data) => {
+						this.requestSongUrlSuccess(item, data);
+					}, (error) => {
+						this.requestError(error);
+					});
 				}, (error) => {
 					this.requestError(error);
 				});
@@ -309,32 +340,29 @@
 			},
 			kugouSongData(item) {
 				kugouJs.kugouSongData(item.id, item.albumId, (data) => {
-					this.requestSongUrlSuccess(item, data);
+					item.albumUrl = data.img;
+					this.requestSongUrlSuccess(item, data.url);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			miguSongUrl(item) {
-				// miguJs.miguSongUrl(item.id, (data) => {
-				// 	this.isLoadingSong = false;
-				// 	uni.hideLoading();
-				//  item.url = data;
-				//  songStore.addSong(item);
-				// 	bgPlayer.play(item);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				miguJs.miguSongUrl(item.id, item.quality, (data) => {
+					this.requestSongUrlSuccess(item, data);
+				}, (error) => {
+					this.requestError(error);
+				});
 			},
 			neteaseSongUrl(item) {
-				// neteaseJs.neteaseSongUrl(item.id, (data) => {
-				// 	this.isLoadingSong = false;
-				// 	uni.hideLoading();
-				//  item.url = data;
-				//  songStore.addSong(item);
-				// 	bgPlayer.play(item);
-				// }, (error) => {
-				// 	this.requestError(error);
-				// });
+				neteaseJs.neteaseSongUrl(item.id, (data) => {
+					this.requestSongUrlSuccess(item, data);
+				}, (error) => {
+					if (error == -462) {
+						this.neteaseSongUrl(item);
+					} else {
+						this.requestError(error);
+					}
+				});
 			},
 			requestSongUrlSuccess(item, data) {
 				this.isLoadingSong = false;
@@ -347,6 +375,14 @@
 				this.picUrl = item.albumUrl;
 				this.songName = item.name;
 				bgPlayer.play(item);
+			},
+			onClickPic() {
+				if (typeof songStore.getCurPlayingSong() != 'undefined' &&
+					songStore.getCurPlayingSong() != null) {
+					uni.navigateTo({
+						url: "/pages/SongDetail/SongDetail"
+					});
+				}
 			},
 			onClickPlayBtn() {
 				if (this.playStatus) {
@@ -362,7 +398,24 @@
 				bgPlayer.play(nextSong);
 			},
 			onClickListBtn() {
+				this.deleteIndex = -1;
 				this.$refs.popup.open('bottom');
+			},
+			onClickSongItem() {
+				this.playStatus = false;
+				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
+			},
+			onClickSongDelete(index) {
+				this.deleteIndex = -1;
+				this.tempDeleteIndex = index;
+				const deleteSong = songStore.getSongByIndex(index);
+				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
+				this.$refs.alertDialog.open()
+			},
+			onDeleteConfirm() {
+				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
 				this.show = e.show;
@@ -396,12 +449,7 @@
 			top: 0;
 			display: flex;
 			flex-direction: column;
-
-			.divide-line {
-				width: 100%;
-				height: 1px;
-				background-color: #F0F0F0;
-			}
+			box-shadow: 0px 20px 20px rgb(240, 240, 240);
 		}
 
 		.list_content {
@@ -412,6 +460,24 @@
 				flex-direction: column;
 				padding: 10px 15px;
 
+				.item-songname {
+					color: #22D59C;
+					font-size: 16px;
+
+					&-vip {
+						color: #c7c7c7;
+					}
+				}
+
+				.item-songInfo {
+					color: #7d7d7d;
+					font-size: 13px;
+					margin-top: 3px;
+
+					&-vip {
+						color: #c7c7c7;
+					}
+				}
 			}
 
 			.item-hover {
@@ -428,6 +494,7 @@
 			position: fixed;
 			z-index: 99;
 			bottom: 0;
+			box-shadow: 0px -5px 10px rgb(245, 245, 245);
 		}
 	}
 </style>
