@@ -12,7 +12,7 @@
 
 		<scroll-view scroll-y scroll-with-animation class="scrollview">
 			<block v-for="(item, index) in songList" :key="index">
-				<view style="display: flex; flex-direction: row; justify-content: space-around; align-items: center;"
+				<view style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;"
 					hover-class="item-hover" @click="itemClick(index)">
 					<view class="item-box">
 						<text class="item-songname"
