@@ -60,7 +60,6 @@ function requestSongUrlSuccess(newUrl) {
 	getBpManager().title = curPlayingSong.name;
 	getBpManager().singer = curPlayingSong.singer;
 	getBpManager().coverImgUrl = curPlayingSong.albumUrl;
-	getBpManager().epname = curPlayingSong.albumName;
 	getBpManager().startTime = playSeek;
 	getBpManager().src = curPlayingSong.url; //设置连接后会自动开始播放
 	songStore.updateUrl(newUrl);
@@ -136,7 +135,6 @@ bgPlayer.play = function(song) {
 	playSeek = 0;
 	errorTime = 0;
 
-	getBpManager().epname = song.albumName;
 	getBpManager().title = song.name;
 	getBpManager().singer = song.singer;
 	getBpManager().coverImgUrl = song.albumUrl;
