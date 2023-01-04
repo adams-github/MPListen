@@ -17,7 +17,12 @@
 		<bing-lyric :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
 			:areaStyle="cuAreaStyle"></bing-lyric>
 
-		<!-- <progress :percent="percent" stroke-width="3"></progress> -->
+		<view class="progress-container">
+			<text style="color: #909399; font-size: 10px;">{{curTimeStr}}</text>
+			<progress style="width: 80%; margin-left: 10px;" :percent="percent" stroke-width="3"
+				backgroundColor="#B9B9B9" activeColor="#ffffff"></progress>
+			<text style="color: #909399; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
+		</view>
 
 		<view class="playController">
 			<image style="width: 25px; height: 25px;" :src="playModeSrc" @click="changePlayMode"></image>
@@ -72,7 +77,6 @@
 			bgPlayer.setOnCanPlay(() => {
 				this.hasLoadLyrics = false;
 				this.playingSong = songStore.getCurPlayingSong();
-				this.duration = bgPlayer.getPlayingDuration();
 				if (!this.hasLoadLyrics) {
 					this.loadLyrics();
 				}
@@ -82,12 +86,16 @@
 				this.picUrl = this.playingSong.albumUrl;
 				this.songName = this.playingSong.name;
 				this.singer = this.playingSong.singer;
+				this.duration = bgPlayer.getPlayingDuration();
+				this.durationStr = this.formateSeconds(this.duration);
 				uni.setNavigationBarTitle({
 					title: this.songName
 				});
 			});
 			bgPlayer.setTimeUpdate((data) => {
 				this.curTime = data;
+				this.percent = data / this.duration * 100;
+				this.curTimeStr = this.formateSeconds(this.curTime);
 			});
 			this.playStatus = bgPlayer.isPlaying();
 			this.playingSong = songStore.getCurPlayingSong();
@@ -100,6 +108,9 @@
 				this.songName = songStore.getCurPlayingSong().name;
 				this.singer = this.playingSong.singer;
 				this.curTime = bgPlayer.getPlayingCurTime();
+				this.curTimeStr = this.formateSeconds(this.curTime);
+				this.duration = bgPlayer.getPlayingDuration();
+				this.durationStr = this.formateSeconds(this.duration);
 				uni.setNavigationBarTitle({
 					title: this.songName
 				});
@@ -127,6 +138,8 @@
 				deleteInfo: '',
 				duration: 0,
 				curTime: 0,
+				curTimeStr: '',
+				durationStr: '',
 				percent: 0,
 				playMode: 1,
 				playModeSrc: '',
@@ -292,7 +305,28 @@
 			},
 			change(e) {
 				this.show = e.show;
-			}
+			},
+			formateSeconds(seconds) {
+				let secondTime = parseInt(seconds); //将传入的秒的值转化为Number
+				let min = 0; // 初始化分
+				let h = 0; // 初始化小时
+				let result = '';
+				if (secondTime >= 60) { //如果秒数大于等于60，将秒数转换成整数
+					min = parseInt(secondTime / 60); //获取分钟，除以60取整数，得到整数分钟
+					secondTime = parseInt(secondTime % 60); //获取秒数，秒数取佘，得到整数秒数
+					if (min >= 60) { //如果分钟大于等于60，将分钟转换成小时
+						h = parseInt(min / 60); //获取小时，获取分钟除以60，得到整数小时
+						min = parseInt(min % 60); //获取小时后取佘的分，获取分钟除以60取佘的分
+					}
+				}
+				if (h > 0) {
+					result =
+						`${h.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}:${secondTime.toString().padStart(2,'0')}`;
+				} else {
+					result = `${min.toString().padStart(2,'0')}:${secondTime.toString().padStart(2,'0')}`;
+				}
+				return result;
+			},
 		}
 	}
 </script>
@@ -353,9 +387,18 @@
 			}
 		}
 
-		.playController {
+		.progress-container {
 			width: 80%;
 			margin-top: 20px;
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.playController {
+			width: 80%;
+			margin-top: 10px;
 			display: flex;
 			flex-direction: row;
 			justify-content: space-between;
