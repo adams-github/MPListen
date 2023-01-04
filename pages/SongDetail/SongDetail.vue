@@ -8,7 +8,7 @@
 			backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
 			@clickLeft="toBack">
 		</uni-nav-bar>
-		<text style="color: white; font-size: 12px;">{{playingSong.singer}}</text>
+		<text style="color: white; font-size: 12px;">{{singer}}</text>
 
 		<view class="img-bordor">
 			<image class="header" :src="picUrl"></image>
@@ -16,7 +16,7 @@
 
 		<bing-lyric :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
 			:areaStyle="cuAreaStyle"></bing-lyric>
-			
+
 		<!-- <progress :percent="percent" stroke-width="3"></progress> -->
 
 		<view class="playController">
@@ -58,28 +58,33 @@
 
 		},
 		onShow() {
-			bgPlayer.setOnEnded(() => {
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
-			});
+			// bgPlayer.setOnEnded(() => {
+			// 	this.picUrl = songStore.getCurPlayingSong().albumUrl;
+			// 	this.songName = songStore.getCurPlayingSong().name;
+			// });
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;
+				this.playingSong = {};
 			});
 			bgPlayer.setOnCanPlay(() => {
 				this.hasLoadLyrics = false;
-			});
-			bgPlayer.setOnPlayed(() => {
-				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
-				this.picUrl = this.playingSong.albumUrl;
-				this.songName = this.playingSong.name;
-				this.duration = bgPlayer.getTime()[1];
+				this.duration = bgPlayer.getPlayingDuration();
 				if (!this.hasLoadLyrics) {
 					this.loadLyrics();
 				}
+			});
+			bgPlayer.setOnPlayed(() => {
+				this.playStatus = true;
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
+				this.singer = this.playingSong.singer;
+				uni.setNavigationBarTitle({
+					title: this.songName
+				});
 			});
 			bgPlayer.setTimeUpdate((data) => {
 				this.curTime = data;
@@ -93,7 +98,8 @@
 				this.playingSong != null) {
 				this.picUrl = songStore.getCurPlayingSong().albumUrl;
 				this.songName = songStore.getCurPlayingSong().name;
-				this.curTime = bgPlayer.getTime()[0];
+				this.singer = this.playingSong.singer;
+				this.curTime = bgPlayer.getPlayingCurTime();
 				uni.setNavigationBarTitle({
 					title: this.songName
 				});
@@ -115,12 +121,13 @@
 				playingSong: {},
 				picUrl: '',
 				songName: '',
+				singer: '',
 				tempDeleteIndex: -1,
 				deleteIndex: -1,
 				deleteInfo: '',
 				duration: 0,
 				curTime: 0,
-				percent:0,
+				percent: 0,
 				playMode: 1,
 				playModeSrc: '',
 				hasLoadLyrics: false,

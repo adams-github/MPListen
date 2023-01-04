@@ -43,7 +43,10 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.artist,
 						albumName: item.album,
 						albumUrl: item.albumpic,
-						isFree: true
+						isFree: true,
+						hasCache: false,
+						delete: false,
+						savedFilePath: '',
 					})
 				});
 				successCb(songList);
@@ -110,7 +113,10 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					singer: item.ARTIST,
 					albumName: item.ALBUM,
 					albumUrl: '',
-					isFree: true
+					isFree: true,
+					hasCache: false,
+					delete: false,
+					savedFilePath: '',
 				})
 			});
 			successCb(songList);
@@ -166,7 +172,7 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 		if (res.status === 200) {
 			if (typeof successCb === 'function') {
 				let picUrl = res.data.songinfo.pic;
-				if (picUrl.indexOf('240') != -1){
+				if (picUrl.indexOf('240') != -1) {
 					picUrl = picUrl.replace('240', '700');
 				}
 				let data = {

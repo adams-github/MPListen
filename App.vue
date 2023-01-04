@@ -5,7 +5,7 @@
 			console.log('App Launch')
 			songStore.loadAllSongs();
 			songStore.loadPlayingIndex();
-			songStore.loadRandomIndex();
+			songStore.loadPlayingSong();
 			songStore.loadPlayMode();
 		},
 		onShow: function() {

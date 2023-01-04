@@ -53,7 +53,10 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 						albumName: AlbumName,
 						albumUrl: '',
 						albumId: AlbumID,
-						isFree: free
+						isFree: free,
+						hasCache: false,
+						delete: false,
+						savedFilePath:'',
 					})
 				});
 				successCb(songList);

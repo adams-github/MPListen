@@ -55,7 +55,10 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 						singer: singerName,
 						albumName: item.album.name,
 						albumUrl: item.album.picUrl,
-						isFree: item.fee == 0 || item.fee == 8
+						isFree: item.fee == 0 || item.fee == 8,
+						hasCache: false,
+						delete: false,
+						savedFilePath:'',
 					})
 				});
 				successCb(songList);

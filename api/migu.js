@@ -81,10 +81,13 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 						albumName: item.album,
 						albumUrl: item.albumImgs[0].img,
 						lyricUrl: lyric_Url,
-						isFree: (typeof item.listenFlag === 'undefined' || item
-								.listenFlag ==
-								'4' || item.listenFlag == '7') && item.isInSalesPeriod !=
-							'1'
+						hasCache: false,
+						delete: false,
+						savedFilePath:'',
+						isFree: (typeof item.listenFlag === 'undefined' ||
+								item.listenFlag == '4' ||
+								item.listenFlag == '7') &&
+							item.isInSalesPeriod != '1',
 					})
 				});
 				successCb(songList);
@@ -164,7 +167,9 @@ miguJs.miguSonglyric = function(lyricUrl, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		successCb(res);
+		if (typeof successCb === 'function') {
+			successCb(res);
+		}
 	}).catch((error) => {
 		console.log(error);
 		if (typeof errorCb === 'function') {

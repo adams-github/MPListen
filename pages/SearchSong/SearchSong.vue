@@ -110,13 +110,13 @@
 			this.showController = songStore.getSongList().length > 0;
 		},
 		onShow() {
-			bgPlayer.setOnEnded(() => {
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
-			});
+			// bgPlayer.setOnEnded(() => {
+			// 	this.picUrl = songStore.getCurPlayingSong().albumUrl;
+			// 	this.songName = songStore.getCurPlayingSong().name;
+			// });
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
-				this.playingSong = {};
+				// this.playingSong = {};
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;
@@ -129,7 +129,7 @@
 				this.songName = this.playingSong.name;
 			});
 			this.playStatus = bgPlayer.isPlaying();
-			if (typeof songStore.getCurPlayingSong() != 'undefined') {
+			if (typeof songStore.getCurPlayingSong() != 'undefined' && songStore.getCurPlayingSong() != null) {
 				this.picUrl = songStore.getCurPlayingSong().albumUrl;
 				this.songName = songStore.getCurPlayingSong().name;
 			}
@@ -394,9 +394,11 @@
 			onClickNextBtn() {
 				this.playStatus = false;
 				const nextSong = songStore.getNextSong();
-				this.picUrl = nextSong.albumUrl;
-				this.songName = nextSong.name;
-				bgPlayer.play(nextSong);
+				if (typeof nextSong != 'undefined' && nextSong != null) {
+					this.picUrl = nextSong.albumUrl;
+					this.songName = nextSong.name;
+					bgPlayer.play(nextSong);
+				}
 			},
 			onClickListBtn() {
 				this.deleteIndex = -1;

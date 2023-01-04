@@ -1,14 +1,16 @@
+import downloadJs from "@/utils/download.js"
+
+let songStore = {};
+
 const KEY_SONGLIST = "song_list";
 const PLAY_MODE = "play_mode";
 const CUR_INDEX = "cur_index";
-const RANDOM_INDEX = "random_index";
-
-let songStore = {};
+const CUR_SONG = "cur_song";
 
 let songList = []; //播放列表
 let playMode; //播放模式， 0：单曲循环， 1：顺序播放，2：随机播放
 let playingIndex = 0; //当前播放对应的index
-let randomIndex = -1;
+let playingSong;
 
 
 songStore.loadAllSongs = function() {
@@ -35,11 +37,11 @@ songStore.loadPlayingIndex = function() {
 	});
 }
 
-songStore.loadRandomIndex = function() {
+songStore.loadPlayingSong = function() {
 	uni.getStorage({
-		key: RANDOM_INDEX,
+		key: CUR_SONG,
 		success: function(res) {
-			randomIndex = res.data;
+			playingSong = res.data;
 		}
 	});
 }
@@ -65,12 +67,7 @@ songStore.getSongList = function() {
 }
 
 songStore.getCurPlayingSong = function() {
-	if (playMode == 2) {
-		return songList[randomIndex];
-	} else {
-		return songList[playingIndex];
-	}
-
+	return playingSong;
 }
 
 songStore.getPlayMode = function() {
@@ -86,6 +83,7 @@ songStore.addSong = function(song) {
 		if (songList.length >= 500) {
 			songList.pop();
 		}
+		song.delete = false;
 		songList.unshift(song);
 		uni.setStorage({
 			key: KEY_SONGLIST,
@@ -101,14 +99,20 @@ songStore.addSong = function(song) {
 			playingIndex = index;
 		}
 	}
-
 	uni.setStorage({
 		key: CUR_INDEX,
 		data: playingIndex
 	});
+
+	playingSong = song;
+	uni.setStorage({
+		key: CUR_SONG,
+		data: playingSong
+	});
 }
 
 songStore.removeSong = function(index) {
+	const song = songList[index];
 	songList.splice(index, 1);
 	uni.setStorage({
 		key: KEY_SONGLIST,
@@ -124,17 +128,61 @@ songStore.removeSong = function(index) {
 			data: playingIndex
 		});
 	} else if (playingIndex >= songList.length) {
-		nextPlayIndex = 0;
+		playingIndex = 0;
 		uni.setStorage({
 			key: CUR_INDEX,
 			data: playingIndex
 		});
 	}
+
+	/**
+	 * 判断文件是不是已经缓存
+	 */
+
+	if (song.platform != 'kuwo' && song.hasCache) {
+		song.hasCache = false;
+		song.delete = true;
+		uni.getFileSystemManager().removeSavedFile({
+			filePath: song.savedFilePath,
+			success: function() {
+				song.savedFilePath = '';
+				console.log('removeSavedFile.success');
+			},
+			fail: function(error) {
+				console.log('removeFail:' + error.errMsg);
+			},
+		});
+	}
+
+	if (song.id == playingSong.id) {
+		playingSong.hasCache = false;
+		playingSong.delete = true;
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
+		});
+	}
+}
+
+songStore.cacheSong = function(song) {
+	/**
+	 * 缓存音乐到本地
+	 */
+	if (song.platform != 'kuwo' && !song.hasCache) {
+		downloadJs.cacheSong(song.id, song.url, (res) => {
+			const index = songList.findIndex((ele) => ele.id === res.id);
+			songList[index].hasCache = true;
+			songList[index].savedFilePath = res.path;
+			uni.setStorage({
+				key: KEY_SONGLIST,
+				data: songList
+			});
+		}, (error) => {});
+	}
 }
 
 songStore.updateUrl = function(newUrl) {
-	if (songList[playingIndex].id == curPlayingSong.url && songList[playingIndex].platform == curPlayingSong
-		.platform) {
+	if (playingIndex >= 0 && playingIndex < songList.length) {
 		songList[playingIndex].url = newUrl;
 		uni.setStorage({
 			key: KEY_SONGLIST,
@@ -150,8 +198,13 @@ songStore.updateUrl = function(newUrl) {
  * 记录当前播放到哪一首歌的index
  */
 songStore.clickSong = function(index) {
+	playingSong = songList[index];
+	uni.setStorage({
+		key: CUR_SONG,
+		data: playingSong
+	});
+	
 	if (index == playingIndex) return;
-
 	playingIndex = index;
 	uni.setStorage({
 		key: CUR_INDEX,
@@ -176,12 +229,9 @@ songStore.getNextSong = function() {
 	}
 	if (playMode == 2) {
 		//返回0 - songList.length - 1中的随机数
-		randomIndex = Math.floor(Math.random() * songList.length);
-		uni.setStorage({
-			key: RANDOM_INDEX,
-			data: randomIndex
-		})
-		return songList[randomIndex];
+		playingIndex = Math.floor(Math.random() * songList.length);
+		songStore.clickSong(playingIndex);
+		return songList[playingIndex];
 	} else {
 		let index = playingIndex + 1;
 		if (index >= songList.length) {
@@ -198,12 +248,9 @@ songStore.getPreSong = function() {
 	}
 
 	if (playMode == 2) {
-		randomIndex = Math.floor(Math.random() * songList.length);
-		uni.setStorage({
-			key: RANDOM_INDEX,
-			data: randomIndex
-		})
-		return songList[randomIndex];
+		playingIndex = Math.floor(Math.random() * songList.length);
+		songStore.clickSong(playingIndex);
+		return songList[playingIndex];
 	} else {
 		let index = playingIndex - 1;
 		if (index < 0) {

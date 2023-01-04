@@ -85,7 +85,10 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						singer: singerName,
 						albumName: album_name,
 						albumUrl: picUrl,
-						isFree: free
+						isFree: free,
+						hasCache: false,
+						delete: false,
+						savedFilePath:'',
 					})
 				});
 				successCb(songList);

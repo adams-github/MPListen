@@ -72,16 +72,15 @@ function requestSongUrlFailed(error) {
 		icon: 'none',
 		position: 'bottom'
 	});
-
 }
 
 function getBpManager() {
 	if (!isInited) {
 		isInited = true;
 		uni.getBackgroundAudioManager().onError((res) => {
-			uni.getBackgroundAudioManager().stop();
+			console.error(res);
 			isPlaying = false;
-			console.log(res);
+			uni.getBackgroundAudioManager().stop();
 			//播放连接失效都是出现下面两种报错：{errCode: 10004, errMsg: "errCode:55, err:unknow format"}
 			if ((res.errCode == 10004 || res.errMsg == 'setBackgroundAudioState:fail timeout') &&
 				errorTime == 0) {
@@ -96,8 +95,16 @@ function getBpManager() {
 			}
 			errorTime++;
 		});
+		uni.getBackgroundAudioManager().onEnded(() => {
+			isPlaying = false;
+			if (songStore.getPlayMode() == 0) {
+				bgPlayer.play(curPlayingSong);
+			} else {
+				bgPlayer.playNext();
+			}
+		});
 		uni.getBackgroundAudioManager().onTimeUpdate((res) => {
-			playSeek = getBpManager().currentTime;
+			playSeek = uni.getBackgroundAudioManager().currentTime;
 		});
 		uni.getBackgroundAudioManager().onPrev((res) => {
 			bgPlayer.playPre();
@@ -113,16 +120,22 @@ function getBpManager() {
  * 获取播放状态，true 表示暂停或停止，false 表示正在播放
  */
 bgPlayer.isPlaying = function() {
-	return !getBpManager().paused && isPlaying && typeof getBpManager().src != 'undefined' && getBpManager().src !=
-		null &&
-		getBpManager().src != '';
+	return !getBpManager().paused && isPlaying && typeof getBpManager().src != 'undefined' &&
+		getBpManager().src != null && getBpManager().src != '';
 }
 
 /**
- * 当前音频的播放位置（单位：s）和当前音频的长度（单位：s）
+ * 当前当前音频的长度（单位：s）
  */
-bgPlayer.getTime = function() {
-	return [uni.getBackgroundAudioManager().currentTime, uni.getBackgroundAudioManager().duration];
+bgPlayer.getPlayingDuration = function() {
+	return getBpManager().duration;
+}
+
+/**
+ * 当前音频的播放位置（单位：s）
+ */
+bgPlayer.getPlayingCurTime = function() {
+	return getBpManager().currentTime;
 }
 
 
@@ -134,7 +147,6 @@ bgPlayer.play = function(song) {
 		curPlayingSong.platform == song.platform) {
 		getBpManager().stop();
 	}
-	songStore.curPlayingSong = song;
 	curPlayingSong = song;
 	playSeek = 0;
 	errorTime = 0;
@@ -143,14 +155,36 @@ bgPlayer.play = function(song) {
 	getBpManager().title = song.name;
 	getBpManager().singer = song.singer;
 	getBpManager().coverImgUrl = song.albumUrl;
-	getBpManager().src = song.url; //设置连接后会自动开始播放
+
+	if (song.platform != 'kuwo' && song.hasCache && !song.delete) {
+		//判断文件/目录是否存在
+		uni.getFileSystemManager().access({
+			path: song.savedFilePath,
+			success(res) {
+				getBpManager().src = song.savedFilePath;
+			},
+			fail(error) {
+				// 文件不存在或其他错误
+				console.error(error);
+				getBpManager().src = song.url;
+			}
+		})
+	} else {
+		getBpManager().src = song.url; //设置连接后会自动开始播放
+		if (song.platform != 'kuwo' && !song.delete) {
+			songStore.cacheSong(song);
+		}
+	}
+
 }
 
 bgPlayer.replay = function() {
 	errorTime = 0;
 	if (typeof getBpManager().src === 'undefined' || getBpManager().src == null || getBpManager().src == '') {
 		const song = songStore.getCurPlayingSong();
-		bgPlayer.play(song);
+		if (song != null) {
+			bgPlayer.play(song);
+		}
 	} else {
 		getBpManager().play();
 	}
@@ -168,7 +202,7 @@ bgPlayer.stop = function() {
 
 bgPlayer.playPre = function() {
 	const preSong = songStore.getPreSong();
-	if (preSong != null) {
+	if (typeof preSong != 'undefined' && preSong != null) {
 		bgPlayer.play(preSong);
 	} else {
 		bgPlayer.stop();
@@ -178,7 +212,7 @@ bgPlayer.playPre = function() {
 
 bgPlayer.playNext = function() {
 	const nextSong = songStore.getNextSong();
-	if (nextSong != null) {
+	if (typeof nextSong != 'undefined' && nextSong != null) {
 		bgPlayer.play(nextSong);
 	} else {
 		bgPlayer.stop();
@@ -212,7 +246,11 @@ bgPlayer.setOnCanPlay = function(onCanPlayCb) {
 bgPlayer.setOnEnded = function(endedCb) {
 	getBpManager().onEnded(() => {
 		isPlaying = false;
-		bgPlayer.playNext();
+		if (songStore.getPlayMode() == 0) {
+			bgPlayer.play(curPlayingSong);
+		} else {
+			bgPlayer.playNext();
+		}
 		if (typeof endedCb === 'function') {
 			endedCb();
 		}

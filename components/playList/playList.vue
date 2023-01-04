@@ -103,7 +103,7 @@
 						break;
 					case 1:
 						this.playModeSrc = '../../static/ic_mode_circle.png';
-						this.playModeStr = '顺序播放';
+						this.playModeStr = '循环播放';
 						break;
 					case 2:
 						this.playModeSrc = '../../static/ic_mode_random.png';
@@ -118,7 +118,7 @@
 				bgPlayer.play(clickSong);
 			},
 			remove(index) {
-				if (this.songList[index] == null || typeof this.songList[index] === 'undefined') {
+				if (this.songList[index] == null || (typeof this.songList[index]) === 'undefined') {
 					this.songCount--;
 					songStore.removeSong(index);
 					if (index == this.playingIndex) {
