@@ -18,10 +18,10 @@
 			:areaStyle="cuAreaStyle"></bing-lyric>
 
 		<view class="progress-container">
-			<text style="color: #909399; font-size: 10px;">{{curTimeStr}}</text>
+			<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
 			<progress style="width: 80%; margin-left: 10px;" :percent="percent" stroke-width="3"
 				backgroundColor="#B9B9B9" activeColor="#ffffff"></progress>
-			<text style="color: #909399; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
+			<text style="color: #B9B9B9; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
 		</view>
 
 		<view class="playController">
@@ -150,7 +150,7 @@
 					btnImg: '../../static/btn.png',
 				},
 				lyricStyle: {
-					color: "#909399",
+					color: "#B9B9B9",
 					activeColor: '#ffffff',
 					fontSize: '14px',
 					activeFontSize: '20px',
