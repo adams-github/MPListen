@@ -1,51 +1,58 @@
 <template>
 	<page-meta :page-style="'overflow:'+(show?'hidden':'visible')"></page-meta>
-	<view class="container">
-		<image class="img-background" :src="picUrl" mode="aspectFill"></image>
-		<view class="bg-mask"></view>
+	<view>
+		<scroll-view scroll-y="true" scroll-with-animation="true">
+			<view class="container">
+				<image class="img-background" :src="picUrl" mode="aspectFill"></image>
+				<view class="bg-mask"></view>
 
-		<uni-nav-bar style="width: 100%;" leftIcon="back" :title="songName" color="#ffffff"
-			backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
-			@clickLeft="toBack">
-		</uni-nav-bar>
-		<text style="color: white; font-size: 12px;">{{singer}}</text>
+				<uni-nav-bar style="width: 100%;" leftIcon="back" :title="songName" color="#ffffff"
+					backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
+					@clickLeft="toBack">
+				</uni-nav-bar>
+				<text style="color: white; font-size: 12px;">{{singer}}</text>
 
-		<view class="img-bordor">
-			<image class="header" :src="picUrl"></image>
-		</view>
+				<view class="img-bordor">
+					<image class="header" :src="picUrl"></image>
+				</view>
 
-		<bing-lyric :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
-			:areaStyle="cuAreaStyle"></bing-lyric>
+				<bing-lyric :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
+					:areaStyle="cuAreaStyle"></bing-lyric>
 
-		<view class="progress-container">
-			<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
-			<progress style="width: 80%; margin-left: 10px;" :percent="percent" stroke-width="3"
-				backgroundColor="#B9B9B9" activeColor="#ffffff"></progress>
-			<text style="color: #B9B9B9; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
-		</view>
+				<view class="progress-container">
+					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
+					<progress style="width: 80%; margin-left: 10px;" :percent="percent" stroke-width="3"
+						backgroundColor="#B9B9B9" activeColor="#ffffff"></progress>
+					<text style="color: #B9B9B9; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
+				</view>
 
-		<view class="playController">
-			<image style="width: 25px; height: 25px;" :src="playModeSrc" @click="changePlayMode"></image>
-			<image style="width: 30px; height: 30px;" src="../../static/ic_detail_pre_white.png" @click="onClickPre">
-			</image>
-			<image style="width: 70px; height: 70px;" class="play"
-				:src="playStatus ? require('../../static/ic_detail_pause_white.png'):require('../../static/ic_detail_play_white.png')"
-				@click="onClickPlay"></image>
-			<image style="width: 30px; height: 30px;" src="../../static/ic_detail_next_white.png" @click="onClickNext">
-			</image>
-			<image style="width: 25px; height: 25px;" src="../../static/ic_main_songsheet.png" @click="onClickListBtn">
-			</image>
-		</view>
+				<view class="playController">
+					<image style="width: 25px; height: 25px;" :src="playModeSrc" @click="changePlayMode"></image>
+					<image style="width: 30px; height: 30px;" src="../../static/ic_detail_pre_white.png"
+						@click="onClickPre">
+					</image>
+					<image style="width: 70px; height: 70px;" class="play"
+						:src="playStatus ? require('../../static/ic_detail_pause_white.png'):require('../../static/ic_detail_play_white.png')"
+						@click="onClickPlay"></image>
+					<image style="width: 30px; height: 30px;" src="../../static/ic_detail_next_white.png"
+						@click="onClickNext">
+					</image>
+					<image style="width: 25px; height: 25px;" src="../../static/ic_main_songsheet.png"
+						@click="onClickListBtn">
+					</image>
+				</view>
 
-		<uni-popup ref="popup" background-color="#fff" @change="change">
-			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onItemClick="onClickSongItem"
-				@onDeleteItemClick="onClickSongDelete"></playList>
-		</uni-popup>
+				<uni-popup ref="popup" background-color="#fff" @change="change">
+					<playList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode" @onItemClick="onClickSongItem"
+						@onDeleteItemClick="onClickSongDelete" @onChangePlayMode="onChangePlayMode"></playList>
+				</uni-popup>
 
-		<uni-popup ref="alertDialog" type="dialog">
-			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
-				@confirm="onDeleteConfirm"></uni-popup-dialog>
-		</uni-popup>
+				<uni-popup ref="alertDialog" type="dialog">
+					<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
+						@confirm="onDeleteConfirm"></uni-popup-dialog>
+				</uni-popup>
+			</view>
+		</scroll-view>
 	</view>
 </template>
 
@@ -60,13 +67,23 @@
 
 	export default {
 		onLoad() {
+			//循环方式需要手动修改，所以只需要加载一次
+			this.playMode = songStore.getPlayMode();
+			this.initModeView();
 
-		},
-		onShow() {
-			// bgPlayer.setOnEnded(() => {
-			// 	this.picUrl = songStore.getCurPlayingSong().albumUrl;
-			// 	this.songName = songStore.getCurPlayingSong().name;
-			// });
+			bgPlayer.setOnEnded(() => {
+				//一首歌播放结束，设置已加载歌曲信息和已加载歌词为false
+				this.hasLoadSongInfo = false;
+				this.hasLoadLyrics = false;
+			});
+			bgPlayer.setOnPred(() => {
+				this.hasLoadSongInfo = false;
+				this.hasLoadLyrics = false;
+			});
+			bgPlayer.setOnNexted(() => {
+				this.hasLoadSongInfo = false;
+				this.hasLoadLyrics = false;
+			});
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
 			});
@@ -74,50 +91,66 @@
 				this.playStatus = false;
 				this.playingSong = {};
 			});
-			bgPlayer.setOnCanPlay(() => {
-				this.hasLoadLyrics = false;
+			bgPlayer.setOnPlayed(() => {
+				//播放回调可能会回调多次，第一次播放，或者暂停后重新播放都会回调这个方法
+				this.updateTimestamp = -1;
+				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
+				this.duration = bgPlayer.getPlayingDuration();
+				this.durationStr = this.formateSeconds(this.duration);
+
+				if (!this.hasLoadSongInfo) {
+					this.hasLoadSongInfo = true;
+
+					this.picUrl = this.playingSong.albumUrl;
+					this.songName = this.playingSong.name;
+					this.singer = this.playingSong.singer;
+					uni.setNavigationBarTitle({
+						title: this.songName
+					});
+				}
 				if (!this.hasLoadLyrics) {
 					this.loadLyrics();
 				}
 			});
-			bgPlayer.setOnPlayed(() => {
-				this.playStatus = true;
+			bgPlayer.setTimeUpdate((seconds) => {
+				//限制一秒更新一次，避免一直更新页面，容易引起卡顿
+				if (seconds - this.updateTimestamp > 1){
+					this.updateTimestamp = seconds;
+					this.curTime = seconds;
+					this.percent = seconds / this.duration * 100;
+					this.curTimeStr = this.formateSeconds(this.curTime);
+				}
+			});
+		},
+		onShow() {
+			//先判断是否已经加载过歌曲信息，没有加载过再加载
+			if (!this.hasLoadSongInfo) {
+				this.hasLoadSongInfo = true;
+
+				this.playStatus = bgPlayer.isPlaying();
+				this.duration = bgPlayer.getPlayingDuration();
+				this.durationStr = this.formateSeconds(this.duration);
+				this.curTime = bgPlayer.getPlayingCurTime();
+				this.curTimeStr = this.formateSeconds(this.curTime);
+				this.percent = this.curTime / this.duration * 100;
+
+				this.playingSong = songStore.getCurPlayingSong();
 				this.picUrl = this.playingSong.albumUrl;
 				this.songName = this.playingSong.name;
 				this.singer = this.playingSong.singer;
-				this.duration = bgPlayer.getPlayingDuration();
-				this.durationStr = this.formateSeconds(this.duration);
-				uni.setNavigationBarTitle({
-					title: this.songName
-				});
-			});
-			bgPlayer.setTimeUpdate((data) => {
-				this.curTime = data;
-				this.percent = data / this.duration * 100;
-				this.curTimeStr = this.formateSeconds(this.curTime);
-			});
-			this.playStatus = bgPlayer.isPlaying();
-			this.playingSong = songStore.getCurPlayingSong();
-			this.playMode = songStore.getPlayMode();
-			this.initModeView();
-
-			if (typeof this.playingSong != 'undefined' &&
-				this.playingSong != null) {
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
-				this.singer = this.playingSong.singer;
 				this.curTime = bgPlayer.getPlayingCurTime();
 				this.curTimeStr = this.formateSeconds(this.curTime);
-				this.duration = bgPlayer.getPlayingDuration();
-				this.durationStr = this.formateSeconds(this.duration);
+
 				uni.setNavigationBarTitle({
 					title: this.songName
 				});
 			}
-		},
-		onReady() {
-			this.loadLyrics();
+			//先判断是否已经加载过歌词，没有加载过再加载
+			if (!this.hasLoadLyrics) {
+				this.loadLyrics();
+			}
+			this.updateTimestamp = -1;
 		},
 		onUnload() {
 			bgPlayer.setOnEnded(null);
@@ -125,27 +158,11 @@
 			bgPlayer.setOnStoped(null);
 			bgPlayer.setOnPlayed(null);
 			bgPlayer.setTimeUpdate(null);
+			bgPlayer.setOnPred(null);
+			bgPlayer.setOnNexted(null);
 		},
 		data() {
 			return {
-				playStatus: false,
-				playingSong: {},
-				picUrl: '',
-				songName: '',
-				singer: '',
-				tempDeleteIndex: -1,
-				deleteIndex: -1,
-				deleteInfo: '',
-				duration: 0,
-				curTime: 0,
-				curTimeStr: '',
-				durationStr: '',
-				percent: 0,
-				playMode: 1,
-				playModeSrc: '',
-				hasLoadLyrics: false,
-				lyrics: [],
-				styles: {},
 				centerStyle: {
 					btnImg: '../../static/btn.png',
 				},
@@ -163,6 +180,28 @@
 					height: '30vh',
 					background: 'transparent'
 				},
+
+				hasLoadSongInfo: false,
+				playStatus: false,
+				playingSong: {},
+				picUrl: '',
+				songName: '',
+				singer: '',
+				
+				updateTimestamp:-1,
+				duration: 0,
+				curTime: 0,
+				durationStr: '',
+				curTimeStr: '',
+				percent: 0,
+				playMode: 1,
+				playModeSrc: '',
+				hasLoadLyrics: false,
+				lyrics: [],
+
+				tempDeleteIndex: -1,
+				deleteIndex: -1,
+				deleteInfo: '',
 			};
 		},
 		methods: {
@@ -272,6 +311,8 @@
 				songStore.changePlayMode(this.playMode);
 			},
 			onClickPre() {
+				this.hasLoadSongInfo = false;
+				this.hasLoadLyrics = false;
 				bgPlayer.playPre();
 			},
 			onClickPlay() {
@@ -282,11 +323,17 @@
 				}
 			},
 			onClickNext() {
+				this.hasLoadSongInfo = false;
+				this.hasLoadLyrics = false;
 				bgPlayer.playNext();
 			},
 			onClickListBtn() {
 				this.deleteIndex = -1;
 				this.$refs.popup.open('bottom');
+			},
+			onChangePlayMode(val){
+				this.playMode = val;
+				this.initModeView();
 			},
 			onClickSongItem() {
 				this.playStatus = false;
@@ -333,17 +380,21 @@
 
 <style lang="scss" scoped>
 	.container {
+		width: 100%;
+		height: 100%;
+		min-height: 100vh;
+		padding-bottom: 30px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 
 		.img-background {
+			width: 100%;
+			height: 100%;
 			position: absolute;
 			z-index: -100;
 			right: 0;
 			left: 0;
-			height: 100%;
-			width: 100%;
 			// filter 将模糊或颜色偏移等图形效果应用于元素。滤镜通常用于调整图像、背景和边框的渲染
 			filter: blur(15px);
 			// opacity 属性指定了一个元素的不透明度。换言之，opacity 属性指定了一个元素后面的背景的被覆盖程度。
@@ -351,13 +402,13 @@
 		}
 
 		.bg-mask {
+			width: 100%;
+			height: 100%;
 			position: absolute;
 			z-index: -99;
 			right: 0;
 			left: 0;
-			height: 100%;
-			width: 100%;
-			background-color: rgba(0, 0, 0, 0.35);
+			background-color: rgba(0, 0, 0, 0.40);
 		}
 
 		.title {
@@ -374,16 +425,16 @@
 			flex-direction: column;
 			justify-content: center;
 			align-items: center;
-			width: 270px;
-			height: 270px;
-			border-radius: 135px;
-			margin-top: 30px;
+			width: 80vw;
+			height: 80vw;
+			border-radius: 40vw;
+			margin-top: 5vw;
 			background-color: rgba(255, 255, 255, 0.05);
 
 			.header {
-				width: 250px;
-				height: 250px;
-				border-radius: 125px;
+				width: 74vw;
+				height: 74vw;
+				border-radius: 37vw;
 			}
 		}
 
@@ -403,7 +454,6 @@
 			flex-direction: row;
 			justify-content: space-between;
 			align-items: center;
-
 		}
 	}
 </style>

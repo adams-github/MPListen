@@ -69,8 +69,6 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 			if (typeof successCb === 'function') {
 				let songList = [];
 				res.songResultData.result.forEach((item, index) => {
-					let lyric_Url = item.lyricUrl;
-					lyric_Url = lyric_Url.replace('http:', 'https:');
 					songList.push({
 						platform: 'migu',
 						id: item.id,
@@ -80,7 +78,7 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 						singer: item.singer,
 						albumName: item.album,
 						albumUrl: item.albumImgs[0].img,
-						lyricUrl: lyric_Url,
+						lyricUrl:  item.lyricUrl,
 						hasCache: false,
 						delete: false,
 						savedFilePath:'',

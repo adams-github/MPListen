@@ -37,7 +37,7 @@
 
 	export default {
 		name: "playList",
-		emits: ['onItemClick', 'onDeleteItemClick'],
+		emits: ['onItemClick', 'onDeleteItemClick', 'onChangePlayMode'],
 		props: {
 			playing_song: {
 				type: Object,
@@ -48,19 +48,21 @@
 			delete_index: {
 				type: Number,
 				default: -1
+			},
+			play_mode: {
+				type: Number,
+				default: 1
 			}
 		},
 		watch: {
 			playing_song: {
 				immediate: true,
 				handler(val) {
-					this.songList = songStore.getSongList();
-					this.songCount = this.songList.length;
-					this.playMode = songStore.getPlayMode();
-					this.initModeView();
-					this.playingSong = val;
-					if (typeof this.songList != 'undefined' && this.songList != null && this.songList.length > 0) {
-						this.playingIndex = this.songList.findIndex(this.findIndex);
+					if (this.playingSong != val || this.playingSong.id != val.id) {
+						this.playingSong = val;
+						if (this.songList.length > 0) {
+							this.playingIndex = this.songList.findIndex(this.findIndex);
+						}
 					}
 				}
 			},
@@ -75,13 +77,35 @@
 						}
 					}
 				}
+			},
+			songList: {
+				immediate: true,
+				handler(val) {
+					this.songCount = val.length;
+				}
+			},
+			play_mode: {
+				immediate: true,
+				handler(val) {
+					if (this.playMode != val){
+						this.playMode = val;
+						this.initModeView();
+					}
+				}
 			}
+		},
+		created() {
+			this.songList = songStore.getSongList();
+			this.songCount = this.songList.length;
+			this.playMode = songStore.getPlayMode();
+			this.initModeView();
 		},
 		data() {
 			return {
 				playMode: 1,
 				playModeSrc: '',
 				playModeStr: '顺序播放',
+				hasInitMode: false,
 				songList: [],
 				songCount: 0,
 				playingIndex: 0,
@@ -94,6 +118,7 @@
 				this.playMode = this.playMode % 3;
 				this.initModeView();
 				songStore.changePlayMode(this.playMode);
+				this.$emit('onChangePlayMode', this.playMode);
 			},
 			initModeView() {
 				switch (this.playMode) {
@@ -129,7 +154,7 @@
 				}
 			},
 			findIndex(item) {
-				return item.id === this.playingSong.id && item.platform === this.playingSong.platform;
+				return item.id === this.playingSong.id;
 			},
 			getPlatform(item) {
 				switch (item.platform) {

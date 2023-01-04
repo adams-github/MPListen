@@ -33,7 +33,7 @@
 		</view>
 
 		<uni-popup ref="popup" background-color="#fff" @change="change">
-			<playList :playing_song="playingSong" :delete_index="deleteIndex" @onItemClick="onClickSongItem"
+			<playList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode" @onItemClick="onClickSongItem"
 				@onDeleteItemClick="onClickSongDelete"></playList>
 		</uni-popup>
 
@@ -100,23 +100,16 @@
 				songName: '',
 				playStatus: false,
 				playingSong: {},
+				playMode:1,
 				tempDeleteIndex: -1,
 				deleteIndex: -1,
 				deleteInfo: '',
 				show: false,
 			};
 		},
-		onLoad() {
-			this.showController = songStore.getSongList().length > 0;
-		},
 		onShow() {
-			// bgPlayer.setOnEnded(() => {
-			// 	this.picUrl = songStore.getCurPlayingSong().albumUrl;
-			// 	this.songName = songStore.getCurPlayingSong().name;
-			// });
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
-				// this.playingSong = {};
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;
@@ -128,19 +121,19 @@
 				this.picUrl = this.playingSong.albumUrl;
 				this.songName = this.playingSong.name;
 			});
+			
 			this.playStatus = bgPlayer.isPlaying();
-			if (typeof songStore.getCurPlayingSong() != 'undefined' && songStore.getCurPlayingSong() != null) {
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
-			}
-			if (this.playStatus) {
+			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
 				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
+				this.showController = true;
 			} else {
 				this.playingSong = {};
+				this.showController = false;
 			}
 		},
 		onHide() {
-			bgPlayer.setOnEnded(null);
 			bgPlayer.setOnPaused(null);
 			bgPlayer.setOnStoped(null);
 			bgPlayer.setOnPlayed(null);
@@ -348,6 +341,7 @@
 			},
 			miguSongUrl(item) {
 				miguJs.miguSongUrl(item.id, item.quality, (data) => {
+					item.lyricUrl = item.lyricUrl.replace('http:', 'https:');
 					this.requestSongUrlSuccess(item, data);
 				}, (error) => {
 					this.requestError(error);
@@ -402,6 +396,7 @@
 			},
 			onClickListBtn() {
 				this.deleteIndex = -1;
+				this.playMode = songStore.getPlayMode();
 				this.$refs.popup.open('bottom');
 			},
 			onClickSongItem() {

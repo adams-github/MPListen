@@ -284,6 +284,24 @@ bgPlayer.setOnPlayed = function(playedCb) {
 	});
 }
 
+bgPlayer.setOnPred = function(preCb){
+	getBpManager().onPrev(() => {
+		if (typeof preCb === 'function') {
+			preCb();
+		}
+		bgPlayer.playPre();
+	});
+}
+
+bgPlayer.setOnNexted = function(nextCb){
+	getBpManager().onNext(() => {
+		if (typeof nextCb === 'function') {
+			nextCb();
+		}
+		bgPlayer.playNext();
+	});
+}
+
 /**
  * 背景音频播放进度更新事件
  */
