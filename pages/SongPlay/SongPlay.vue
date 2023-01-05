@@ -16,8 +16,8 @@
 					<image class="header" :src="picUrl"></image>
 				</view>
 
-				<bing-lyric :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
-					:areaStyle="cuAreaStyle"></bing-lyric>
+				<CommonLyrics :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
+					:areaStyle="cuAreaStyle" @onClickLyrics="onClickLyric"></CommonLyrics>
 
 				<view class="progress-container">
 					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
@@ -227,10 +227,10 @@
 			 * */
 			loadLyrics() {
 				if (typeof this.playingSong === 'undefined' || this.playingSong == null) return;
+				this.hasLoadLyrics = true;
 
 				if (this.playingSong.platform == 'qq') {
 					this.lyrics = ['[00:00]QQ平台无法获取歌词'];
-					this.hasLoadLyrics = true;
 				} else {
 					this.lyrics = ['[00:00]加载歌词中...'];
 
@@ -259,7 +259,6 @@
 						case 'migu':
 							miguJs.miguSonglyric(this.playingSong.lyricUrl, (data) => {
 								this.lyrics = data.split('\r');
-								this.hasLoadLyrics = true;
 							}, (error) => {
 								this.requestError(error);
 							})
@@ -272,7 +271,6 @@
 				lrclist.forEach((item, index) => {
 					this.lyrics.push('[' + parseFloat(item.time) + ']' + item.lineLyric);
 				});
-				this.hasLoadLyrics = true;
 			},
 			handlerKugouLyrics(lyrics) {
 				this.lyrics = [];
@@ -286,7 +284,6 @@
 						add = true;
 					}
 				});
-				this.hasLoadLyrics = true;
 			},
 			handlerNeteaseLyrics(lyrics) {
 				this.lyrics = [];
@@ -294,7 +291,6 @@
 				lrclist.forEach((item, index) => {
 					this.lyrics.push(item);
 				});
-				this.hasLoadLyrics = true;
 			},
 			requestError(error) {
 				uni.showToast({
@@ -302,7 +298,7 @@
 					icon: 'none',
 					position: 'bottom'
 				});
-				this.lyrics = ['[00:00]加载歌词失败，请点击重试'];
+				this.lyrics = ['[00:00]歌词加载失败，请点击重试'];
 				this.hasLoadLyrics = false;
 			},
 			changePlayMode() {
@@ -375,6 +371,11 @@
 				}
 				return result;
 			},
+			onClickLyric() {
+				if (!this.hasLoadLyrics && this.lyrics.length == 1 && this.lyrics[0] === '[00:00]歌词加载失败，请点击重试') {
+					this.loadLyrics();
+				}
+			}
 		}
 	}
 </script>
@@ -426,16 +427,16 @@
 			flex-direction: column;
 			justify-content: center;
 			align-items: center;
-			width: 80vw;
-			height: 80vw;
-			border-radius: 40vw;
+			width: 37vh;
+			height: 37vh;
+			border-radius: 18.5vh;
 			margin-top: 5vw;
 			background-color: rgba(255, 255, 255, 0.05);
 
 			.header {
-				width: 74vw;
-				height: 74vw;
-				border-radius: 37vw;
+				width: 34vh;
+				height: 34vh;
+				border-radius: 17vh;
 			}
 		}
 

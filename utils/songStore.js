@@ -140,7 +140,7 @@ songStore.removeSong = function(index) {
 
 	songStore.removeFile(song);
 
-	if (song.id == playingSong.id) {
+	if (song.id === playingSong.id) {
 		playingSong.hasCache = false;
 		playingSong.delete = true;
 		playingSong.savedFilePath = '';
@@ -174,8 +174,8 @@ songStore.cacheSong = function(song) {
 	/**
 	 * 缓存音乐到本地
 	 */
-	if (!song.hasCache) {
-		downloadJs.cacheSong(song.id, song.url, song.platform, (res) => {
+	if (song.platform != 'kuwo' && !song.hasCache) {
+		downloadJs.cacheSong(song.id, song.url, (res) => {
 			const index = songList.findIndex((ele) => ele.id === res.id);
 			songList[index].hasCache = true;
 			songList[index].savedFilePath = res.path;
@@ -184,7 +184,7 @@ songStore.cacheSong = function(song) {
 				key: KEY_SONGLIST,
 				data: songList
 			});
-			if (res.id == playingSong.id) {
+			if (res.id === playingSong.id) {
 				playingSong.hasCache = true;
 				playingSong.savedFilePath = res.path;
 				playingSong.url = '';
@@ -194,13 +194,13 @@ songStore.cacheSong = function(song) {
 				});
 			}
 		}, (error) => {
-			const index = songList.findIndex((ele) => ele.id === res.id);
+			const index = songList.findIndex((ele) => ele.id === song.id);
 			songList[index].url = '';
 			uni.setStorage({
 				key: KEY_SONGLIST,
 				data: songList
 			});
-			if (res.id == playingSong.id) {
+			if (song.id === playingSong.id) {
 				playingSong.url = '';
 				uni.setStorage({
 					key: CUR_SONG,
@@ -211,14 +211,20 @@ songStore.cacheSong = function(song) {
 	}
 }
 
-songStore.updateUrl = function(newUrl) {
-	if (playingIndex >= 0 && playingIndex < songList.length) {
-		songList[playingIndex].url = newUrl;
+/**
+ * 更新酷我平台歌曲的播放url
+ */
+songStore.updateUrl = function(songId, newUrl) {
+	const index = songList.findIndex((ele) => ele.id === songId);
+	if (index >= 0 && index < songList.length && songList[index].platform == 'kuwo') {
+		songList[index].url = newUrl;
 		uni.setStorage({
 			key: KEY_SONGLIST,
 			data: songList
 		});
-	} else if (typeof playingSong != 'undefined' && playingSong != null) {
+	}
+
+	if (songId === playingSong.id && playingSong.platform == 'kuwo') {
 		playingSong.url = newUrl;
 		uni.setStorage({
 			key: CUR_SONG,

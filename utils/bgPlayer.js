@@ -17,38 +17,39 @@ let isPlaying = false;
  * 重新获取播放链接
  */
 function updatePlayUrl() {
+	const songId = curPlayingSong.id;
 	switch (curPlayingSong.platform) {
 		case 'netease':
-			neteaseJs.neteaseSongUrl(curPlayingSong.id, (data) => {
-				requestSongUrlSuccess(data);
+			neteaseJs.neteaseSongUrl(songId, (data) => {
+				requestSongUrlSuccess(songId, 'netease', data);
 			}, (error) => {
 				requestSongUrlFailed(error);
 			});
 			break;
 		case 'kuwo':
-			kuwoJs.kuwoSongUrl(curPlayingSong.id, (data) => {
-				requestSongUrlSuccess(data);
+			kuwoJs.kuwoSongUrl(songId, (data) => {
+				requestSongUrlSuccess(songId, 'kuwo', data);
 			}, (error) => {
 				requestSongUrlFailed(error);
 			});
 			break;
 		case 'qq':
-			qqJs.qqSongUrl(curPlayingSong.id, (data) => {
-				requestSongUrlSuccess(data);
+			qqJs.qqSongUrl(songId, (data) => {
+				requestSongUrlSuccess(songId, 'qq', data);
 			}, (error) => {
 				requestSongUrlFailed(error);
 			})
 			break;
 		case 'kugou':
-			kugouJs.kugouSongData(curPlayingSong.id, curPlayingSong.albumId, (data) => {
-				requestSongUrlSuccess(data.url);
+			kugouJs.kugouSongData(songId, curPlayingSong.albumId, (data) => {
+				requestSongUrlSuccess(songId, 'kugou', data.url);
 			}, (error) => {
 				requestSongUrlFailed(error);
 			});
 			break;
 		case 'migu':
-			miguJs.miguSongUrl(curPlayingSong.id, (data) => {
-				requestSongUrlSuccess(data);
+			miguJs.miguSongUrl(songId, (data) => {
+				requestSongUrlSuccess(songId, 'migu', data);
 			}, (error) => {
 				requestSongUrlFailed(error);
 			});
@@ -56,18 +57,33 @@ function updatePlayUrl() {
 	}
 }
 
-function requestSongUrlSuccess(newUrl) {
-	getBpManager().title = curPlayingSong.name;
-	getBpManager().singer = curPlayingSong.singer;
-	getBpManager().coverImgUrl = curPlayingSong.albumUrl;
-	getBpManager().startTime = playSeek;
-	getBpManager().src = newUrl; //设置连接后会自动开始播放
+function requestSongUrlSuccess(songId, platform, newUrl) {
+	if (songId === curPlayingSong.id) {
+		getBpManager().title = curPlayingSong.name;
+		getBpManager().singer = curPlayingSong.singer;
+		getBpManager().coverImgUrl = curPlayingSong.albumUrl;
+		getBpManager().startTime = playSeek;
+		getBpManager().src = newUrl;
+	}
 
-	//重新获取url后, 非酷我平台都应该再重新缓存
-	curPlayingSong.hasCache = false;
-	curPlayingSong.url = newUrl;
-	songStore.cacheSong(curPlayingSong);
-	
+	if (platform == 'kuwo') {
+		songStore.updateUrl(songId, newUrl);
+	} else {
+		//重新缓存songId对应的歌曲
+		if (curPlayingSong.id === songId) {
+			curPlayingSong.url = newUrl;
+			curPlayingSong.hasCache = false;
+			songStore.cacheSong(curPlayingSong);
+		} else {
+			const songList = songStore.getSongList();
+			const findSong = songList.find((ele) => ele.id === songId);
+			if (typeof findSong != 'undefined' && findSong != null) {
+				findSong.url = newUrl;
+				findSong.hasCache = false;
+				songStore.cacheSong(findSong);
+			}
+		}
+	}
 }
 
 function requestSongUrlFailed(error) {
@@ -86,7 +102,6 @@ function getBpManager() {
 			console.error(res);
 			isPlaying = false;
 			uni.getBackgroundAudioManager().stop();
-			//播放连接失效都是出现下面两种报错：{errCode: 10004, errMsg: "errCode:55, err:unknow format"}
 			if (errorTime == 0) {
 				if (curPlayingSong.hasCache) {
 					songStore.removeFile(curPlayingSong);
@@ -150,7 +165,7 @@ bgPlayer.play = function(song) {
 	//判断是不是正在播放同一个首歌
 	if (bgPlayer.isPlaying() && typeof curPlayingSong != 'undefined' &&
 		curPlayingSong != null &&
-		curPlayingSong.id == song.id) {
+		curPlayingSong.id === song.id) {
 		getBpManager().stop();
 	}
 	curPlayingSong = song;
@@ -178,7 +193,7 @@ bgPlayer.play = function(song) {
 	} else {
 		if (song.url != '') {
 			getBpManager().src = song.url; //设置连接后会自动开始播放
-			if (!song.delete) {
+			if (song.platform != 'kuwo' && !song.delete) {
 				songStore.cacheSong(song);
 			}
 		} else {

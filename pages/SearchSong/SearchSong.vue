@@ -314,7 +314,6 @@
 			},
 
 			kuwoSongUrl(item) {
-				//获取图片url, 再获取歌曲url
 				kuwoJs.kuwoSongInfo(item.id, (data) => {
 					item.albumUrl = data.img;
 					kuwoJs.kuwoSongUrl(item.id, (data) => {
@@ -325,6 +324,7 @@
 				}, (error) => {
 					this.requestError(error);
 				});
+				
 			},
 			qqSongUrl(item) {
 				qqJs.qqSongUrl(item.id, (data) => {
