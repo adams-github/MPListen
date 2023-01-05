@@ -74,6 +74,8 @@
 						songStore.removeSong(val);
 						if (val == this.playingIndex) {
 							this.playingIndex = -1;
+						} else if (val < this.playingIndex) {
+							this.playingIndex--;
 						}
 					}
 				}
@@ -81,13 +83,19 @@
 			songList: {
 				immediate: true,
 				handler(val) {
-					this.songCount = val.length;
+					//监听到歌曲列表变化后，要重新定位正在播放哪一首歌
+					if (this.songCount != val.length) {
+						this.songCount = val.length;
+						if (this.playingIndex != -1 && val.length > 0) {
+							this.playingIndex = val.findIndex(this.findIndex);
+						}
+					}
 				}
 			},
 			play_mode: {
 				immediate: true,
 				handler(val) {
-					if (this.playMode != val){
+					if (this.playMode != val) {
 						this.playMode = val;
 						this.initModeView();
 					}

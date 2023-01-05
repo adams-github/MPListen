@@ -53,8 +53,10 @@
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
-				this.picUrl = this.playingSong.albumUrl;
-				this.songName = this.playingSong.name;
+				if(typeof this.playingSong != 'undefined' && this.playingSong != null){
+					this.picUrl = this.playingSong.albumUrl;
+					this.songName = this.playingSong.name;
+				}
 			});
 			this.playStatus = bgPlayer.isPlaying();
 			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
@@ -82,7 +84,7 @@
 				if (typeof songStore.getCurPlayingSong() != 'undefined' &&
 					songStore.getCurPlayingSong() != null) {
 					uni.navigateTo({
-						url: "/pages/SongDetail/SongDetail"
+						url: "/pages/SongPlay/SongPlay"
 					});
 				}
 			},

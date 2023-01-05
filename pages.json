@@ -14,7 +14,7 @@
 		}
 
 	}, {
-		"path": "pages/SongDetail/SongDetail",
+		"path": "pages/SongPlay/SongPlay",
 		"style": {
 			"navigationBarTitleText": "",
 			"enablePullDownRefresh": false,

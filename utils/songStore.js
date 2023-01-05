@@ -78,10 +78,23 @@ songStore.addSong = function(song) {
 	if (typeof songList === 'undefined' || songList == null) {
 		songList = [];
 	}
-	const item = songList.find(item => item.id === song.id && item.platform == song.platform)
-	if (typeof item === 'undefined' || item == null) {
+	const index = songList.findIndex((ele) => ele.id === song.id);
+	if (index < 0) {
 		if (songList.length >= 500) {
-			songList.pop();
+			const popSong = songList.pop();
+			/**
+			 * 判断文件是不是已经缓存
+			 */
+			if (popSong.platform != 'kuwo' && popSong.hasCache) {
+				popSong.hasCache = false;
+				popSong.delete = true;
+				uni.getFileSystemManager().removeSavedFile({
+					filePath: popSong.savedFilePath,
+					fail: function(error) {
+						console.error('removeFail:' + error.errMsg);
+					},
+				});
+			}
 		}
 		song.delete = false;
 		songList.unshift(song);
@@ -94,10 +107,7 @@ songStore.addSong = function(song) {
 		});
 		playingIndex = 0;
 	} else {
-		const index = songList.findIndex((ele) => ele.id === song.id && ele.platform == song.platform);
-		if (index >= 0) {
-			playingIndex = index;
-		}
+		playingIndex = index;
 	}
 	uni.setStorage({
 		key: CUR_INDEX,
@@ -157,6 +167,7 @@ songStore.removeSong = function(index) {
 	if (song.id == playingSong.id) {
 		playingSong.hasCache = false;
 		playingSong.delete = true;
+		playingSong.savedFilePath = '';
 		uni.setStorage({
 			key: CUR_SONG,
 			data: playingSong
@@ -173,10 +184,19 @@ songStore.cacheSong = function(song) {
 			const index = songList.findIndex((ele) => ele.id === res.id);
 			songList[index].hasCache = true;
 			songList[index].savedFilePath = res.path;
+			songList[index].url = '';
 			uni.setStorage({
 				key: KEY_SONGLIST,
 				data: songList
 			});
+			if (res.id == playingSong.id) {
+				playingSong.hasCache = true;
+				playingSong.savedFilePath = res.path;
+				uni.setStorage({
+					key: CUR_SONG,
+					data: playingSong
+				});
+			}
 		}, (error) => {});
 	}
 }
@@ -186,10 +206,13 @@ songStore.updateUrl = function(newUrl) {
 		songList[playingIndex].url = newUrl;
 		uni.setStorage({
 			key: KEY_SONGLIST,
-			data: songList,
-			success: function() {
-				console.log('updateUrl.success');
-			}
+			data: songList
+		});
+	} else if (typeof playingSong != 'undefined' && playingSong != null) {
+		playingSong.url = newUrl;
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
 		});
 	}
 }
@@ -203,7 +226,7 @@ songStore.clickSong = function(index) {
 		key: CUR_SONG,
 		data: playingSong
 	});
-	
+
 	if (index == playingIndex) return;
 	playingIndex = index;
 	uni.setStorage({

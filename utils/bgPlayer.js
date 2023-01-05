@@ -63,7 +63,13 @@ function requestSongUrlSuccess(newUrl) {
 	getBpManager().coverImgUrl = curPlayingSong.albumUrl;
 	getBpManager().startTime = playSeek;
 	getBpManager().src = curPlayingSong.url; //设置连接后会自动开始播放
-	songStore.updateUrl(newUrl);
+	if (curPlayingSong.platform == 'kuwo') {
+		songStore.updateUrl(newUrl);//酷我平台的可以更新url
+	} else if (curPlayingSong.delete != true) {
+		//非酷我平台的播放失败，或者本地文件不存在时，只要还没记录被删除，重新获取url后都应该再去缓存
+		songStore.cacheSong(curPlayingSong);
+	}
+
 }
 
 function requestSongUrlFailed(error) {
@@ -72,6 +78,7 @@ function requestSongUrlFailed(error) {
 		icon: 'none',
 		position: 'bottom'
 	});
+	bgPlayer.stop();
 }
 
 function getBpManager() {
@@ -143,8 +150,7 @@ bgPlayer.play = function(song) {
 	//判断是不是正在播放同一个首歌
 	if (bgPlayer.isPlaying() && typeof curPlayingSong != 'undefined' &&
 		curPlayingSong != null &&
-		curPlayingSong.id == song.id &&
-		curPlayingSong.platform == song.platform) {
+		curPlayingSong.id == song.id) {
 		getBpManager().stop();
 	}
 	curPlayingSong = song;
@@ -166,13 +172,17 @@ bgPlayer.play = function(song) {
 			fail(error) {
 				// 文件不存在或其他错误
 				console.error(error);
-				getBpManager().src = song.url;
+				updatePlayUrl();
 			}
 		})
 	} else {
-		getBpManager().src = song.url; //设置连接后会自动开始播放
-		if (song.platform != 'kuwo' && !song.delete) {
-			songStore.cacheSong(song);
+		if (song.url != '') {
+			getBpManager().src = song.url; //设置连接后会自动开始播放
+			if (song.platform != 'kuwo' && !song.delete) {
+				songStore.cacheSong(song);
+			}
+		} else {
+			updatePlayUrl();
 		}
 	}
 
@@ -284,7 +294,7 @@ bgPlayer.setOnPlayed = function(playedCb) {
 	});
 }
 
-bgPlayer.setOnPred = function(preCb){
+bgPlayer.setOnPred = function(preCb) {
 	getBpManager().onPrev(() => {
 		if (typeof preCb === 'function') {
 			preCb();
@@ -293,7 +303,7 @@ bgPlayer.setOnPred = function(preCb){
 	});
 }
 
-bgPlayer.setOnNexted = function(nextCb){
+bgPlayer.setOnNexted = function(nextCb) {
 	getBpManager().onNext(() => {
 		if (typeof nextCb === 'function') {
 			nextCb();
