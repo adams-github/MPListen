@@ -99,7 +99,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -161,7 +161,7 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -202,7 +202,7 @@ qqJs.qqlyric = function(songId, successCb, errorCb) {
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}

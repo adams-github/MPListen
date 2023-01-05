@@ -363,14 +363,15 @@
 			requestSongUrlSuccess(item, data) {
 				this.isLoadingSong = false;
 				uni.hideLoading();
+				
 				item.url = data;
+				this.picUrl = item.albumUrl;
+				this.songName = item.name;
+				bgPlayer.play(item);
 				songStore.addSong(item);
 				if (!this.showController) {
 					this.showController = true;
 				}
-				this.picUrl = item.albumUrl;
-				this.songName = item.name;
-				bgPlayer.play(item);
 			},
 			onClickPic() {
 				if (typeof songStore.getCurPlayingSong() != 'undefined' &&

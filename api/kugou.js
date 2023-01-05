@@ -62,13 +62,12 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 				successCb(songList);
 			}
 		} else {
-			console.log(res.error_msg);
 			if (typeof errorCb === 'function') {
 				errorCb(res.error_msg);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -111,13 +110,12 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				}
 			}
 		} else {
-			console.log(res.err_msg);
 			if (typeof errorCb === 'function') {
 				errorCb(res.err_msg);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}

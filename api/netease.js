@@ -66,13 +66,12 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 		} else if (res.code === -462) {
 			errorCb(-462);
 		} else {
-			console.log(res.message == undefined ? res.msg : res.message);
 			if (typeof errorCb === 'function') {
 				errorCb(res.message == undefined ? res.msg : res.message);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -128,7 +127,6 @@ neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		console.log(res);
 		if (res.code === 200) {
 			if (res.data[0].url != undefined && res.data[0].url != null && res.data[0].url != '') {
 				if (typeof successCb === 'function') {
@@ -142,13 +140,12 @@ neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 		} else if (res.code === -462) {
 			errorCb(-462);
 		} else {
-			console.log(res.message == undefined ? res.msg : res.message);
 			if (typeof errorCb === 'function') {
 				errorCb(res.message == undefined ? res.msg : res.message);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -233,13 +230,12 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 		} else if (res.code === -462) {
 			errorCb(-462);
 		} else {
-			console.log(res.message == undefined ? res.msg : res.message);
 			if (typeof errorCb === 'function') {
 				errorCb(res.message == undefined ? res.msg : res.message);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}

@@ -19,7 +19,6 @@ Request.request = function({
 				cookies
 			}) => {
 				if (statusCode === 200) {
-					console.log("statusCode: " + statusCode);
 					resolve(data);
 				} else {
 					reject(data);
@@ -28,7 +27,7 @@ Request.request = function({
 			fail: ({
 				errMsg
 			}) => {
-				console.log(errMsg);
+				console.error(errMsg);
 				reject(errMsg);
 			}
 		})
@@ -54,7 +53,6 @@ Request.requestGetHeader = function({
 				cookies
 			}) => {
 				if (statusCode === 200) {
-					console.log("statusCode: " + statusCode);
 					resolve({
 						data,
 						statusCode,
@@ -68,7 +66,7 @@ Request.requestGetHeader = function({
 			fail: ({
 				errMsg
 			}) => {
-				console.log(errMsg);
+				console.error(errMsg);
 				reject(errMsg);
 			}
 		})

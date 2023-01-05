@@ -30,7 +30,6 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		console.log(res);
 		if (res.code === 200) {
 			if (typeof successCb === 'function') {
 				let songList = [];
@@ -53,12 +52,11 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 			}
 		} else {
 			if (typeof errorCb === 'function') {
-				console.log(res.msg);
 				errorCb(res.msg);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -122,7 +120,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 			successCb(songList);
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -149,7 +147,7 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 			successCb(res);
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -187,7 +185,7 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}

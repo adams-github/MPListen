@@ -13,7 +13,6 @@ downloadJs.cacheSong = function(songId, url, successCb, errorCb) {
 			uni.getFileSystemManager().saveFile({
 				tempFilePath: res.tempFilePath,
 				success: function(data) {
-					console.log("saveSuccess：" + data.savedFilePath);
 					if (typeof successCb === 'function') {
 						successCb({
 							id: songId,
@@ -22,7 +21,7 @@ downloadJs.cacheSong = function(songId, url, successCb, errorCb) {
 					}
 				},
 				fail: function(errMsg) {
-					console.log("saveFailed：" + errMsg);
+					console.error("saveFailed：" + errMsg);
 					if (typeof errorCb === 'function') {
 						errorCb(error);
 					}
@@ -31,7 +30,7 @@ downloadJs.cacheSong = function(songId, url, successCb, errorCb) {
 
 		},
 		fail: (error) => {
-			console.log("downloadFailed：" + error);
+			console.error("downloadFailed：" + error.errMsg + "; url: " + url);
 			if (typeof errorCb === 'function') {
 				errorCb(error);
 			}

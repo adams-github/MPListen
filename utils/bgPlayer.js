@@ -7,7 +7,6 @@ import miguJs from '@/api/migu.js'
 
 // 全局音频播放管理
 let bgPlayer = {};
-
 let isInited = false;
 let curPlayingSong;
 let playSeek = 0; //播放进度，单位s
@@ -32,6 +31,7 @@ function updatePlayUrl() {
 			}, (error) => {
 				requestSongUrlFailed(error);
 			});
+			break;
 		case 'qq':
 			qqJs.qqSongUrl(curPlayingSong.id, (data) => {
 				requestSongUrlSuccess(data);
@@ -57,19 +57,18 @@ function updatePlayUrl() {
 }
 
 function requestSongUrlSuccess(newUrl) {
-	curPlayingSong.url = newUrl;
 	getBpManager().title = curPlayingSong.name;
 	getBpManager().singer = curPlayingSong.singer;
 	getBpManager().coverImgUrl = curPlayingSong.albumUrl;
 	getBpManager().startTime = playSeek;
-	getBpManager().src = curPlayingSong.url; //设置连接后会自动开始播放
-	if (curPlayingSong.platform == 'kuwo') {
-		songStore.updateUrl(newUrl);//酷我平台的可以更新url
-	} else if (curPlayingSong.delete != true) {
-		//非酷我平台的播放失败，或者本地文件不存在时，只要还没记录被删除，重新获取url后都应该再去缓存
+	getBpManager().src = newUrl; //设置连接后会自动开始播放
+
+	//重新获取url后, 非酷我平台都应该再重新缓存
+	if (curPlayingSong.platform != 'kuwo') {
+		curPlayingSong.hasCache = false;
+		curPlayingSong.url = newUrl;
 		songStore.cacheSong(curPlayingSong);
 	}
-
 }
 
 function requestSongUrlFailed(error) {
@@ -162,7 +161,7 @@ bgPlayer.play = function(song) {
 	getBpManager().singer = song.singer;
 	getBpManager().coverImgUrl = song.albumUrl;
 
-	if (song.platform != 'kuwo' && song.hasCache && !song.delete) {
+	if (song.hasCache && !song.delete) {
 		//判断文件/目录是否存在
 		uni.getFileSystemManager().access({
 			path: song.savedFilePath,
@@ -182,7 +181,7 @@ bgPlayer.play = function(song) {
 				songStore.cacheSong(song);
 			}
 		} else {
-			updatePlayUrl();
+			updatePlayUrl(); //url为空，重新获取url
 		}
 	}
 

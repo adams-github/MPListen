@@ -91,13 +91,12 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 				successCb(songList);
 			}
 		} else {
-			console.log(res.info != undefined ? res.info : res.errormsg);
 			if (typeof errorCb === 'function') {
 				errorCb(res.info != undefined ? res.info : res.errormsg);
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -147,7 +146,7 @@ miguJs.miguSongUrl = function(songId, quality, successCb, errorCb) {
 			}
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}
@@ -169,7 +168,7 @@ miguJs.miguSonglyric = function(lyricUrl, successCb, errorCb) {
 			successCb(res);
 		}
 	}).catch((error) => {
-		console.log(error);
+		console.error(error);
 		if (typeof errorCb === 'function') {
 			errorCb(error);
 		}

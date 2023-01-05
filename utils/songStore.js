@@ -22,7 +22,6 @@ songStore.loadAllSongs = function() {
 				if (typeof songList === 'undefined' || songList == null) {
 					songList = [];
 				}
-				console.log("loadAllSongs.success: ");
 			}
 		});
 	}
@@ -85,7 +84,7 @@ songStore.addSong = function(song) {
 			/**
 			 * 判断文件是不是已经缓存
 			 */
-			if (popSong.platform != 'kuwo' && popSong.hasCache) {
+			if (popSong.hasCache) {
 				popSong.hasCache = false;
 				popSong.delete = true;
 				uni.getFileSystemManager().removeSavedFile({
@@ -97,13 +96,13 @@ songStore.addSong = function(song) {
 			}
 		}
 		song.delete = false;
+		if (song.platform == 'kuwo'){
+			song.url = '';
+		}
 		songList.unshift(song);
 		uni.setStorage({
 			key: KEY_SONGLIST,
-			data: songList,
-			success: function() {
-				console.log('addSong.success');
-			}
+			data: songList
 		});
 		playingIndex = 0;
 	} else {
@@ -126,10 +125,7 @@ songStore.removeSong = function(index) {
 	songList.splice(index, 1);
 	uni.setStorage({
 		key: KEY_SONGLIST,
-		data: songList,
-		success: function() {
-			console.log('removeSong.success');
-		}
+		data: songList
 	});
 	if (index < playingIndex) {
 		playingIndex--;
@@ -149,21 +145,20 @@ songStore.removeSong = function(index) {
 	 * 判断文件是不是已经缓存
 	 */
 
-	if (song.platform != 'kuwo' && song.hasCache) {
+	if (song.hasCache) {
 		song.hasCache = false;
 		song.delete = true;
 		uni.getFileSystemManager().removeSavedFile({
 			filePath: song.savedFilePath,
 			success: function() {
 				song.savedFilePath = '';
-				console.log('removeSavedFile.success');
 			},
 			fail: function(error) {
-				console.log('removeFail:' + error.errMsg);
+				console.error('removeFail:' + error.errMsg);
 			},
 		});
 	}
-
+	
 	if (song.id == playingSong.id) {
 		playingSong.hasCache = false;
 		playingSong.delete = true;
@@ -173,6 +168,7 @@ songStore.removeSong = function(index) {
 			data: playingSong
 		});
 	}
+	
 }
 
 songStore.cacheSong = function(song) {
@@ -192,12 +188,27 @@ songStore.cacheSong = function(song) {
 			if (res.id == playingSong.id) {
 				playingSong.hasCache = true;
 				playingSong.savedFilePath = res.path;
+				playingSong.url = '';
 				uni.setStorage({
 					key: CUR_SONG,
 					data: playingSong
 				});
 			}
-		}, (error) => {});
+		}, (error) => {
+			const index = songList.findIndex((ele) => ele.id === res.id);
+			songList[index].url = '';
+			uni.setStorage({
+				key: KEY_SONGLIST,
+				data: songList
+			});
+			if (res.id == playingSong.id) {
+				playingSong.url = '';
+				uni.setStorage({
+					key: CUR_SONG,
+					data: playingSong
+				});
+			}
+		});
 	}
 }
 
@@ -239,10 +250,7 @@ songStore.changePlayMode = function(val) {
 	playMode = val;
 	uni.setStorage({
 		key: PLAY_MODE,
-		data: playMode,
-		success: function() {
-			console.log('changePlayMode.success');
-		}
+		data: playMode
 	})
 }
 
