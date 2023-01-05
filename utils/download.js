@@ -3,9 +3,11 @@ let downloadJs = {};
 /**
  * 下载歌曲到本地
  */
-downloadJs.cacheSong = function(songId, url, successCb, errorCb) {
+downloadJs.cacheSong = function(songId, url, platform, successCb, errorCb) {
 	let downloadUrl = url;
-	downloadUrl = downloadUrl.replace('http:', 'https:');
+	if (platform != 'kuwo') {
+		downloadUrl = downloadUrl.replace('http:', 'https:');
+	}
 	uni.downloadFile({
 		url: downloadUrl,
 		success: (res) => {
@@ -13,6 +15,7 @@ downloadJs.cacheSong = function(songId, url, successCb, errorCb) {
 			uni.getFileSystemManager().saveFile({
 				tempFilePath: res.tempFilePath,
 				success: function(data) {
+					console.info('saveFile: success');
 					if (typeof successCb === 'function') {
 						successCb({
 							id: songId,

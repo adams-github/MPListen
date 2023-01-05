@@ -96,9 +96,6 @@ songStore.addSong = function(song) {
 			}
 		}
 		song.delete = false;
-		if (song.platform == 'kuwo'){
-			song.url = '';
-		}
 		songList.unshift(song);
 		uni.setStorage({
 			key: KEY_SONGLIST,
@@ -141,10 +138,23 @@ songStore.removeSong = function(index) {
 		});
 	}
 
+	songStore.removeFile(song);
+
+	if (song.id == playingSong.id) {
+		playingSong.hasCache = false;
+		playingSong.delete = true;
+		playingSong.savedFilePath = '';
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
+		});
+	}
+}
+
+songStore.removeFile = function(song) {
 	/**
 	 * 判断文件是不是已经缓存
 	 */
-
 	if (song.hasCache) {
 		song.hasCache = false;
 		song.delete = true;
@@ -158,25 +168,14 @@ songStore.removeSong = function(index) {
 			},
 		});
 	}
-	
-	if (song.id == playingSong.id) {
-		playingSong.hasCache = false;
-		playingSong.delete = true;
-		playingSong.savedFilePath = '';
-		uni.setStorage({
-			key: CUR_SONG,
-			data: playingSong
-		});
-	}
-	
 }
 
 songStore.cacheSong = function(song) {
 	/**
 	 * 缓存音乐到本地
 	 */
-	if (song.platform != 'kuwo' && !song.hasCache) {
-		downloadJs.cacheSong(song.id, song.url, (res) => {
+	if (!song.hasCache) {
+		downloadJs.cacheSong(song.id, song.url, song.platform, (res) => {
 			const index = songList.findIndex((ele) => ele.id === res.id);
 			songList[index].hasCache = true;
 			songList[index].savedFilePath = res.path;

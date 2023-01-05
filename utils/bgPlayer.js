@@ -64,11 +64,10 @@ function requestSongUrlSuccess(newUrl) {
 	getBpManager().src = newUrl; //设置连接后会自动开始播放
 
 	//重新获取url后, 非酷我平台都应该再重新缓存
-	if (curPlayingSong.platform != 'kuwo') {
-		curPlayingSong.hasCache = false;
-		curPlayingSong.url = newUrl;
-		songStore.cacheSong(curPlayingSong);
-	}
+	curPlayingSong.hasCache = false;
+	curPlayingSong.url = newUrl;
+	songStore.cacheSong(curPlayingSong);
+	
 }
 
 function requestSongUrlFailed(error) {
@@ -88,8 +87,10 @@ function getBpManager() {
 			isPlaying = false;
 			uni.getBackgroundAudioManager().stop();
 			//播放连接失效都是出现下面两种报错：{errCode: 10004, errMsg: "errCode:55, err:unknow format"}
-			if ((res.errCode == 10004 || res.errMsg == 'setBackgroundAudioState:fail timeout') &&
-				errorTime == 0) {
+			if (errorTime == 0) {
+				if (curPlayingSong.hasCache) {
+					songStore.removeFile(curPlayingSong);
+				}
 				//这时候播放连接已经失效，需要重新获取
 				updatePlayUrl();
 			} else {
@@ -177,7 +178,7 @@ bgPlayer.play = function(song) {
 	} else {
 		if (song.url != '') {
 			getBpManager().src = song.url; //设置连接后会自动开始播放
-			if (song.platform != 'kuwo' && !song.delete) {
+			if (!song.delete) {
 				songStore.cacheSong(song);
 			}
 		} else {
