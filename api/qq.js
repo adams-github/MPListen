@@ -3,6 +3,7 @@ import requester from "@/utils/request.js"
 const BASE_URL_QQ = "https://u.y.qq.com";
 const URL_SEARCH_QQ = "/cgi-bin/musicu.fcg";
 const URL_LYRIC_QQ = "https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg";
+const URL_LYRIC_QQ_MPWX = "/cgi-bin/musicu.fcg";
 
 let qqJs = {};
 
@@ -42,6 +43,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 				res.req.data.body.song.list.forEach((item, index) => {
 					let free = item.pay.pay_play == 0 && item.action.alert != 0;
 					let songId = item.mid;
+					let lyric_Id = item.id;
 					let songName = item.name;
 					let album_name = item.album.name;
 					let singerName = '';
@@ -55,6 +57,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						for (let i = 0; i < item.grp.length; i++) {
 							if (item.grp[i].pay.pay_play == 0 && item.grp[i].action.alert != 0) {
 								songId = item.grp[i].mid;
+								lyric_Id = item.grp[i].id;
 								songName = item.grp[i].name;
 								album_name = item.grp[i].album.name;
 								singerName = '';
@@ -80,6 +83,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 					songList.push({
 						platform: 'qq',
 						id: songId,
+						lyricId: lyric_Id,
 						name: songName,
 						url: '',
 						singer: singerName,
@@ -88,7 +92,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						isFree: free,
 						hasCache: false,
 						delete: false,
-						savedFilePath:'',
+						savedFilePath: '',
 					})
 				});
 				successCb(songList);
@@ -208,5 +212,54 @@ qqJs.qqlyric = function(songId, successCb, errorCb) {
 		}
 	});
 }
+
+/**
+ * qq平台的歌词接口对header中的referer字段做了判断，所以qq平台的歌词无法获取
+ */
+qqJs.qqlyricForMPWX = function(songId, successCb, errorCb) {
+	const request_url = BASE_URL_QQ + URL_LYRIC_QQ_MPWX;
+	const request_data = {
+		comm: {
+			uin: "1152921504922858860",
+			authst: "W_X_5MUD1qqzp9-ESBLYDCGqZsa56lU5kDGZsDT7UPcEuE0-3MXa5w7AWr6jRn36-70b0EF3Bes_OBUFL",
+			mina: 1,
+			appid: "wxada7aab80ba27074",
+			ct: 25
+		},
+		detail: {
+			module: "music.pf_song_detail_svr",
+			method: "get_song_detail",
+			param: {
+				song_id: songId
+			}
+		}
+	}
+	const request_method = "POST";
+	const request_header = {
+		'content-type': 'application/json',
+	};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (res.code === 0 && res.detail.code === 0) {
+			if (typeof successCb === 'function') {
+				successCb(res.detail.data.info[5].content[0].value);
+			}
+		} else {
+			if (typeof errorCb === 'function') {
+				errorCb("请求失败: qqlyricForMPWX()");
+			}
+		}
+	}).catch((error) => {
+		console.error(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
 
 export default qqJs;

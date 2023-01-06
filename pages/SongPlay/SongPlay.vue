@@ -64,6 +64,7 @@
 	import kuwoJs from '@/api/kuwo.js'
 	import neteaseJs from '@/api/netease.js'
 	import miguJs from '@/api/migu.js'
+	import qqJs from '../../api/qq'
 
 	export default {
 		onLoad() {
@@ -224,43 +225,45 @@
 			 * */
 			loadLyrics() {
 				if (typeof this.playingSong === 'undefined' || this.playingSong == null) return;
+
 				this.hasLoadLyrics = true;
-
-				if (this.playingSong.platform == 'qq') {
-					this.lyrics = ['[00:00]QQ平台无法获取歌词'];
-				} else {
-					this.lyrics = ['[00:00]加载歌词中...'];
-
-					switch (this.playingSong.platform) {
-						case 'kuwo':
-							kuwoJs.kuwoSongInfo(this.playingSong.id, (data) => {
-								this.handlerKuwoLyrics(data.lrclist);
-							}, (error) => {
-								this.requestError(error);
-							})
-							break;
-						case 'kugou':
-							kugouJs.kugouSongData(this.playingSong.id, this.playingSong.albumId, (data) => {
-								this.handlerKugouLyrics(data.lyrics);
-							}, (error) => {
-								this.requestError(error);
-							})
-							break;
-						case 'netease':
-							neteaseJs.neteaseLyric(this.playingSong.id, (data) => {
-								this.handlerNeteaseLyrics(data);
-							}, (error) => {
-								this.requestError(error);
-							})
-							break;
-						case 'migu':
-							miguJs.miguSonglyric(this.playingSong.lyricUrl, (data) => {
-								this.lyrics = data.split('\r');
-							}, (error) => {
-								this.requestError(error);
-							})
-							break;
-					}
+				this.lyrics = ['[00:00]加载歌词中...'];
+				switch (this.playingSong.platform) {
+					case 'kuwo':
+						kuwoJs.kuwoSongInfo(this.playingSong.id, (data) => {
+							this.handlerKuwoLyrics(data.lrclist);
+						}, (error) => {
+							this.requestError(error);
+						})
+						break;
+					case 'kugou':
+						kugouJs.kugouSongData(this.playingSong.id, this.playingSong.albumId, (data) => {
+							this.handlerKugouLyrics(data.lyrics);
+						}, (error) => {
+							this.requestError(error);
+						})
+						break;
+					case 'qq':
+						qqJs.qqlyricForMPWX(this.playingSong.lyricId, (data) => {
+							this.handlerQQLyrics(data);
+						}, (error) => {
+							this.requestError(error);
+						});
+						break;
+					case 'netease':
+						neteaseJs.neteaseLyric(this.playingSong.id, (data) => {
+							this.handlerNeteaseLyrics(data);
+						}, (error) => {
+							this.requestError(error);
+						})
+						break;
+					case 'migu':
+						miguJs.miguSonglyric(this.playingSong.lyricUrl, (data) => {
+							this.lyrics = data.split('\r');
+						}, (error) => {
+							this.requestError(error);
+						})
+						break;
 				}
 			},
 			handlerKuwoLyrics(lrclist) {
@@ -272,6 +275,13 @@
 			handlerKugouLyrics(lyrics) {
 				this.lyrics = [];
 				const lrclist = lyrics.split('\r\n');
+				lrclist.forEach((item, index) => {
+					this.lyrics.push(item);
+				});
+			},
+			handlerQQLyrics(lyrics) {
+				this.lyrics = [];
+				const lrclist = lyrics.split('\n');
 				lrclist.forEach((item, index) => {
 					this.lyrics.push(item);
 				});
