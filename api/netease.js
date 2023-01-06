@@ -58,7 +58,7 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 						isFree: item.fee == 0 || item.fee == 8,
 						hasCache: false,
 						delete: false,
-						savedFilePath:'',
+						localPath:'',
 					})
 				});
 				successCb(songList);

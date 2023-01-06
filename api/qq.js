@@ -92,7 +92,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						isFree: free,
 						hasCache: false,
 						delete: false,
-						savedFilePath: '',
+						localPath: '',
 					})
 				});
 				successCb(songList);
@@ -246,7 +246,12 @@ qqJs.qqlyricForMPWX = function(songId, successCb, errorCb) {
 	}).then((res) => {
 		if (res.code === 0 && res.detail.code === 0) {
 			if (typeof successCb === 'function') {
-				successCb(res.detail.data.info[5].content[0].value);
+				res.detail.data.info.forEach((item, index) => {
+					if (item.type == 'lyric') {
+						successCb(item.content[0].value);
+						return;
+					}
+				});
 			}
 		} else {
 			if (typeof errorCb === 'function') {

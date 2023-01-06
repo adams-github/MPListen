@@ -88,7 +88,7 @@ songStore.addSong = function(song) {
 				popSong.hasCache = false;
 				popSong.delete = true;
 				uni.getFileSystemManager().removeSavedFile({
-					filePath: popSong.savedFilePath,
+					filePath: popSong.localPath,
 					fail: function(error) {
 						console.error('removeFail:' + error.errMsg);
 					},
@@ -143,7 +143,7 @@ songStore.removeSong = function(index) {
 	if (song.id === playingSong.id) {
 		playingSong.hasCache = false;
 		playingSong.delete = true;
-		playingSong.savedFilePath = '';
+		playingSong.localPath = '';
 		uni.setStorage({
 			key: CUR_SONG,
 			data: playingSong
@@ -159,9 +159,9 @@ songStore.removeFile = function(song) {
 		song.hasCache = false;
 		song.delete = true;
 		uni.getFileSystemManager().removeSavedFile({
-			filePath: song.savedFilePath,
+			filePath: song.localPath,
 			success: function() {
-				song.savedFilePath = '';
+				song.localPath = '';
 			},
 			fail: function(error) {
 				console.error('removeFail:' + error.errMsg);
@@ -174,11 +174,11 @@ songStore.cacheSong = function(song) {
 	/**
 	 * 缓存音乐到本地
 	 */
-	if (song.platform != 'kuwo' && !song.hasCache) {
+	if (song.platform != 'kuwo' && !song.hasCache && !song.delete) {
 		downloadJs.cacheSong(song.id, song.url, (res) => {
 			const index = songList.findIndex((ele) => ele.id === res.id);
 			songList[index].hasCache = true;
-			songList[index].savedFilePath = res.path;
+			songList[index].localPath = res.path;
 			songList[index].url = '';
 			uni.setStorage({
 				key: KEY_SONGLIST,
@@ -186,7 +186,7 @@ songStore.cacheSong = function(song) {
 			});
 			if (res.id === playingSong.id) {
 				playingSong.hasCache = true;
-				playingSong.savedFilePath = res.path;
+				playingSong.localPath = res.path;
 				playingSong.url = '';
 				uni.setStorage({
 					key: CUR_SONG,

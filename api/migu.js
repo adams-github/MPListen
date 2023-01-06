@@ -81,7 +81,7 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 						lyricUrl:  item.lyricUrl,
 						hasCache: false,
 						delete: false,
-						savedFilePath:'',
+						localPath:'',
 						isFree: (typeof item.listenFlag === 'undefined' ||
 								item.listenFlag == '4' ||
 								item.listenFlag == '7') &&

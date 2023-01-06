@@ -45,7 +45,7 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						isFree: true,
 						hasCache: false,
 						delete: false,
-						savedFilePath: '',
+						localPath: '',
 					})
 				});
 				successCb(songList);
@@ -115,7 +115,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					hasCache: false,
 					urlTime:-1,
 					delete: false,
-					savedFilePath: '',
+					localPath: '',
 				})
 			});
 			successCb(songList);

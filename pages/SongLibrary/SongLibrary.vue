@@ -5,18 +5,15 @@
 			<uni-search-bar bgColor="#ffffff" placeholder="搜索" radius="40" readonly>
 			</uni-search-bar>
 		</view>
-
 		<view class="controller-sticky" v-show="showController">
 			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" @clickPic="onClickPic"
 				@clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn" @clickList="onClickListBtn">
 			</MusicController>
 		</view>
-
 		<uni-popup ref="popup" background-color="#fff" type="bottom" @change="change">
 			<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
 				@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"></PlayList>
 		</uni-popup>
-
 		<uni-popup ref="alertDialog" type="dialog">
 			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
 				@confirm="onDeleteConfirm"></uni-popup-dialog>

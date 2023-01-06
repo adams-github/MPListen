@@ -5,27 +5,32 @@
 			<view class="container">
 				<image class="img-background" :src="picUrl" mode="aspectFill"></image>
 				<view class="bg-mask"></view>
-
 				<uni-nav-bar style="width: 100%;" leftIcon="back" :title="songName" color="#ffffff"
 					backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
 					@clickLeft="toBack">
 				</uni-nav-bar>
 				<text style="color: white; font-size: 12px; margin-bottom: 2vh;">{{singer}}</text>
-
-				<view class="img-bordor" v-show="showHeader">
-					<image class="header" :src="picUrl"></image>
+				<view
+					style="width: 100%; height: 67vh; max-height: 67vh; display: flex; flex-direction: column; align-items: center;">
+					<view class="img-bordor" v-show="showHeader">
+						<image class="header" :src="picUrl"></image>
+					</view>
+					<CommonLyrics :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :areaStyle="cuAreaStyle"
+						@onClickLyrics="onClickLyric"></CommonLyrics>
 				</view>
-
-				<CommonLyrics :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :areaStyle="cuAreaStyle"
-					@onClickLyrics="onClickLyric"></CommonLyrics>
-
+				<view style="display: flex; flex-direction: row; justify-content: space-around; align-items: center;">
+					<text style="font-size: 10px; color: white; border-style: solid; 
+					border-color: white; border-width: 1rpx; border-radius: 3px; 
+					padding: 1px; text-align: center;">{{platformStr}}</text>
+					<image style="width: 15px; height: 15px; margin-left: 150px"
+						src="../../static/ic_detail_downloaded.png" v-show="showDownloaded"></image>
+				</view>
 				<view class="progress-container">
 					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
 					<progress style="width: 80%; margin-left: 10px;" :percent="percent" stroke-width="3"
 						backgroundColor="#B9B9B9" activeColor="#ffffff"></progress>
 					<text style="color: #B9B9B9; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
 				</view>
-
 				<view class="playController">
 					<image style="width: 25px; height: 25px;" :src="playModeSrc" @click="changePlayMode"></image>
 					<image style="width: 30px; height: 30px;" src="../../static/ic_detail_pre_white.png"
@@ -41,13 +46,11 @@
 						@click="onClickListBtn">
 					</image>
 				</view>
-
 				<uni-popup ref="popup" background-color="#fff" @change="change">
 					<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
 						@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"
 						@onChangePlayMode="onChangePlayMode"></PlayList>
 				</uni-popup>
-
 				<uni-popup ref="alertDialog" type="dialog">
 					<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
 						@confirm="onDeleteConfirm"></uni-popup-dialog>
@@ -97,6 +100,8 @@
 				this.updateTimestamp = -1;
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
+				this.showDownloaded = this.playingSong.hasCache;
+				this.initPlatform();
 				this.duration = bgPlayer.getPlayingDuration();
 				this.durationStr = this.formateSeconds(this.duration);
 
@@ -137,6 +142,8 @@
 				this.percent = this.curTime / this.duration * 100;
 
 				this.playingSong = songStore.getCurPlayingSong();
+				this.showDownloaded = this.playingSong.hasCache;
+				this.initPlatform();
 				this.picUrl = this.playingSong.albumUrl;
 				this.songName = this.playingSong.name;
 				this.singer = this.playingSong.singer;
@@ -184,7 +191,9 @@
 				picUrl: '',
 				songName: '',
 				singer: '',
+				platformStr: '',
 				showHeader: true,
+				showDownloaded: false,
 
 				updateTimestamp: -1,
 				duration: 0,
@@ -217,6 +226,25 @@
 						break;
 					case 2:
 						this.playModeSrc = '../../static/ic_mode_random_white.png';
+						break;
+				}
+			},
+			initPlatform() {
+				switch (this.playingSong.platform) {
+					case 'netease':
+						this.platformStr = '网易';
+						break;
+					case 'kuwo':
+						this.platformStr = '酷我';
+						break;
+					case 'qq':
+						this.platformStr = 'QQ';
+						break;
+					case 'kugou':
+						this.platformStr = '酷狗';
+						break;
+					case 'migu':
+						this.platformStr = '咪咕';
 						break;
 				}
 			},
@@ -385,11 +413,14 @@
 								height: '67vh'
 							};
 						} else {
+							//先让歌词缩小，再延迟100毫秒让图片展示出来，这样可以避免歌词越界显示
 							this.cuAreaStyle = {
 								width: '100vw',
 								height: '30vh'
 							};
-							this.showHeader = true;
+							setTimeout(() => {
+								this.showHeader = true;
+							}, 100);
 						}
 					}
 				}
@@ -447,6 +478,7 @@
 
 		.progress-container {
 			width: 80%;
+			margin-top: 1vh;
 			display: flex;
 			flex-direction: row;
 			justify-content: center;

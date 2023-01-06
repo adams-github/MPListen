@@ -102,7 +102,7 @@
 				immediate: true,
 				handler(val) {
 					this.cuAreaStyle = Object.assign(this.cuAreaStyle, val);
-					setTimeout(()=>{
+					setTimeout(() => {
 						const query = uni.createSelectorQuery().in(this)
 						query.select(".lyric-main").boundingClientRect(res => {
 							let size = this.sizeDeal(this.cuLyricStyle.lineHeight)
@@ -141,7 +141,7 @@
 			}
 		},
 		mounted() {
-			setTimeout(()=>{
+			setTimeout(() => {
 				const query = uni.createSelectorQuery().in(this)
 				query.select(".lyric-main").boundingClientRect(res => {
 					let size = this.sizeDeal(this.cuLyricStyle.lineHeight)
@@ -278,5 +278,6 @@
 		height: 32px;
 		font-size: 16px;
 		overflow: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 </style>

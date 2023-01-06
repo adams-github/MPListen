@@ -70,14 +70,14 @@ function requestSongUrlSuccess(songId, platform, newUrl) {
 		songStore.updateUrl(songId, newUrl);
 	} else {
 		//重新缓存songId对应的歌曲
-		if (curPlayingSong.id === songId) {
+		if (curPlayingSong.id === songId && !curPlayingSong.delete) {
 			curPlayingSong.url = newUrl;
 			curPlayingSong.hasCache = false;
 			songStore.cacheSong(curPlayingSong);
 		} else {
 			const songList = songStore.getSongList();
 			const findSong = songList.find((ele) => ele.id === songId);
-			if (typeof findSong != 'undefined' && findSong != null) {
+			if (typeof findSong != 'undefined' && findSong != null && !findSong.delete) {
 				findSong.url = newUrl;
 				findSong.hasCache = false;
 				songStore.cacheSong(findSong);
@@ -184,9 +184,9 @@ bgPlayer.play = function(song) {
 	if (song.hasCache && !song.delete) {
 		//判断文件/目录是否存在
 		uni.getFileSystemManager().access({
-			path: song.savedFilePath,
+			path: song.localPath,
 			success(res) {
-				getBpManager().src = song.savedFilePath;
+				getBpManager().src = song.localPath;
 			},
 			fail(error) {
 				// 文件不存在或其他错误
@@ -195,7 +195,7 @@ bgPlayer.play = function(song) {
 			}
 		})
 	} else {
-		if (song.platform != 'kuwo' || (Date.now() - song.urlTime) < 1000 * 60 * 54) {
+		if (song.url != '' && (song.platform != 'kuwo' || (Date.now() - song.urlTime) < 1000 * 60 * 54)) {
 			getBpManager().src = song.url; //设置连接后会自动开始播放
 			if (song.platform != 'kuwo' && !song.delete) {
 				songStore.cacheSong(song);

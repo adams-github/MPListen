@@ -56,7 +56,7 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 						isFree: free,
 						hasCache: false,
 						delete: false,
-						savedFilePath:'',
+						localPath:'',
 					})
 				});
 				successCb(songList);
