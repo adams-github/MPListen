@@ -113,6 +113,7 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					albumUrl: '',
 					isFree: true,
 					hasCache: false,
+					urlTime:-1,
 					delete: false,
 					savedFilePath: '',
 				})

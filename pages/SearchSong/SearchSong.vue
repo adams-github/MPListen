@@ -316,6 +316,7 @@
 				kuwoJs.kuwoSongInfo(item.id, (data) => {
 					item.albumUrl = data.img;
 					kuwoJs.kuwoSongUrl(item.id, (data) => {
+						item.urlTime = Date.now();
 						this.requestSongUrlSuccess(item, data);
 					}, (error) => {
 						this.requestError(error);

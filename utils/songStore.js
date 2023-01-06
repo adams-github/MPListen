@@ -218,6 +218,7 @@ songStore.updateUrl = function(songId, newUrl) {
 	const index = songList.findIndex((ele) => ele.id === songId);
 	if (index >= 0 && index < songList.length && songList[index].platform == 'kuwo') {
 		songList[index].url = newUrl;
+		songList[index].urlTime = Date.now();
 		uni.setStorage({
 			key: KEY_SONGLIST,
 			data: songList
@@ -226,6 +227,7 @@ songStore.updateUrl = function(songId, newUrl) {
 
 	if (songId === playingSong.id && playingSong.platform == 'kuwo') {
 		playingSong.url = newUrl;
+		playingSong.urlTime = Date.now();
 		uni.setStorage({
 			key: CUR_SONG,
 			data: playingSong

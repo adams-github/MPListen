@@ -161,6 +161,10 @@ bgPlayer.getPlayingCurTime = function() {
 }
 
 
+/**
+ * 由于酷我平台的音乐无法下载，都是通过网络链接在线播放
+ * 酷我的网络播放链接只有一个小时的播放时效，超过一个小时就会报410/403错误
+ */
 bgPlayer.play = function(song) {
 	//判断是不是正在播放同一个首歌
 	if (bgPlayer.isPlaying() && typeof curPlayingSong != 'undefined' &&
@@ -191,7 +195,7 @@ bgPlayer.play = function(song) {
 			}
 		})
 	} else {
-		if (song.url != '') {
+		if (song.platform != 'kuwo' || (Date.now() - song.urlTime) < 1000 * 60 * 54) {
 			getBpManager().src = song.url; //设置连接后会自动开始播放
 			if (song.platform != 'kuwo' && !song.delete) {
 				songStore.cacheSong(song);
@@ -211,7 +215,11 @@ bgPlayer.replay = function() {
 			bgPlayer.play(song);
 		}
 	} else {
-		getBpManager().play();
+		if (curPlayingSong.platform == 'kuwo' && (Date.now() - curPlayingSong.urlTime) > 1000 * 60 * 54) {
+			updatePlayUrl();
+		} else {
+			getBpManager().play();
+		}
 	}
 }
 
