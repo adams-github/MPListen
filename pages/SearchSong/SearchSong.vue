@@ -33,8 +33,8 @@
 		</view>
 
 		<uni-popup ref="popup" background-color="#fff" @change="change">
-			<playList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode" @onItemClick="onClickSongItem"
-				@onDeleteItemClick="onClickSongDelete"></playList>
+			<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
+				@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"></PlayList>
 		</uni-popup>
 
 		<uni-popup ref="alertDialog" type="dialog">
@@ -100,7 +100,7 @@
 				songName: '',
 				playStatus: false,
 				playingSong: {},
-				playMode:1,
+				playMode: 1,
 				tempDeleteIndex: -1,
 				deleteIndex: -1,
 				deleteInfo: '',
@@ -118,12 +118,12 @@
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
-				if(typeof this.playingSong != 'undefined' && this.playingSong != null){
+				if (typeof this.playingSong != 'undefined' && this.playingSong != null) {
 					this.picUrl = this.playingSong.albumUrl;
 					this.songName = this.playingSong.name;
 				}
 			});
-			
+
 			this.playStatus = bgPlayer.isPlaying();
 			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
 				this.playingSong = songStore.getCurPlayingSong();
@@ -284,21 +284,20 @@
 				}
 			},
 			itemClick(item) {
-				if (item.isFree != true) {
-					uni.showToast({
-						title: '需要VIP或没有音源',
-						icon: 'none',
-						position: 'bottom'
-					});
-					return;
-				}
-
 				uni.showLoading();
 				switch (this.platformIndex) {
 					case 0:
 						this.kuwoSongUrl(item);
 						break;
 					case 1:
+						if (item.isFree != true) {
+							uni.showToast({
+								title: '需要酷狗VIP或没有音源',
+								icon: 'none',
+								position: 'bottom'
+							});
+							return;
+						}
 						this.kugouSongData(item);
 						break;
 					case 2:
@@ -324,7 +323,7 @@
 				}, (error) => {
 					this.requestError(error);
 				});
-				
+
 			},
 			qqSongUrl(item) {
 				qqJs.qqSongUrl(item.id, (data) => {
@@ -363,7 +362,7 @@
 			requestSongUrlSuccess(item, data) {
 				this.isLoadingSong = false;
 				uni.hideLoading();
-				
+
 				item.url = data;
 				this.picUrl = item.albumUrl;
 				this.songName = item.name;

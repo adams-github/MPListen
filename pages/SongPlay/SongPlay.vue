@@ -10,14 +10,14 @@
 					backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
 					@clickLeft="toBack">
 				</uni-nav-bar>
-				<text style="color: white; font-size: 12px;">{{singer}}</text>
+				<text style="color: white; font-size: 12px; margin-bottom: 2vh;">{{singer}}</text>
 
-				<view class="img-bordor">
+				<view class="img-bordor" v-show="showHeader">
 					<image class="header" :src="picUrl"></image>
 				</view>
 
-				<CommonLyrics :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :centerStyle="centerStyle"
-					:areaStyle="cuAreaStyle" @onClickLyrics="onClickLyric"></CommonLyrics>
+				<CommonLyrics :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :areaStyle="cuAreaStyle"
+					@onClickLyrics="onClickLyric"></CommonLyrics>
 
 				<view class="progress-container">
 					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
@@ -43,9 +43,9 @@
 				</view>
 
 				<uni-popup ref="popup" background-color="#fff" @change="change">
-					<playList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
+					<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
 						@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"
-						@onChangePlayMode="onChangePlayMode"></playList>
+						@onChangePlayMode="onChangePlayMode"></PlayList>
 				</uni-popup>
 
 				<uni-popup ref="alertDialog" type="dialog">
@@ -163,9 +163,6 @@
 		},
 		data() {
 			return {
-				centerStyle: {
-					btnImg: '../../static/btn.png',
-				},
 				lyricStyle: {
 					color: "#B9B9B9",
 					activeColor: '#ffffff',
@@ -177,8 +174,7 @@
 				},
 				cuAreaStyle: {
 					width: '100vw',
-					height: '30vh',
-					background: 'transparent'
+					height: '30vh'
 				},
 
 				hasLoadSongInfo: false,
@@ -187,6 +183,7 @@
 				picUrl: '',
 				songName: '',
 				singer: '',
+				showHeader: true,
 
 				updateTimestamp: -1,
 				duration: 0,
@@ -275,14 +272,8 @@
 			handlerKugouLyrics(lyrics) {
 				this.lyrics = [];
 				const lrclist = lyrics.split('\r\n');
-				let add = false;
 				lrclist.forEach((item, index) => {
-					if (add) {
-						this.lyrics.push(item);
-					}
-					if (item == '[offset:0]') {
-						add = true;
-					}
+					this.lyrics.push(item);
 				});
 			},
 			handlerNeteaseLyrics(lyrics) {
@@ -336,6 +327,7 @@
 				this.playStatus = false;
 				this.picUrl = songStore.getCurPlayingSong().albumUrl;
 				this.songName = songStore.getCurPlayingSong().name;
+				this.hasLoadLyrics = false;
 			},
 			onClickSongDelete(index) {
 				this.deleteIndex = -1;
@@ -374,6 +366,22 @@
 			onClickLyric() {
 				if (!this.hasLoadLyrics && this.lyrics.length == 1 && this.lyrics[0] === '[00:00]歌词加载失败，请点击重试') {
 					this.loadLyrics();
+				} else {
+					if (this.lyrics.length > 1) {
+						if (this.showHeader) {
+							this.showHeader = false;
+							this.cuAreaStyle = {
+								width: '100vw',
+								height: '67vh'
+							};
+						} else {
+							this.cuAreaStyle = {
+								width: '100vw',
+								height: '30vh'
+							};
+							this.showHeader = true;
+						}
+					}
 				}
 			}
 		}
@@ -413,27 +421,14 @@
 			background-color: rgba(0, 0, 0, 0.40);
 		}
 
-		.title {
-			max-width: 150px;
-			color: white;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-			font-size: 15px;
-		}
-
 		.img-bordor {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
 			width: 37vh;
 			height: 37vh;
 			border-radius: 18.5vh;
-			margin-top: 5vw;
 			background-color: rgba(255, 255, 255, 0.05);
 
 			.header {
+				margin: 1.5vh;
 				width: 34vh;
 				height: 34vh;
 				border-radius: 17vh;

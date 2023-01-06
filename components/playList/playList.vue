@@ -36,7 +36,7 @@
 	import bgPlayer from '@/utils/bgPlayer.js'
 
 	export default {
-		name: "playList",
+		name: "PlayList",
 		emits: ['onItemClick', 'onDeleteItemClick', 'onChangePlayMode'],
 		props: {
 			playing_song: {
@@ -63,6 +63,11 @@
 						if (this.songList.length > 0) {
 							this.playingIndex = this.songList.findIndex(this.findIndex);
 						}
+					}
+					if (typeof this.songList === 'undefined' || this.songList == null || this.songList.length == 0) {
+						this.songList = songStore.getSongList();
+						this.songCount = this.songList.length;
+						this.playingIndex = this.songList.findIndex(this.findIndex);
 					}
 				}
 			},
@@ -110,9 +115,9 @@
 		},
 		data() {
 			return {
-				playMode: 1,
+				playMode: -1,
 				playModeSrc: '',
-				playModeStr: '顺序播放',
+				playModeStr: '',
 				hasInitMode: false,
 				songList: [],
 				songCount: 0,
@@ -146,9 +151,11 @@
 			},
 			itemClick(index) {
 				const clickSong = this.songList[index];
-				songStore.clickSong(index);
-				this.$emit("onItemClick", index);
-				bgPlayer.play(clickSong);
+				if (this.playingSong.id != clickSong.id) {
+					songStore.clickSong(index);
+					this.$emit("onItemClick", index);
+					bgPlayer.play(clickSong);
+				}
 			},
 			remove(index) {
 				if (this.songList[index] == null || (typeof this.songList[index]) === 'undefined') {

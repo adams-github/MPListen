@@ -13,8 +13,8 @@
 		</view>
 
 		<uni-popup ref="popup" background-color="#fff" type="bottom" @change="change">
-			<playList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode" @onItemClick="onClickSongItem"
-				@onDeleteItemClick="onClickSongDelete"></playList>
+			<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
+				@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"></PlayList>
 		</uni-popup>
 
 		<uni-popup ref="alertDialog" type="dialog">
@@ -53,7 +53,7 @@
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
-				if(typeof this.playingSong != 'undefined' && this.playingSong != null){
+				if (typeof this.playingSong != 'undefined' && this.playingSong != null) {
 					this.picUrl = this.playingSong.albumUrl;
 					this.songName = this.playingSong.name;
 				}

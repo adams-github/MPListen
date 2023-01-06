@@ -78,7 +78,7 @@
 				cuAreaStyle: {
 					width: '100vw',
 					height: '70vh',
-					background: 'linear-gradient(#8cc8b4, #ffaa7f, #8cc8b4)',
+					background: 'transparent',
 				},
 				scrollView: {
 					height: '100%',
@@ -98,6 +98,26 @@
 				this.curLyricId = 'lrc-' + index
 				this.showLyricId = this.curLyricId
 			},
+			areaStyle: {
+				immediate: true,
+				handler(val) {
+					this.cuAreaStyle = Object.assign(this.cuAreaStyle, val);
+					setTimeout(()=>{
+						const query = uni.createSelectorQuery().in(this)
+						query.select(".lyric-main").boundingClientRect(res => {
+							let size = this.sizeDeal(this.cuLyricStyle.lineHeight)
+							let asize = this.sizeDeal(this.cuLyricStyle.activeLineHeight)
+							let sumLine = Math.floor((res.height - asize[0]) / size[0]) // 不包含activeLine
+							if (sumLine % 2 !== 0) {
+								sumLine -= 1
+							}
+							this.spaceLineNum = Math.floor(sumLine / 2)
+							this.scrollView.height = sumLine * size[0] + asize[0] + 'px'
+							this.scrollView.top = (res.height - (sumLine * size[0] + asize[0])) / 2 + 'px'
+						}).exec();
+					}, 0);
+				}
+			}
 		},
 		beforeMount() {
 			const res = uni.getSystemInfoSync()
@@ -121,10 +141,9 @@
 			}
 		},
 		mounted() {
-			this.$nextTick(() => {
+			setTimeout(()=>{
 				const query = uni.createSelectorQuery().in(this)
 				query.select(".lyric-main").boundingClientRect(res => {
-					this.cuAreaStyle.height = res.height + 'px'
 					let size = this.sizeDeal(this.cuLyricStyle.lineHeight)
 					let asize = this.sizeDeal(this.cuLyricStyle.activeLineHeight)
 					let sumLine = Math.floor((res.height - asize[0]) / size[0]) // 不包含activeLine
@@ -134,8 +153,8 @@
 					this.spaceLineNum = Math.floor(sumLine / 2)
 					this.scrollView.height = sumLine * size[0] + asize[0] + 'px'
 					this.scrollView.top = (res.height - (sumLine * size[0] + asize[0])) / 2 + 'px'
-				}).exec()
-			})
+				}).exec();
+			}, 0);
 		},
 		methods: {
 			getIndex(t, items) {
@@ -224,7 +243,7 @@
 				}
 				return lrcj
 			},
-			clickLyrics(){
+			clickLyrics() {
 				this.$emit("onClickLyrics");
 			}
 		}
