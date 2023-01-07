@@ -68,26 +68,30 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 		if (res.code === '000000') {
 			if (typeof successCb === 'function') {
 				let songList = [];
-				res.songResultData.result.forEach((item, index) => {
-					songList.push({
-						platform: 'migu',
-						id: item.id,
-						name: item.name,
-						quality: item.toneControl,
-						url: '',
-						singer: item.singer,
-						albumName: item.album,
-						albumUrl: item.albumImgs[0].img,
-						lyricUrl:  item.lyricUrl,
-						hasCache: false,
-						delete: false,
-						localPath:'',
-						isFree: (typeof item.listenFlag === 'undefined' ||
-								item.listenFlag == '4' ||
-								item.listenFlag == '7') &&
-							item.isInSalesPeriod != '1',
-					})
-				});
+				if (res.songResultData.result.length > 0) {
+					res.songResultData.result.forEach((item, index) => {
+						songList.push({
+							platform: 'migu',
+							id: item.id,
+							name: item.name,
+							quality: item.toneControl,
+							url: '',
+							urlTime: -1,
+							singer: item.singer,
+							albumName: item.album,
+							albumUrl: item.albumImgs[0].img,
+							lyricUrl: item.lyricUrl,
+							hasCache: false,
+							delete: false,
+							localPath: '',
+							duration: 0,
+							isFree: (typeof item.listenFlag === 'undefined' ||
+									item.listenFlag == '4' ||
+									item.listenFlag == '7') &&
+								item.isInSalesPeriod != '1',
+						})
+					});
+				}
 				successCb(songList);
 			}
 		} else {
@@ -173,6 +177,15 @@ miguJs.miguSonglyric = function(lyricUrl, successCb, errorCb) {
 			errorCb(error);
 		}
 	});
+}
+
+
+/**
+ * 判断播放连接是否有效
+ * 咪咕的url貌似永久有效
+ */
+miguJs.isUrlValid = function(song) {
+	return true;
 }
 
 export default miguJs;

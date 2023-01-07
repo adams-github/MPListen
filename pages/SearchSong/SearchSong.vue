@@ -1,5 +1,5 @@
 <template>
-	<page-meta :page-style="'overflow:'+(show?'hidden':'visible')"></page-meta>
+	<page-meta :page-style="'overflow:'+(popupShow?'hidden':'visible')"></page-meta>
 	<view class="view-container">
 		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"
 			@cancel="inputCancel"></uni-search-bar>
@@ -23,9 +23,10 @@
 					@clickLoadMore="search(1)" v-show="isShowLoadMore"></uni-load-more>
 			</scroll-view>
 		</view>
-		<view class="controller-sticky" v-show="showController">
-			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" @clickPic="onClickPic"
-				@clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn" @clickList="onClickListBtn">
+		<view class="controller-sticky" v-if="showController">
+			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" :page_show="isShow"
+				@clickPic="onClickPic" @clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn"
+				@clickList="onClickListBtn">
 			</MusicController>
 		</view>
 		<uni-popup ref="popup" background-color="#fff" @change="change">
@@ -99,10 +100,14 @@
 				tempDeleteIndex: -1,
 				deleteIndex: -1,
 				deleteInfo: '',
-				show: false,
+				isShow: true,
+				popupShow: false,
 			};
 		},
 		onShow() {
+			if (!this.isShow) {
+				this.isShow = true;
+			}
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
 			});
@@ -131,13 +136,23 @@
 			}
 		},
 		onHide() {
+			this.isShow = false;
 			bgPlayer.setOnPaused(null);
 			bgPlayer.setOnStoped(null);
 			bgPlayer.setOnPlayed(null);
 		},
-		onBackPress() {
-			uni.hideNavigationBarLoading();
-			uni.hideLoading();
+		onBackPress(options) {
+			// #ifdef APP-PLUS || MP-ALIPAY || H5
+			if (this.isLoadingSong) {
+				uni.hideLoading();
+				return true;
+			} else if (this.popupShow) {
+				this.$refs.popup.close();
+				return true;
+			} else {
+				uni.hideNavigationBarLoading();
+			}
+			// #endif
 		},
 		methods: {
 			inputConfirm(res) {
@@ -219,7 +234,7 @@
 					this.kuwoCurPage++;
 				}
 
-				kuwoJs.kuwoSearchForWX(label, this.kuwoCurPage, (data) => {
+				kuwoJs.kuwoSearchForMPWX(label, this.kuwoCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
@@ -287,7 +302,9 @@
 					});
 					return;
 				}
-				uni.showLoading();
+				uni.showLoading({
+					mask: true
+				});
 				switch (this.platformIndex) {
 					case 0:
 						this.kuwoSongUrl(item);
@@ -308,18 +325,11 @@
 			},
 
 			kuwoSongUrl(item) {
-				kuwoJs.kuwoSongInfo(item.id, (data) => {
-					item.albumUrl = data.img;
-					kuwoJs.kuwoSongUrl(item.id, (data) => {
-						item.urlTime = Date.now();
-						this.requestSongUrlSuccess(item, data);
-					}, (error) => {
-						this.requestError(error);
-					});
+				kuwoJs.kuwoSongUrl(item.id, (data) => {
+					this.requestSongUrlSuccess(item, data);
 				}, (error) => {
 					this.requestError(error);
 				});
-
 			},
 			qqSongUrl(item) {
 				qqJs.qqSongUrl(item.id, (data) => {
@@ -360,10 +370,11 @@
 				uni.hideLoading();
 
 				item.url = data;
+				item.urlTime = Date.now();
 				this.picUrl = item.albumUrl;
 				this.songName = item.name;
-				bgPlayer.play(item);
-				songStore.addSong(item);
+				bgPlayer.playSong(item);
+				songStore.recordSong(item);
 				if (!this.showController) {
 					this.showController = true;
 				}
@@ -389,7 +400,7 @@
 				if (typeof nextSong != 'undefined' && nextSong != null) {
 					this.picUrl = nextSong.albumUrl;
 					this.songName = nextSong.name;
-					bgPlayer.play(nextSong);
+					bgPlayer.playSong(nextSong);
 				}
 			},
 			onClickListBtn() {
@@ -413,7 +424,7 @@
 				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
-				this.show = e.show;
+				this.popupShow = e.show;
 			}
 
 		},

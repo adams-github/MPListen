@@ -33,7 +33,8 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 					let singerName = item.SingerName;
 					if (!free) {
 						for (let i = 0; i < item.Grp.length; i++) {
-							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 == 0) {
+							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 ==
+								0) {
 								songId = item.Grp[i].FileHash;
 								songName = item.Grp[i].SongName;
 								AlbumID = item.Grp[i].AlbumID;
@@ -49,6 +50,7 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 						id: songId,
 						name: songName,
 						url: '',
+						urlTime: -1,
 						singer: singerName,
 						albumName: AlbumName,
 						albumUrl: '',
@@ -56,7 +58,8 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 						isFree: free,
 						hasCache: false,
 						delete: false,
-						localPath:'',
+						localPath: '',
+						duration: 0,
 					})
 				});
 				successCb(songList);
@@ -101,7 +104,7 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 					successCb({
 						url: res.data.play_url,
 						img: res.data.img,
-						lyrics:res.data.lyrics
+						lyrics: res.data.lyrics
 					});
 				}
 			} else {
@@ -120,6 +123,15 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 			errorCb(error);
 		}
 	});
+}
+
+/**
+ * 判断播放连接是否有效
+ * 酷狗的播放链接貌似有效期是24小时
+ */
+kugouJs.isUrlValid = function(song) {
+	const timeDiff = Date.now() - song.urlTime;
+	return timeDiff < 1000 * 60 * 60 * 24 - song.duration * 1000;
 }
 
 export default kugouJs;

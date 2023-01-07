@@ -3,27 +3,28 @@
 	<view>
 		<scroll-view scroll-y="true" scroll-with-animation="true">
 			<view class="container">
-				<image class="img-background" :src="picUrl" mode="aspectFill"></image>
+				<image class="img-background" :src="playingSong.albumUrl" mode="aspectFill"></image>
 				<view class="bg-mask"></view>
 				<uni-nav-bar style="width: 100%;" leftIcon="back" :title="songName" color="#ffffff"
 					backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
 					@clickLeft="toBack">
 				</uni-nav-bar>
-				<text style="color: white; font-size: 12px; margin-bottom: 2vh;">{{singer}}</text>
+				<view style="width: 100%; display: flex; justify-content: center; align-items: center;">
+					<text style="font-size: 10px; color: white; border-style: solid;
+							border-color: white; border-width: 1rpx; border-radius: 3px; 
+							padding: 1px; text-align: center; position: absolute; left: 15vw; ">{{platformStr}}</text>
+					<text style="color: white; font-size: 12px; max-width: 40vw; 
+					overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{singer}}</text>
+				</view>
 				<view
-					style="width: 100%; height: 67vh; max-height: 67vh; display: flex; flex-direction: column; align-items: center;">
+					style="width: 100%; height: 67vh; max-height: 67vh; display: flex; flex-direction: column; align-items: center; margin-top: 2vh;">
 					<view class="img-bordor" v-show="showHeader">
-						<image class="header" :src="picUrl"></image>
+						<image class="header" :class="{'header-animate' : hasLoadSongInfo}"
+							:style="{animationPlayState: animationStatue}" :src="picUrl">
+						</image>
 					</view>
 					<CommonLyrics :lyrics="lyrics" :curTime="curTime" :lyricStyle="lyricStyle" :areaStyle="cuAreaStyle"
 						@onClickLyrics="onClickLyric"></CommonLyrics>
-				</view>
-				<view style="display: flex; flex-direction: row; justify-content: space-around; align-items: center;">
-					<text style="font-size: 10px; color: white; border-style: solid; 
-					border-color: white; border-width: 1rpx; border-radius: 3px; 
-					padding: 1px; text-align: center;">{{platformStr}}</text>
-					<image style="width: 15px; height: 15px; margin-left: 150px"
-						src="../../static/ic_detail_downloaded.png" v-show="showDownloaded"></image>
 				</view>
 				<view class="progress-container">
 					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
@@ -90,25 +91,26 @@
 			});
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
+				this.setHeaderAnimation();
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;
 				this.playingSong = {};
+				this.setHeaderAnimation();
 			});
 			bgPlayer.setOnPlayed(() => {
 				//播放回调可能会回调多次，第一次播放，或者暂停后重新播放都会回调这个方法
 				this.updateTimestamp = -1;
 				this.playStatus = true;
 				this.playingSong = songStore.getCurPlayingSong();
-				this.showDownloaded = this.playingSong.hasCache;
 				this.initPlatform();
-				this.duration = bgPlayer.getPlayingDuration();
-				this.durationStr = this.formateSeconds(this.duration);
+				this.durationStr = this.formateSeconds(this.playingSong.duration);
+				this.setHeaderAnimation();
 
 				if (!this.hasLoadSongInfo) {
 					this.hasLoadSongInfo = true;
 
-					this.picUrl = this.playingSong.albumUrl;
+					this.initPic();
 					this.songName = this.playingSong.name;
 					this.singer = this.playingSong.singer;
 					uni.setNavigationBarTitle({
@@ -124,8 +126,8 @@
 				if (seconds - this.updateTimestamp > 1) {
 					this.updateTimestamp = seconds;
 					this.curTime = seconds;
-					this.percent = seconds / this.duration * 100;
 					this.curTimeStr = this.formateSeconds(this.curTime);
+					this.percent = seconds / this.playingSong.duration * 100;
 				}
 			});
 		},
@@ -135,20 +137,18 @@
 				this.hasLoadSongInfo = true;
 
 				this.playStatus = bgPlayer.isPlaying();
-				this.duration = bgPlayer.getPlayingDuration();
-				this.durationStr = this.formateSeconds(this.duration);
+				this.setHeaderAnimation();
 				this.curTime = bgPlayer.getPlayingCurTime();
 				this.curTimeStr = this.formateSeconds(this.curTime);
-				this.percent = this.curTime / this.duration * 100;
+				this.percent = this.curTime / this.playingSong.duration * 100;
 
 				this.playingSong = songStore.getCurPlayingSong();
-				this.showDownloaded = this.playingSong.hasCache;
+				this.durationStr = this.formateSeconds(this.playingSong.duration);
+
 				this.initPlatform();
-				this.picUrl = this.playingSong.albumUrl;
+				this.initPic();
 				this.songName = this.playingSong.name;
 				this.singer = this.playingSong.singer;
-				this.curTime = bgPlayer.getPlayingCurTime();
-				this.curTimeStr = this.formateSeconds(this.curTime);
 
 				uni.setNavigationBarTitle({
 					title: this.songName
@@ -168,6 +168,14 @@
 			bgPlayer.setTimeUpdate(null);
 			bgPlayer.setOnPred(null);
 			bgPlayer.setOnNexted(null);
+		},
+		onBackPress(options) {
+			// #ifdef APP-PLUS || MP-ALIPAY || H5
+			if (this.show) {
+				this.$refs.popup.close();
+				return true;
+			}
+			// #endif
 		},
 		data() {
 			return {
@@ -193,10 +201,9 @@
 				singer: '',
 				platformStr: '',
 				showHeader: true,
-				showDownloaded: false,
+				animationStatue: 'paused',
 
 				updateTimestamp: -1,
-				duration: 0,
 				curTime: 0,
 				durationStr: '',
 				curTimeStr: '',
@@ -247,6 +254,22 @@
 						this.platformStr = '咪咕';
 						break;
 				}
+			},
+			initPic() {
+				switch (this.playingSong.platform) {
+					case 'kuwo':
+						this.picUrl = this.playingSong.albumUrl.replace('/120/', '/700/');
+						break;
+					case 'qq':
+						this.picUrl = this.playingSong.albumUrl.replace('300x300', '500x500');
+						break;
+					default:
+						this.picUrl = this.playingSong.albumUrl;
+						break;
+				}
+			},
+			setHeaderAnimation() {
+				this.animationStatue = this.playStatus ? 'running' : 'paused';
 			},
 			/**
 			 * 加载歌词
@@ -363,9 +386,11 @@
 			},
 			onClickSongItem() {
 				this.playStatus = false;
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
+				this.initPic();
 				this.songName = songStore.getCurPlayingSong().name;
+				this.hasLoadSongInfo = false;
 				this.hasLoadLyrics = false;
+				this.setHeaderAnimation();
 			},
 			onClickSongDelete(index) {
 				this.deleteIndex = -1;
@@ -474,11 +499,27 @@
 				height: 34vh;
 				border-radius: 17vh;
 			}
+
+			.header-animate {
+				animation-name: rotate;
+				animation-duration: 36s;
+				animation-timing-function: linear;
+				animation-iteration-count: infinite;
+			}
+
+			@keyframes rotate {
+				from {
+					transform: rotate(0deg);
+				}
+
+				to {
+					transform: rotate(360deg);
+				}
+			}
 		}
 
 		.progress-container {
 			width: 80%;
-			margin-top: 1vh;
 			display: flex;
 			flex-direction: row;
 			justify-content: center;

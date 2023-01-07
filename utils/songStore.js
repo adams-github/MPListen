@@ -61,6 +61,11 @@ songStore.loadPlayMode = function() {
 	});
 }
 
+
+songStore.getPlayMode = function() {
+	return playMode;
+}
+
 songStore.getSongList = function() {
 	return songList;
 }
@@ -69,196 +74,8 @@ songStore.getCurPlayingSong = function() {
 	return playingSong;
 }
 
-songStore.getPlayMode = function() {
-	return playMode;
-}
-
-songStore.addSong = function(song) {
-	if (typeof songList === 'undefined' || songList == null) {
-		songList = [];
-	}
-	const index = songList.findIndex((ele) => ele.id === song.id);
-	if (index < 0) {
-		if (songList.length >= 500) {
-			const popSong = songList.pop();
-			/**
-			 * 判断文件是不是已经缓存
-			 */
-			if (popSong.hasCache) {
-				popSong.hasCache = false;
-				popSong.delete = true;
-				uni.getFileSystemManager().removeSavedFile({
-					filePath: popSong.localPath,
-					fail: function(error) {
-						console.error('removeFail:' + error.errMsg);
-					},
-				});
-			}
-		}
-		song.delete = false;
-		songList.unshift(song);
-		uni.setStorage({
-			key: KEY_SONGLIST,
-			data: songList
-		});
-		playingIndex = 0;
-	} else {
-		playingIndex = index;
-	}
-	uni.setStorage({
-		key: CUR_INDEX,
-		data: playingIndex
-	});
-
-	playingSong = song;
-	uni.setStorage({
-		key: CUR_SONG,
-		data: playingSong
-	});
-}
-
-songStore.removeSong = function(index) {
-	const song = songList[index];
-	songList.splice(index, 1);
-	uni.setStorage({
-		key: KEY_SONGLIST,
-		data: songList
-	});
-	if (index < playingIndex) {
-		playingIndex--;
-		uni.setStorage({
-			key: CUR_INDEX,
-			data: playingIndex
-		});
-	} else if (playingIndex >= songList.length) {
-		playingIndex = 0;
-		uni.setStorage({
-			key: CUR_INDEX,
-			data: playingIndex
-		});
-	}
-
-	songStore.removeFile(song);
-
-	if (song.id === playingSong.id) {
-		playingSong.hasCache = false;
-		playingSong.delete = true;
-		playingSong.localPath = '';
-		uni.setStorage({
-			key: CUR_SONG,
-			data: playingSong
-		});
-	}
-}
-
-songStore.removeFile = function(song) {
-	/**
-	 * 判断文件是不是已经缓存
-	 */
-	if (song.hasCache) {
-		song.hasCache = false;
-		song.delete = true;
-		uni.getFileSystemManager().removeSavedFile({
-			filePath: song.localPath,
-			success: function() {
-				song.localPath = '';
-			},
-			fail: function(error) {
-				console.error('removeFail:' + error.errMsg);
-			},
-		});
-	}
-}
-
-songStore.cacheSong = function(song) {
-	/**
-	 * 缓存音乐到本地
-	 */
-	if (song.platform != 'kuwo' && !song.hasCache && !song.delete) {
-		downloadJs.cacheSong(song.id, song.url, (res) => {
-			const index = songList.findIndex((ele) => ele.id === res.id);
-			songList[index].hasCache = true;
-			songList[index].localPath = res.path;
-			songList[index].url = '';
-			uni.setStorage({
-				key: KEY_SONGLIST,
-				data: songList
-			});
-			if (res.id === playingSong.id) {
-				playingSong.hasCache = true;
-				playingSong.localPath = res.path;
-				playingSong.url = '';
-				uni.setStorage({
-					key: CUR_SONG,
-					data: playingSong
-				});
-			}
-		}, (error) => {
-			const index = songList.findIndex((ele) => ele.id === song.id);
-			songList[index].url = '';
-			uni.setStorage({
-				key: KEY_SONGLIST,
-				data: songList
-			});
-			if (song.id === playingSong.id) {
-				playingSong.url = '';
-				uni.setStorage({
-					key: CUR_SONG,
-					data: playingSong
-				});
-			}
-		});
-	}
-}
-
-/**
- * 更新酷我平台歌曲的播放url
- */
-songStore.updateUrl = function(songId, newUrl) {
-	const index = songList.findIndex((ele) => ele.id === songId);
-	if (index >= 0 && index < songList.length && songList[index].platform == 'kuwo') {
-		songList[index].url = newUrl;
-		songList[index].urlTime = Date.now();
-		uni.setStorage({
-			key: KEY_SONGLIST,
-			data: songList
-		});
-	}
-
-	if (songId === playingSong.id && playingSong.platform == 'kuwo') {
-		playingSong.url = newUrl;
-		playingSong.urlTime = Date.now();
-		uni.setStorage({
-			key: CUR_SONG,
-			data: playingSong
-		});
-	}
-}
-
-/**
- * 记录当前播放到哪一首歌的index
- */
-songStore.clickSong = function(index) {
-	playingSong = songList[index];
-	uni.setStorage({
-		key: CUR_SONG,
-		data: playingSong
-	});
-
-	if (index == playingIndex) return;
-	playingIndex = index;
-	uni.setStorage({
-		key: CUR_INDEX,
-		data: playingIndex
-	});
-}
-
-songStore.changePlayMode = function(val) {
-	playMode = val;
-	uni.setStorage({
-		key: PLAY_MODE,
-		data: playMode
-	})
+songStore.getSongByIndex = function(index) {
+	return songList[index];
 }
 
 songStore.getNextSong = function() {
@@ -299,9 +116,219 @@ songStore.getPreSong = function() {
 	}
 }
 
-songStore.getSongByIndex = function(index) {
-	return songList[index];
+
+
+/**
+ * 记录歌曲信息
+ */
+songStore.recordSong = function(song) {
+	if (typeof songList === 'undefined' || songList == null) {
+		songList = [];
+	}
+	const index = songList.findIndex((ele) => ele.id === song.id);
+	if (index < 0) {
+		//先限制保存500首歌
+		if (songList.length >= 500) {
+			const popSong = songList.pop();
+		}
+		song.delete = false;
+		songList.unshift(song);
+		uni.setStorage({
+			key: KEY_SONGLIST,
+			data: songList
+		});
+		playingIndex = 0;
+	} else {
+		playingIndex = index;
+	}
+	uni.setStorage({
+		key: CUR_INDEX,
+		data: playingIndex
+	});
+
+	playingSong = song;
+	uni.setStorage({
+		key: CUR_SONG,
+		data: playingSong
+	});
 }
+
+
+/**
+ * 删掉歌曲的记录
+ */
+songStore.removeSong = function(index) {
+	const song = songList[index];
+	songList.splice(index, 1);
+	uni.setStorage({
+		key: KEY_SONGLIST,
+		data: songList
+	});
+	if (index <= playingIndex) {
+		playingIndex--;
+		uni.setStorage({
+			key: CUR_INDEX,
+			data: playingIndex
+		});
+	} else if (playingIndex >= songList.length) {
+		playingIndex = 0;
+		uni.setStorage({
+			key: CUR_INDEX,
+			data: playingIndex
+		});
+	}
+
+	if (song.id === playingSong.id) {
+		playingSong.hasCache = false;
+		playingSong.delete = true;
+		playingSong.localPath = '';
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
+		});
+	}
+}
+
+
+/**
+ * 缓存音乐到本地
+ * 下载后的音乐文件会存储到一个临时文件
+ * 随时会被回收。运行时最多存储 4GB，结束运行后，如果已使用超过 2GB，会以文件为维度按照最近使用时间从远到近进行清理至少于2GB
+ */
+songStore.cacheSong = function(song) {
+	if (song.platform != 'kuwo' && !song.hasCache && !song.delete) {
+		downloadJs.dowloadSong(song.id, song.url, (res) => {
+			const fingSong = songList.find((ele) => ele.id === res.id);
+			if (typeof findSong != 'undefined' && findSong != null) {
+				fingSong.hasCache = true;
+				fingSong.localPath = res.path;
+				uni.setStorage({
+					key: KEY_SONGLIST,
+					data: songList
+				});
+			}
+			if (res.id === playingSong.id) {
+				playingSong.hasCache = true;
+				playingSong.localPath = res.path;
+				uni.setStorage({
+					key: CUR_SONG,
+					data: playingSong
+				});
+			}
+		}, (error) => {});
+	}
+}
+
+
+/**
+ * 歌曲下载后都是存到临时文件路径，随时会被回收的文件。
+ * 结束运行后，如果已使用超过 2GB，会以文件为维度按照最近使用时间从远到近进行清理至少于2GB
+ * 所以不需要手动去清除文件，只需要做个记录就可以了
+ */
+songStore.removeFile = function(song) {
+	if (song.hasCache) {
+		song.hasCache = false;
+		song.delete = true;
+		song.localPath = '';
+	}
+}
+
+/**
+ * 更新歌曲的播放总时长
+ */
+songStore.updateDuration = function(songId, duration) {
+	const findSong = songList.find((ele) => ele.id === songId);
+	if (typeof findSong != 'undefined' && findSong != null) {
+		findSong.duration = duration;
+		uni.setStorage({
+			key: KEY_SONGLIST,
+			data: songList
+		});
+	}
+
+	if (songId === playingSong.id) {
+		playingSong.duration = duration;
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
+		});
+	}
+}
+
+
+/**
+ * 更新播放url
+ */
+songStore.updateUrl = function(songId, newUrl) {
+	const findSong = songList.find((ele) => ele.id === songId);
+	if (typeof findSong != 'undefined' && findSong != null) {
+		findSong.url = newUrl;
+		findSong.urlTime = Date.now();
+		uni.setStorage({
+			key: KEY_SONGLIST,
+			data: songList
+		});
+	}
+
+	if (songId === playingSong.id) {
+		playingSong.url = newUrl;
+		playingSong.urlTime = Date.now();
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
+		});
+	}
+}
+
+/**
+ * 更新url的访问时间
+ */
+songStore.updateVisitTime = function(songId) {
+	const findSong = songList.find((ele) => ele.id === songId);
+	if (typeof findSong != 'undefined' && findSong != null) {
+		findSong.urlTime = Date.now();
+		uni.setStorage({
+			key: KEY_SONGLIST,
+			data: songList
+		});
+	}
+
+	if (songId === playingSong.id) {
+		playingSong.urlTime = Date.now();
+		uni.setStorage({
+			key: CUR_SONG,
+			data: playingSong
+		});
+	}
+}
+
+/**
+ * 记录当前播放到哪一首歌的index
+ */
+songStore.clickSong = function(index) {
+	playingSong = songList[index];
+	uni.setStorage({
+		key: CUR_SONG,
+		data: playingSong
+	});
+
+	if (index == playingIndex) return;
+	playingIndex = index;
+	uni.setStorage({
+		key: CUR_INDEX,
+		data: playingIndex
+	});
+}
+
+songStore.changePlayMode = function(val) {
+	playMode = val;
+	uni.setStorage({
+		key: PLAY_MODE,
+		data: playMode
+	})
+}
+
+
 
 
 export default songStore;

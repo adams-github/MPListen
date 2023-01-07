@@ -21,6 +21,7 @@
 </template>
 
 <script>
+	var timeIndex = -1;
 	export default {
 		name: "CommonLyrics",
 		emits: ['onClickLyrics'],
@@ -93,9 +94,9 @@
 		},
 		watch: {
 			curTime(t) {
-				let index = this.getIndex(t, this.mLyrics.times)
-				this.curLyricIndex = index + this.spaceLineNum
-				this.curLyricId = 'lrc-' + index
+				timeIndex = this.getIndex(t, this.mLyrics.times)
+				this.curLyricIndex = timeIndex + this.spaceLineNum
+				this.curLyricId = 'lrc-' + timeIndex
 				this.showLyricId = this.curLyricId
 			},
 			areaStyle: {
@@ -103,17 +104,18 @@
 				handler(val) {
 					this.cuAreaStyle = Object.assign(this.cuAreaStyle, val);
 					setTimeout(() => {
-						const query = uni.createSelectorQuery().in(this)
+						const query = uni.createSelectorQuery().in(this);
 						query.select(".lyric-main").boundingClientRect(res => {
-							let size = this.sizeDeal(this.cuLyricStyle.lineHeight)
-							let asize = this.sizeDeal(this.cuLyricStyle.activeLineHeight)
-							let sumLine = Math.floor((res.height - asize[0]) / size[0]) // 不包含activeLine
+							let size = this.sizeDeal(this.cuLyricStyle.lineHeight);
+							let asize = this.sizeDeal(this.cuLyricStyle.activeLineHeight);
+							let sumLine = Math.floor((res.height - asize[0]) / size[0]); // 不包含activeLine
 							if (sumLine % 2 !== 0) {
-								sumLine -= 1
+								sumLine -= 1;
 							}
-							this.spaceLineNum = Math.floor(sumLine / 2)
-							this.scrollView.height = sumLine * size[0] + asize[0] + 'px'
-							this.scrollView.top = (res.height - (sumLine * size[0] + asize[0])) / 2 + 'px'
+							this.spaceLineNum = Math.floor(sumLine / 2);
+							this.scrollView.height = sumLine * size[0] + asize[0] + 'px';
+							this.scrollView.top = (res.height - (sumLine * size[0] + asize[0])) / 2 + 'px';
+							this.curLyricIndex = timeIndex + this.spaceLineNum;
 						}).exec();
 					}, 0);
 				}

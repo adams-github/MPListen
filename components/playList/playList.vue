@@ -154,7 +154,7 @@
 				if (this.playingSong.id != clickSong.id) {
 					songStore.clickSong(index);
 					this.$emit("onItemClick", index);
-					bgPlayer.play(clickSong);
+					bgPlayer.playSong(clickSong);
 				}
 			},
 			remove(index) {

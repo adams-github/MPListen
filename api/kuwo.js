@@ -1,10 +1,10 @@
 import requester from "@/utils/request.js"
 
-const URL_KUWO_SERACH = "https://search.kuwo.cn/r.s";
-const BASE_URL_KUWO = "https://www.kuwo.cn";
-const URL_SEARCH_KUWO = "/api/www/search/searchMusicBykeyWord";
+const URL_KUWO_SEARCH = "https://www.kuwo.cn/api/www/search/searchMusicBykeyWord";
+const URL_KUWO_SERACH_APP = "https://search.kuwo.cn/r.s";
+const URL_KUWO_SERACH_MPWX = "https://appi.kuwo.cn/api/wechat/v1/search/musics-and-exact-artist";
 const URL_MP3_KUWO = "https://antiserver.kuwo.cn/anti.s";
-const URL_MP3_INFO_KUWO = "https://m.kuwo.cn/newh5/singles/songinfoandlrc";
+const URL_INFO_KUWO = "https://m.kuwo.cn/newh5/singles/songinfoandlrc";
 
 let kuwoJs = {}
 
@@ -13,7 +13,7 @@ let kuwoJs = {}
  * 而且referer必须要为https://www.kuwo.cn，暂时无法实现
  */
 kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
-	const request_url = BASE_URL_KUWO + URL_SEARCH_KUWO;
+	const request_url = URL_KUWO_SEARCH;
 	const request_data = {
 		key: label,
 		pn: curPage,
@@ -21,7 +21,7 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 	};
 	const request_method = "GET";
 	const request_header = {
-		'referer': 'https://www.kuwo.cn',
+		'Referer': 'https://www.kuwo.cn',
 		'csrf': 'PA2FX2RWJ4H',
 	};
 	requester.request({
@@ -46,6 +46,7 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						hasCache: false,
 						delete: false,
 						localPath: '',
+						duration: 0,
 					})
 				});
 				successCb(songList);
@@ -64,8 +65,8 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 }
 
 
-kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
-	const request_url = URL_KUWO_SERACH;
+kuwoJs.kuwoSearchForAPP = function(label, curPage, successCb, errorCb) {
+	const request_url = URL_KUWO_SERACH_APP;
 	const request_data = {
 		all: label,
 		pn: (curPage - 1),
@@ -113,12 +114,68 @@ kuwoJs.kuwoSearchForWX = function(label, curPage, successCb, errorCb) {
 					albumUrl: '',
 					isFree: true,
 					hasCache: false,
-					urlTime:-1,
+					urlTime: -1,
 					delete: false,
 					localPath: '',
+					duration: 0,
 				})
 			});
 			successCb(songList);
+		}
+	}).catch((error) => {
+		console.error(error);
+		if (typeof errorCb === 'function') {
+			errorCb(error);
+		}
+	});
+}
+
+/**
+ * 酷我小程序的搜索链接
+ */
+kuwoJs.kuwoSearchForMPWX = function(label, curPage, successCb, errorCb) {
+	const request_url = URL_KUWO_SERACH_MPWX;
+	const request_data = {
+		key: label,
+		pn: curPage,
+		rn: 20
+	};
+	const request_method = "GET";
+	const request_header = {};
+	requester.request({
+		request_url,
+		request_data,
+		request_method,
+		request_header
+	}).then((res) => {
+		if (res.code === 0) {
+			if (typeof successCb === 'function') {
+				let songList = [];
+				res.data.list.forEach((item, index) => {
+					// let picUrl = item.pic;
+					// picUrl = picUrl.replace('120', '700');
+					songList.push({
+						platform: 'kuwo',
+						id: item.id,
+						name: item.title,
+						url: '',
+						singer: item.artist,
+						albumName: item.album,
+						albumUrl: item.pic,
+						isFree: true,
+						hasCache: false,
+						delete: false,
+						localPath: '',
+						duration: 0,
+					})
+				});
+				successCb(songList);
+			}
+		} else {
+			console.error(res.msg);
+			if (typeof errorCb === 'function') {
+				errorCb(res.msg);
+			}
 		}
 	}).catch((error) => {
 		console.error(error);
@@ -156,7 +213,7 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 }
 
 kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
-	const request_url = URL_MP3_INFO_KUWO;
+	const request_url = URL_INFO_KUWO;
 	const request_data = {
 		musicId: songId
 	};
@@ -170,13 +227,9 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 	}).then((res) => {
 		if (res.status === 200) {
 			if (typeof successCb === 'function') {
-				let picUrl = res.data.songinfo.pic;
-				if (picUrl.indexOf('240') != -1) {
-					picUrl = picUrl.replace('240', '700');
-				}
 				let data = {
 					lrclist: res.data.lrclist,
-					img: picUrl
+					img: res.data.songinfo.pic
 				}
 				successCb(data);
 			}
@@ -191,6 +244,15 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 			errorCb(error);
 		}
 	});
+}
+
+/**
+ * 判断播放连接是否有效
+ * 酷我的网络播放链接只有一个小时的播放时效，超过一个小时就会报410/403错误
+ */
+kuwoJs.isUrlValid = function(song) {
+	const timeDiff = Date.now() - song.urlTime;
+	return timeDiff < 1000 * 60 * 60 - song.duration * 1000;
 }
 
 export default kuwoJs;

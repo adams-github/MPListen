@@ -52,13 +52,15 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 						id: item.id,
 						name: item.name,
 						url: '',
+						urlTime: -1,
 						singer: singerName,
 						albumName: item.album.name,
 						albumUrl: item.album.picUrl,
 						isFree: item.fee == 0 || item.fee == 8,
 						hasCache: false,
 						delete: false,
-						localPath:'',
+						localPath: '',
+						duration: 0,
 					})
 				});
 				successCb(songList);
@@ -222,7 +224,6 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 		request_method,
 		request_header
 	}).then((res) => {
-		console.log(res);
 		if (res.code === 200) {
 			if (typeof successCb === 'function') {
 				successCb(res.lrc.lyric);
@@ -241,6 +242,15 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 		}
 	});
 
+}
+
+/**
+ * 判断播放连接是否有效
+ * 网易云的网络播放链接访问时效可能是一个半小时，可能一直访问一直就有效，超过一个半小时不访问就会失效
+ */
+neteaseJs.isUrlValid = function(song) {
+	const timeDiff = Date.now() - song.urlTime;
+	return timeDiff < 1000 * 60 * 90;
 }
 
 

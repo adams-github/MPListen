@@ -1,7 +1,8 @@
 <template>
 	<view class="container">
 		<view class="controller-box">
-			<image class="picture" :src="picUrl" @click="onClickPicture" @error="loadImgError"></image>
+			<image class="picture" :class="{'picture-animate' : playStatus&&isShowing}" :src="picUrl" @click="onClickPicture"
+				@error="loadImgError"></image>
 			<text
 				style="color: black; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%;">{{songName}}</text>
 			<image class="play"
@@ -29,6 +30,10 @@
 			play_status: {
 				type: Boolean,
 				default: false
+			},
+			page_show: {
+				type: Boolean,
+				default: true
 			}
 		},
 		watch: {
@@ -50,12 +55,19 @@
 					this.playStatus = val;
 				}
 			},
+			page_show: {
+				immediate: true,
+				handler(val){
+					this.isShowing = val;
+				}
+			}
 		},
 		data() {
 			return {
 				picUrl: '',
 				songName: '',
-				playStatus: false
+				playStatus: false,
+				isShowing: true,
 			};
 		},
 		methods: {
@@ -69,6 +81,7 @@
 				this.$emit("clickPlay");
 			},
 			onClickNext() {
+				this.playStatus = false;
 				this.$emit("clickNext");
 			},
 			onClickList() {
@@ -100,6 +113,20 @@
 				border-radius: 20px;
 				margin-left: 5px;
 				margin-bottom: 8px;
+			}
+
+			.picture-animate {
+				animation: rotate 12s linear infinite;
+			}
+
+			@keyframes rotate {
+				from {
+					transform: rotate(0deg);
+				}
+
+				to {
+					transform: rotate(360deg);
+				}
 			}
 
 			.play {

@@ -74,10 +74,10 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 					}
 					let picUrl = '../../static/ic_main_cd_default.jpg';
 					if (item.album.mid != '') {
-						picUrl = 'https://y.gtimg.cn/music/photo_new/T002R500x500M000' +
+						picUrl = 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
 							item.album.mid + '.jpg';
 					} else if (item.singer[0].mid != '') {
-						picUrl = 'https://y.qq.com/music/photo_new/T001R500x500M000' +
+						picUrl = 'https://y.qq.com/music/photo_new/T001R300x300M000' +
 							item.singer[0].mid + '.jpg';
 					}
 					songList.push({
@@ -86,6 +86,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						lyricId: lyric_Id,
 						name: songName,
 						url: '',
+						urlTime: -1,
 						singer: singerName,
 						albumName: album_name,
 						albumUrl: picUrl,
@@ -93,6 +94,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						hasCache: false,
 						delete: false,
 						localPath: '',
+						duration: 0,
 					})
 				});
 				successCb(songList);

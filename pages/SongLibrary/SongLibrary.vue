@@ -1,12 +1,12 @@
 <template>
-	<page-meta :page-style="'overflow:'+(show?'hidden':'visible')"></page-meta>
+	<page-meta :page-style="'overflow:'+(popupShow?'hidden':'visible')"></page-meta>
 	<view class="view-container">
 		<view @click="navigateToSearch">
 			<uni-search-bar bgColor="#ffffff" placeholder="搜索" radius="40" readonly>
 			</uni-search-bar>
 		</view>
-		<view class="controller-sticky" v-show="showController">
-			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" @clickPic="onClickPic"
+		<view class="controller-sticky" v-if="showController">
+			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" :page_show="isShow" @clickPic="onClickPic"
 				@clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn" @clickList="onClickListBtn">
 			</MusicController>
 		</view>
@@ -36,10 +36,12 @@
 				tempDeleteIndex: -1,
 				deleteIndex: -1,
 				deleteInfo: '',
-				show: false,
+				isShow: true,
+				popupShow: false,
 			};
 		},
 		onShow() {
+			this.isShow = true;
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
 			});
@@ -67,6 +69,7 @@
 			}
 		},
 		onHide() {
+			this.isShow = false;
 			bgPlayer.setOnPaused(null);
 			bgPlayer.setOnStoped(null);
 			bgPlayer.setOnPlayed(null);
@@ -98,7 +101,7 @@
 				if (typeof nextSong != 'undefined' && nextSong != null) {
 					this.picUrl = nextSong.albumUrl;
 					this.songName = nextSong.name;
-					bgPlayer.play(nextSong);
+					bgPlayer.playSong(nextSong);
 				}
 			},
 			onClickListBtn() {
@@ -122,7 +125,7 @@
 				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
-				this.show = e.show;
+				this.popupShow = e.show;
 			}
 		}
 

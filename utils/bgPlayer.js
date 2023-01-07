@@ -14,6 +14,60 @@ let errorTime = 0; //播放出错次数
 let isPlaying = false;
 
 /**
+ * 获取播放器， 并且在第一次获取时对播放器设置一些回调
+ */
+function getBpManager() {
+	if (!isInited) {
+		isInited = true;
+		uni.getBackgroundAudioManager().onError((res) => {
+			console.error(res);
+			isPlaying = false;
+			uni.getBackgroundAudioManager().stop();
+			if (errorTime == 0) {
+				//播放失败直接重新获取url
+				updatePlayUrl();
+			} else {
+				uni.showToast({
+					title: res.errMsg,
+					icon: 'none',
+					position: 'bottom'
+				});
+			}
+			errorTime++;
+		});
+		uni.getBackgroundAudioManager().onEnded(() => {
+			isPlaying = false;
+			if (songStore.getPlayMode() == 0) {
+				bgPlayer.playSong(curPlayingSong);
+			} else {
+				bgPlayer.playNext();
+			}
+		});
+		uni.getBackgroundAudioManager().onTimeUpdate((res) => {
+			if (!isNaN(uni.getBackgroundAudioManager().currentTime)){
+				playSeek = uni.getBackgroundAudioManager().currentTime;
+			}
+		});
+		uni.getBackgroundAudioManager().onPrev((res) => {
+			bgPlayer.playPre();
+		});
+		uni.getBackgroundAudioManager().onNext((res) => {
+			bgPlayer.playNext();
+		});
+		uni.getBackgroundAudioManager().onCanplay((res) => {
+			if (curPlayingSong.duration != uni.getBackgroundAudioManager().duration) {
+				let duration = uni.getBackgroundAudioManager().duration;
+				if (!isNaN(duration) && duration > 0) {
+					curPlayingSong.duration = duration;
+					songStore.updateDuration(curPlayingSong.id, duration);
+				}
+			}
+		});
+	}
+	return uni.getBackgroundAudioManager();
+}
+
+/**
  * 重新获取播放链接
  */
 function updatePlayUrl() {
@@ -65,25 +119,7 @@ function requestSongUrlSuccess(songId, platform, newUrl) {
 		getBpManager().startTime = playSeek;
 		getBpManager().src = newUrl;
 	}
-
-	if (platform == 'kuwo') {
-		songStore.updateUrl(songId, newUrl);
-	} else {
-		//重新缓存songId对应的歌曲
-		if (curPlayingSong.id === songId && !curPlayingSong.delete) {
-			curPlayingSong.url = newUrl;
-			curPlayingSong.hasCache = false;
-			songStore.cacheSong(curPlayingSong);
-		} else {
-			const songList = songStore.getSongList();
-			const findSong = songList.find((ele) => ele.id === songId);
-			if (typeof findSong != 'undefined' && findSong != null && !findSong.delete) {
-				findSong.url = newUrl;
-				findSong.hasCache = false;
-				songStore.cacheSong(findSong);
-			}
-		}
-	}
+	songStore.updateUrl(songId, newUrl);
 }
 
 function requestSongUrlFailed(error) {
@@ -95,48 +131,6 @@ function requestSongUrlFailed(error) {
 	bgPlayer.stop();
 }
 
-function getBpManager() {
-	if (!isInited) {
-		isInited = true;
-		uni.getBackgroundAudioManager().onError((res) => {
-			console.error(res);
-			isPlaying = false;
-			uni.getBackgroundAudioManager().stop();
-			if (errorTime == 0) {
-				if (curPlayingSong.hasCache) {
-					songStore.removeFile(curPlayingSong);
-				}
-				//这时候播放连接已经失效，需要重新获取
-				updatePlayUrl();
-			} else {
-				uni.showToast({
-					title: res.errMsg,
-					icon: 'none',
-					position: 'bottom'
-				});
-			}
-			errorTime++;
-		});
-		uni.getBackgroundAudioManager().onEnded(() => {
-			isPlaying = false;
-			if (songStore.getPlayMode() == 0) {
-				bgPlayer.play(curPlayingSong);
-			} else {
-				bgPlayer.playNext();
-			}
-		});
-		uni.getBackgroundAudioManager().onTimeUpdate((res) => {
-			playSeek = uni.getBackgroundAudioManager().currentTime;
-		});
-		uni.getBackgroundAudioManager().onPrev((res) => {
-			bgPlayer.playPre();
-		});
-		uni.getBackgroundAudioManager().onNext((res) => {
-			bgPlayer.playNext();
-		});
-	}
-	return uni.getBackgroundAudioManager();
-}
 
 /**
  * 获取播放状态，true 表示暂停或停止，false 表示正在播放
@@ -150,6 +144,9 @@ bgPlayer.isPlaying = function() {
  * 当前当前音频的长度（单位：s）
  */
 bgPlayer.getPlayingDuration = function() {
+	if (isNaN(getBpManager().duration)){
+		return 0;
+	}
 	return getBpManager().duration;
 }
 
@@ -157,19 +154,20 @@ bgPlayer.getPlayingDuration = function() {
  * 当前音频的播放位置（单位：s）
  */
 bgPlayer.getPlayingCurTime = function() {
+	if (isNaN(getBpManager().currentTime)){
+		return 0;
+	}
 	return getBpManager().currentTime;
 }
 
 
 /**
- * 由于酷我平台的音乐无法下载，都是通过网络链接在线播放
- * 酷我的网络播放链接只有一个小时的播放时效，超过一个小时就会报410/403错误
+ * 播放歌曲
  */
-bgPlayer.play = function(song) {
+bgPlayer.playSong = function(song) {
 	//判断是不是正在播放同一个首歌
 	if (bgPlayer.isPlaying() && typeof curPlayingSong != 'undefined' &&
-		curPlayingSong != null &&
-		curPlayingSong.id === song.id) {
+		curPlayingSong != null && curPlayingSong.id === song.id) {
 		getBpManager().stop();
 	}
 	curPlayingSong = song;
@@ -181,41 +179,26 @@ bgPlayer.play = function(song) {
 	getBpManager().singer = song.singer;
 	getBpManager().coverImgUrl = song.albumUrl;
 
-	if (song.hasCache && !song.delete) {
-		//判断文件/目录是否存在
-		uni.getFileSystemManager().access({
-			path: song.localPath,
-			success(res) {
-				getBpManager().src = song.localPath;
-			},
-			fail(error) {
-				// 文件不存在或其他错误
-				console.error(error);
-				updatePlayUrl();
-			}
-		})
+	//校验各个平台播放url是否在有效时间内
+	if (song.platform == 'kuwo' && !kuwoJs.isUrlValid(song)) {
+		updatePlayUrl();
+	} else if (song.platform == 'netease' && !neteaseJs.isUrlValid(song)) {
+		updatePlayUrl();
 	} else {
-		if (song.url != '' && (song.platform != 'kuwo' || (Date.now() - song.urlTime) < 1000 * 60 * 54)) {
-			getBpManager().src = song.url; //设置连接后会自动开始播放
-			if (song.platform != 'kuwo' && !song.delete) {
-				songStore.cacheSong(song);
-			}
-		} else {
-			updatePlayUrl(); //url为空，重新获取url
-		}
+		getBpManager().src = song.url; //设置连接后会自动开始播放
 	}
 
 }
 
 bgPlayer.replay = function() {
 	errorTime = 0;
-	if (typeof getBpManager().src === 'undefined' || getBpManager().src == null || getBpManager().src == '') {
+	if (getBpManager().src == null || getBpManager().src == '') {
 		const song = songStore.getCurPlayingSong();
 		if (song != null) {
-			bgPlayer.play(song);
+			bgPlayer.playSong(song);
 		}
 	} else {
-		if (curPlayingSong.platform == 'kuwo' && (Date.now() - curPlayingSong.urlTime) > 1000 * 60 * 54) {
+		if (curPlayingSong.platform == 'kuwo' && !kuwoJs.isUrlValid(curPlayingSong)) {
 			updatePlayUrl();
 		} else {
 			getBpManager().play();
@@ -236,7 +219,7 @@ bgPlayer.stop = function() {
 bgPlayer.playPre = function() {
 	const preSong = songStore.getPreSong();
 	if (typeof preSong != 'undefined' && preSong != null) {
-		bgPlayer.play(preSong);
+		bgPlayer.playSong(preSong);
 	} else {
 		bgPlayer.stop();
 		isPlaying = false;
@@ -246,7 +229,7 @@ bgPlayer.playPre = function() {
 bgPlayer.playNext = function() {
 	const nextSong = songStore.getNextSong();
 	if (typeof nextSong != 'undefined' && nextSong != null) {
-		bgPlayer.play(nextSong);
+		bgPlayer.playSong(nextSong);
 	} else {
 		bgPlayer.stop();
 		isPlaying = false;
@@ -264,8 +247,15 @@ bgPlayer.seekTo = function(pos) {
  * 背景音频进入可以播放状态，但不保证后面可以流畅播放
  */
 bgPlayer.setOnCanPlay = function(onCanPlayCb) {
-	getBpManager().onCanplay(() => {
+	getBpManager().onCanplay((res) => {
 		isPlaying = true;
+		if (curPlayingSong.duration != uni.getBackgroundAudioManager().duration) {
+			let duration = uni.getBackgroundAudioManager().duration;
+			if (!isNaN(duration) && duration > 0) {
+				curPlayingSong.duration = duration;
+				songStore.updateDuration(curPlayingSong.id, duration);
+			}
+		}
 		if (typeof onCanPlayCb === 'function') {
 			onCanPlayCb();
 		}
@@ -280,7 +270,7 @@ bgPlayer.setOnEnded = function(endedCb) {
 	getBpManager().onEnded(() => {
 		isPlaying = false;
 		if (songStore.getPlayMode() == 0) {
-			bgPlayer.play(curPlayingSong);
+			bgPlayer.playSong(curPlayingSong);
 		} else {
 			bgPlayer.playNext();
 		}
@@ -311,8 +301,19 @@ bgPlayer.setOnPaused = function(pausedCb) {
 bgPlayer.setOnPlayed = function(playedCb) {
 	getBpManager().onPlay(() => {
 		isPlaying = true;
+		if (curPlayingSong.duration != uni.getBackgroundAudioManager().duration) {
+			let duration = uni.getBackgroundAudioManager().duration;
+			if (!isNaN(duration) && duration > 0) {
+				curPlayingSong.duration = duration;
+				songStore.updateDuration(curPlayingSong.id, duration);
+			}
+		}
 		if (typeof playedCb === 'function') {
 			playedCb();
+		}
+		if (curPlayingSong.platform == 'netease') {
+			//网易平台的歌曲播放就是应该url更新访问时间
+			songStore.updateVisitTime(curPlayingSong.id);
 		}
 	});
 }
@@ -339,8 +340,10 @@ bgPlayer.setOnNexted = function(nextCb) {
  * 背景音频播放进度更新事件
  */
 bgPlayer.setTimeUpdate = function(updateCb) {
-	getBpManager().onTimeUpdate(() => {
-		playSeek = getBpManager().currentTime;
+	getBpManager().onTimeUpdate((res) => {
+		if (!isNaN(uni.getBackgroundAudioManager().currentTime)){
+			playSeek = uni.getBackgroundAudioManager().currentTime;
+		}
 		if (typeof updateCb === 'function') {
 			updateCb(playSeek);
 		}
