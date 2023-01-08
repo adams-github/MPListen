@@ -1,7 +1,8 @@
 <template>
 	<view class="container">
 		<view class="controller-box">
-			<image class="picture" :class="{'picture-animate' : playStatus&&isShowing}" :src="picUrl" @click="onClickPicture"
+			<image class="picture" :class="{'picture-animate' : isShowing}"
+				:style="{animationPlayState: animationStatue}" :src="picUrl" @click="onClickPicture"
 				@error="loadImgError"></image>
 			<text
 				style="color: black; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%;">{{songName}}</text>
@@ -15,9 +16,11 @@
 </template>
 
 <script>
+	import bgPlayer from '@/utils/bgPlayer.js'
+
 	export default {
 		name: "MusicController",
-		emits: ['clickPic', 'clickPlay', 'clickNext', 'clickList'],
+		emits: ['clickPic', 'clickPlay', 'clickList'],
 		props: {
 			pic_url: {
 				type: String,
@@ -53,11 +56,12 @@
 				immediate: true,
 				handler(val) {
 					this.playStatus = val;
+					this.animationStatue = val ? 'running' : 'paused';
 				}
 			},
 			page_show: {
 				immediate: true,
-				handler(val){
+				handler(val) {
 					this.isShowing = val;
 				}
 			}
@@ -68,6 +72,7 @@
 				songName: '',
 				playStatus: false,
 				isShowing: true,
+				animationStatue: 'paused',
 			};
 		},
 		methods: {
@@ -81,8 +86,7 @@
 				this.$emit("clickPlay");
 			},
 			onClickNext() {
-				this.playStatus = false;
-				this.$emit("clickNext");
+				bgPlayer.playNext();
 			},
 			onClickList() {
 				this.$emit("clickList");
@@ -116,7 +120,10 @@
 			}
 
 			.picture-animate {
-				animation: rotate 12s linear infinite;
+				animation-name: rotate;
+				animation-duration: 12s;
+				animation-timing-function: linear;
+				animation-iteration-count: infinite;
 			}
 
 			@keyframes rotate {

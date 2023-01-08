@@ -24,44 +24,46 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 		if (res.error_code === 0) {
 			if (typeof successCb === 'function') {
 				let songList = [];
-				res.data.lists.forEach((item, index) => {
-					let free = item.PayType != 2 && item.trans_param.cpy_attr0 == 0;
-					let songId = item.FileHash;
-					let songName = item.SongName;
-					let AlbumID = item.AlbumID;
-					let AlbumName = item.AlbumName;
-					let singerName = item.SingerName;
-					if (!free) {
-						for (let i = 0; i < item.Grp.length; i++) {
-							if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 ==
-								0) {
-								songId = item.Grp[i].FileHash;
-								songName = item.Grp[i].SongName;
-								AlbumID = item.Grp[i].AlbumID;
-								AlbumName = item.Grp[i].AlbumName;
-								singerName = item.Grp[i].SingerName;
-								free = true;
-								break;
+				if (res.data.lists.length > 0) {
+					res.data.lists.forEach((item, index) => {
+						let free = item.PayType != 2 && item.trans_param.cpy_attr0 == 0;
+						let songId = item.FileHash;
+						let songName = item.SongName;
+						let AlbumID = item.AlbumID;
+						let AlbumName = item.AlbumName;
+						let singerName = item.SingerName;
+						if (!free) {
+							for (let i = 0; i < item.Grp.length; i++) {
+								if (item.Grp[i].PayType != 2 && item.Grp[i].trans_param.cpy_attr0 ==
+									0) {
+									songId = item.Grp[i].FileHash;
+									songName = item.Grp[i].SongName;
+									AlbumID = item.Grp[i].AlbumID;
+									AlbumName = item.Grp[i].AlbumName;
+									singerName = item.Grp[i].SingerName;
+									free = true;
+									break;
+								}
 							}
 						}
-					}
-					songList.push({
-						platform: 'kugou',
-						id: songId,
-						name: songName,
-						url: '',
-						urlTime: -1,
-						singer: singerName,
-						albumName: AlbumName,
-						albumUrl: '',
-						albumId: AlbumID,
-						isFree: free,
-						hasCache: false,
-						delete: false,
-						localPath: '',
-						duration: 0,
-					})
-				});
+						songList.push({
+							platform: 'kugou',
+							id: songId,
+							name: songName,
+							url: '',
+							urlTime: -1,
+							singer: singerName,
+							albumName: AlbumName,
+							albumUrl: '',
+							albumId: AlbumID,
+							isFree: free,
+							hasCache: false,
+							delete: false,
+							localPath: '',
+							duration: 0,
+						})
+					});
+				}
 				successCb(songList);
 			}
 		} else {

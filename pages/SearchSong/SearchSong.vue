@@ -1,14 +1,15 @@
 <template>
 	<page-meta :page-style="'overflow:'+(popupShow?'hidden':'visible')"></page-meta>
 	<view class="view-container">
-		<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"
-			@cancel="inputCancel"></uni-search-bar>
-		<view class="tab-sticky">
-			<CommonTabs bgColor="#FAFAFA" :tabsData="tabsData" :defaultIndex="0" @onTabItemClick="onPlatformSelected">
+		<view class="top-content">
+			<uni-search-bar bgColor="#ffffff" placeholder="输入音乐/歌手" radius="40" @confirm="inputConfirm"
+				@cancel="inputCancel"></uni-search-bar>
+			<CommonTabs bgColor="#FAFAFA" :tabsData="tabsData" @onTabItemClick="onPlatformSelected">
 			</CommonTabs>
 		</view>
-		<view class="list_content" :class="{'list_content-margin' : showController === true}">
-			<scroll-view scroll-y scroll-with-animation>
+		<view class="list-content" :class="{'list-content-margin' : showController}">
+			<scroll-view id="_scrollview" style="-webkit-overflow-scrolling: touch;"
+				:style="{height: scrollViewHeight + 'px'}" scroll-y scroll-with-animation enable-back-to-top>
 				<view>
 					<block v-for="(item, index) in songList" :key="index">
 						<view class="item-box" hover-class="item-hover" @click="itemClick(item)">
@@ -23,15 +24,14 @@
 					@clickLoadMore="search(1)" v-show="isShowLoadMore"></uni-load-more>
 			</scroll-view>
 		</view>
-		<view class="controller-sticky" v-if="showController">
+		<view id="_controller" class="controller-sticky" v-if="showController">
 			<MusicController :pic_url="picUrl" :song_name="songName" :play_status="playStatus" :page_show="isShow"
-				@clickPic="onClickPic" @clickPlay="onClickPlayBtn" @clickNext="onClickNextBtn"
-				@clickList="onClickListBtn">
+				@clickPic="onClickPic" @clickPlay="onClickPlayBtn" @clickList="onClickListBtn">
 			</MusicController>
 		</view>
 		<uni-popup ref="popup" background-color="#fff" @change="change">
 			<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
-				@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"></PlayList>
+				@onDeleteItemClick="onClickSongDelete"></PlayList>
 		</uni-popup>
 		<uni-popup ref="alertDialog" type="dialog">
 			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
@@ -50,7 +50,118 @@
 	import songStore from '@/utils/songStore.js'
 	import bgPlayer from '@/utils/bgPlayer.js'
 
+	var inputText = "";
+	var isRefreshing = false;
+	var isLoadingSong = false;
+	var platformIndex = 0;
+	var neteaseCurPage = 1;
+	var qqCurPage = 1;
+	var kugouCurPage = 1;
+	var kuwoCurPage = 1;
+	var miguCurPage = 1;
+	var tempDeleteIndex = -1;
+	var windowHeight = 0;
+	var scrollViewTop = 0;
+	var controllTop = 0;
+	var isIOS = false;
+
 	export default {
+		onLoad() {
+			/*
+			 * 兼容ios平台小程序点击状态栏滚动顶部
+			 * ios平台坑就坑在scrollview不设置固定固定的高度，点击状态栏就没办法自动滚动顶部
+			 */
+			uni.getSystemInfo({
+				success: function(res) {
+					isIOS = res.osName == 'ios';
+					if (isIOS) {
+						windowHeight = res.windowHeight;
+					}
+				}
+			});
+		},
+		onReady() {
+			/*
+			 * 兼容ios平台小程序点击状态栏滚动顶部
+			 * ios平台坑就坑在scrollview不设置固定固定的高度，点击状态栏就没办法自动滚动顶部
+			 */
+			if (isIOS) {
+				uni.createSelectorQuery().in(this).select('#_scrollview')
+					.boundingClientRect((res) => {
+						scrollViewTop = res.top;
+						if (this.showController) {
+							uni.createSelectorQuery().in(this).select('#_controller')
+								.boundingClientRect((res) => {
+									controllTop = res.top;
+									this.scrollViewHeight = controllTop - scrollViewTop;
+								}).exec();
+						} else {
+							this.scrollViewHeight = windowHeight - scrollViewTop;
+						}
+					}).exec();
+			}
+		},
+		onShow() {
+			if (!this.isShow) {
+				this.isShow = true;
+			}
+			this.playStatus = bgPlayer.isPlaying();
+			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
+				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
+				this.showController = true;
+			} else {
+				this.playingSong = {};
+				this.showController = false;
+			}
+
+			bgPlayer.setOnPaused(() => {
+				this.playStatus = false;
+			});
+			bgPlayer.setOnStoped(() => {
+				this.playStatus = false;
+				this.playingSong = {};
+			});
+			bgPlayer.setOnErrored(() => {
+				this.playStatus = false;
+				this.playingSong = {};
+			});
+			bgPlayer.setOnPlayed(() => {
+				this.playStatus = true;
+			});
+			bgPlayer.setOnSongChangeCb(() => {
+				this.playingSong = songStore.getCurPlayingSong();
+				this.picUrl = this.playingSong.albumUrl;
+				this.songName = this.playingSong.name;
+				//切换歌曲后，为了让头像动画从新开始，所以要设置isShow两次
+				this.isShow = false;
+				setTimeout(() => {
+					this.isShow = true;
+				}, 100);
+			});
+		},
+		onHide() {
+			this.isShow = false;
+			bgPlayer.setOnPaused(null);
+			bgPlayer.setOnStoped(null);
+			bgPlayer.setOnErrored(null);
+			bgPlayer.setOnPlayed(null);
+			bgPlayer.setOnSongChangeCb(null);
+		},
+		onBackPress(options) {
+			// #ifdef APP-PLUS || MP-ALIPAY || H5
+			if (isLoadingSong) {
+				uni.hideLoading();
+				return true;
+			} else if (this.popupShow) {
+				this.$refs.popup.close();
+				return true;
+			} else {
+				uni.hideNavigationBarLoading();
+			}
+			// #endif
+		},
 		data() {
 			return {
 				tabsData: [{
@@ -74,9 +185,8 @@
 						"id": 4
 					},
 				],
-				inputText: "",
-				isRefreshing: false,
-				isLoadingSong: false,
+
+				scrollViewHeight: 0,
 				isShowLoadMore: false,
 				loadMoreStatus: 'more',
 				loadMoreText: {
@@ -84,12 +194,7 @@
 					contentrefresh: '拼命加载中',
 					contentnomore: '已经到底了'
 				},
-				platformIndex: 0,
-				neteaseCurPage: 1,
-				qqCurPage: 1,
-				kugouCurPage: 1,
-				kuwoCurPage: 1,
-				miguCurPage: 1,
+
 				songList: [],
 				showController: false,
 				picUrl: '',
@@ -97,89 +202,58 @@
 				playStatus: false,
 				playingSong: {},
 				playMode: 1,
-				tempDeleteIndex: -1,
+
 				deleteIndex: -1,
 				deleteInfo: '',
 				isShow: true,
 				popupShow: false,
 			};
 		},
-		onShow() {
-			if (!this.isShow) {
-				this.isShow = true;
-			}
-			bgPlayer.setOnPaused(() => {
-				this.playStatus = false;
-			});
-			bgPlayer.setOnStoped(() => {
-				this.playStatus = false;
-				this.playingSong = {};
-			});
-			bgPlayer.setOnPlayed(() => {
-				this.playStatus = true;
-				this.playingSong = songStore.getCurPlayingSong();
-				if (typeof this.playingSong != 'undefined' && this.playingSong != null) {
-					this.picUrl = this.playingSong.albumUrl;
-					this.songName = this.playingSong.name;
+		watch: {
+			songList: {
+				immediate: true,
+				handler(val) {
+					this.isShowLoadMore = val.length > 0;
+					if (val.length % 20 === 0) {
+						this.loadMoreStatus = 'more';
+					} else {
+						this.loadMoreStatus = 'noMore';
+					}
+					/**
+					 * 不是安卓平台可以随意设置动态高度，点击标题栏也可以滚到顶部
+					 * */
+					if (!isIOS) {
+						this.scrollViewHeight = val.length * 60 + (this.isShowLoadMore ? 40 : 0);
+					}
 				}
-			});
-
-			this.playStatus = bgPlayer.isPlaying();
-			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
-				this.playingSong = songStore.getCurPlayingSong();
-				this.picUrl = this.playingSong.albumUrl;
-				this.songName = this.playingSong.name;
-				this.showController = true;
-			} else {
-				this.playingSong = {};
-				this.showController = false;
 			}
-		},
-		onHide() {
-			this.isShow = false;
-			bgPlayer.setOnPaused(null);
-			bgPlayer.setOnStoped(null);
-			bgPlayer.setOnPlayed(null);
-		},
-		onBackPress(options) {
-			// #ifdef APP-PLUS || MP-ALIPAY || H5
-			if (this.isLoadingSong) {
-				uni.hideLoading();
-				return true;
-			} else if (this.popupShow) {
-				this.$refs.popup.close();
-				return true;
-			} else {
-				uni.hideNavigationBarLoading();
-			}
-			// #endif
 		},
 		methods: {
 			inputConfirm(res) {
 				this.inputCancel();
-				this.inputText = res.value;
+				inputText = res.value;
 				this.search(0);
 			},
 			inputCancel() {
-				this.inputText = '';
+				inputText = '';
 				this.songList = [];
-				this.neteaseCurPage = 1;
-				this.qqCurPage = 1;
-				this.kugouCurPage = 1;
-				this.kuwoCurPage = 1;
-				this.miguCurPage = 1;
+				neteaseCurPage = 1;
+				qqCurPage = 1;
+				kugouCurPage = 1;
+				kuwoCurPage = 1;
+				miguCurPage = 1;
 			},
 			search(val) {
-				let label = this.inputText;
+				let label = inputText;
 				if (label === '') return;
 
 				if (val == 0) {
-					this.isRefreshing = true;
+					isRefreshing = true;
 					uni.showNavigationBarLoading();
 				} else {
 					this.loadMoreStatus = 'loading';
 				}
-				switch (this.platformIndex) {
+				switch (platformIndex) {
 					case 0:
 						this.exceKuwoSearch(label);
 						break;
@@ -200,53 +274,53 @@
 			onPlatformSelected(val) {
 				uni.hideNavigationBarLoading()
 				this.songList = [];
-				this.platformIndex = val;
+				platformIndex = val;
 				this.search(0);
 			},
 			exceQQSearch(label) {
-				if (this.isRefreshing) {
-					this.qqCurPage = 1;
+				if (isRefreshing) {
+					qqCurPage = 1;
 				} else {
-					this.qqCurPage++;
+					qqCurPage++;
 				}
-				qqJs.qqSearch(label, this.qqCurPage, (data) => {
+				qqJs.qqSearch(label, qqCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			exceKugouSearch(label) {
-				if (this.isRefreshing) {
-					this.kugouCurPage = 1;
+				if (isRefreshing) {
+					kugouCurPage = 1;
 				} else {
-					this.kugouCurPage++;
+					kugouCurPage++;
 				}
-				kugouJs.kugouSearch(label, this.kugouCurPage, (data) => {
+				kugouJs.kugouSearch(label, kugouCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			exceKuwoSearch(label) {
-				if (this.isRefreshing) {
-					this.kuwoCurPage = 1;
+				if (isRefreshing) {
+					kuwoCurPage = 1;
 				} else {
-					this.kuwoCurPage++;
+					kuwoCurPage++;
 				}
 
-				kuwoJs.kuwoSearchForMPWX(label, this.kuwoCurPage, (data) => {
+				kuwoJs.kuwoSearchForMPWX(label, kuwoCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			exceNeteaseSearch(label) {
-				if (this.isRefreshing) {
-					this.neteaseCurPage = 1;
+				if (isRefreshing) {
+					neteaseCurPage = 1;
 				} else {
-					this.neteaseCurPage++;
+					neteaseCurPage++;
 				}
-				neteaseJs.neteaseSearch(label, this.neteaseCurPage, (data) => {
+				neteaseJs.neteaseSearch(label, neteaseCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					if (error == -462) {
@@ -257,20 +331,20 @@
 				});
 			},
 			exceMiguSearch(label) {
-				if (this.isRefreshing) {
-					this.miguCurPage = 1;
+				if (isRefreshing) {
+					miguCurPage = 1;
 				} else {
-					this.miguCurPage++;
+					miguCurPage++;
 				}
-				miguJs.miguSearch(label, this.miguCurPage, (data) => {
+				miguJs.miguSearch(label, miguCurPage, (data) => {
 					this.requestListSuccess(data);
 				}, (error) => {
 					this.requestError(error);
 				});
 			},
 			requestListSuccess(data) {
-				if (this.isRefreshing) {
-					this.isRefreshing = false;
+				if (isRefreshing) {
+					isRefreshing = false;
 					uni.hideNavigationBarLoading();
 				}
 				this.songList = this.songList.concat(data);
@@ -281,12 +355,12 @@
 					icon: 'none',
 					position: 'bottom'
 				});
-				if (this.isRefreshing) {
-					this.isRefreshing = false;
+				if (isRefreshing) {
+					isRefreshing = false;
 					uni.hideNavigationBarLoading();
 				}
-				if (this.isLoadingSong) {
-					this.isLoadingSong = false;
+				if (isLoadingSong) {
+					isLoadingSong = false;
 					uni.hideLoading();
 				}
 				if (this.loadMoreStatus === 'loading') {
@@ -305,7 +379,7 @@
 				uni.showLoading({
 					mask: true
 				});
-				switch (this.platformIndex) {
+				switch (platformIndex) {
 					case 0:
 						this.kuwoSongUrl(item);
 						break;
@@ -366,24 +440,29 @@
 				});
 			},
 			requestSongUrlSuccess(item, data) {
-				this.isLoadingSong = false;
+				isLoadingSong = false;
 				uni.hideLoading();
 
 				item.url = data;
 				item.urlTime = Date.now();
 				this.picUrl = item.albumUrl;
 				this.songName = item.name;
-				bgPlayer.playSong(item);
 				songStore.recordSong(item);
+				bgPlayer.playSong(item);
 				if (!this.showController) {
 					this.showController = true;
+					if (isIOS) {
+						this.scrollViewHeight -= 40;
+					}
 				}
 			},
 			onClickPic() {
 				if (typeof songStore.getCurPlayingSong() != 'undefined' &&
 					songStore.getCurPlayingSong() != null) {
 					uni.navigateTo({
-						url: "/pages/SongPlay/SongPlay"
+						url: "/pages/SongPlay/SongPlay",
+						animationType: 'pop-in',
+						animationDuration: 100
 					});
 				}
 			},
@@ -394,51 +473,23 @@
 					bgPlayer.replay();
 				}
 			},
-			onClickNextBtn() {
-				this.playStatus = false;
-				const nextSong = songStore.getNextSong();
-				if (typeof nextSong != 'undefined' && nextSong != null) {
-					this.picUrl = nextSong.albumUrl;
-					this.songName = nextSong.name;
-					bgPlayer.playSong(nextSong);
-				}
-			},
 			onClickListBtn() {
 				this.deleteIndex = -1;
 				this.playMode = songStore.getPlayMode();
 				this.$refs.popup.open('bottom');
 			},
-			onClickSongItem() {
-				this.playStatus = false;
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
-			},
 			onClickSongDelete(index) {
 				this.deleteIndex = -1;
-				this.tempDeleteIndex = index;
+				tempDeleteIndex = index;
 				const deleteSong = songStore.getSongByIndex(index);
 				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
 				this.$refs.alertDialog.open()
 			},
 			onDeleteConfirm() {
-				this.deleteIndex = this.tempDeleteIndex;
+				this.deleteIndex = tempDeleteIndex;
 			},
 			change(e) {
 				this.popupShow = e.show;
-			}
-
-		},
-		watch: {
-			songList: {
-				immediate: true,
-				handler(val) {
-					this.isShowLoadMore = val.length > 0;
-					if (val.length % 20 === 0) {
-						this.loadMoreStatus = 'more';
-					} else {
-						this.loadMoreStatus = 'noMore';
-					}
-				}
 			}
 		}
 	}
@@ -449,26 +500,31 @@
 		display: flex;
 		flex-direction: column;
 
-		.tab-sticky {
+		.top-content {
 			position: sticky;
 			z-index: 99;
-			top: 0;
-			display: flex;
-			flex-direction: column;
+			top: 0px;
+			background-color: #FAFAFA;
 			box-shadow: 0px 20px 20px rgb(240, 240, 240);
 		}
 
-		.list_content {
+		.list-content {
 			margin: 10px 0;
 
 			.item-box {
+				height: 60px;
 				display: flex;
 				flex-direction: column;
-				padding: 10px 15px;
+				justify-content: center;
+				padding: 0 15px;
 
 				.item-songname {
 					color: #22D59C;
 					font-size: 16px;
+					max-width: 100%;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
 
 					&-vip {
 						color: #c7c7c7;
@@ -479,6 +535,10 @@
 					color: #7d7d7d;
 					font-size: 13px;
 					margin-top: 3px;
+					max-width: 100%;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
 
 					&-vip {
 						color: #c7c7c7;

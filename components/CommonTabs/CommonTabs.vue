@@ -53,7 +53,7 @@
 		data() {
 			return {
 				deviceWidth: 0,
-				activeIndex: -1,
+				activeIndex: 0,
 				defaultConfig: {
 					textColor: "#8a8a8a",
 					activeTextColor: "#22D59C",

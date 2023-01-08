@@ -1,5 +1,5 @@
 <template>
-	<page-meta :page-style="'overflow:'+(show?'hidden':'visible')"></page-meta>
+	<page-meta :page-style="'overflow:'+(popupShow?'hidden':'visible')"></page-meta>
 	<view>
 		<scroll-view scroll-y="true" scroll-with-animation="true">
 			<view class="container">
@@ -10,14 +10,12 @@
 					@clickLeft="toBack">
 				</uni-nav-bar>
 				<view style="width: 100%; display: flex; justify-content: center; align-items: center;">
-					<text style="font-size: 10px; color: white; border-style: solid;
-							border-color: white; border-width: 1rpx; border-radius: 3px; 
-							padding: 1px; text-align: center; position: absolute; left: 15vw; ">{{platformStr}}</text>
-					<text style="color: white; font-size: 12px; max-width: 40vw; 
-					overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{singer}}</text>
+					<text class="platform-text">{{platformStr}}</text>
+					<text class="singer-text">{{singer}}</text>
 				</view>
-				<view
-					style="width: 100%; height: 67vh; max-height: 67vh; display: flex; flex-direction: column; align-items: center; margin-top: 2vh;">
+				<view style="width: 100%; height: 67vh; max-height: 67vh; 
+				display: flex; flex-direction: column; align-items: center; 
+				margin-top: 2vh;">
 					<view class="img-bordor" v-show="showHeader">
 						<image class="header" :class="{'header-animate' : hasLoadSongInfo}"
 							:style="{animationPlayState: animationStatue}" :src="picUrl">
@@ -49,8 +47,7 @@
 				</view>
 				<uni-popup ref="popup" background-color="#fff" @change="change">
 					<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
-						@onItemClick="onClickSongItem" @onDeleteItemClick="onClickSongDelete"
-						@onChangePlayMode="onChangePlayMode"></PlayList>
+						@onDeleteItemClick="onClickSongDelete" @onChangePlayMode="onChangePlayMode"></PlayList>
 				</uni-popup>
 				<uni-popup ref="alertDialog" type="dialog">
 					<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
@@ -70,108 +67,88 @@
 	import miguJs from '@/api/migu.js'
 	import qqJs from '../../api/qq'
 
+	var updateTimestamp = -1;
+	var hasLoadLyrics = false;
+	var tempDeleteIndex = -1;
+
 	export default {
 		onLoad() {
-			//循环方式需要手动修改，所以只需要加载一次
+			this.playingSong = songStore.getCurPlayingSong();
+			this.songName = this.playingSong.name;
+			this.singer = this.playingSong.singer;
+			this.initPlatform();
+			this.initPic();
+			this.hasLoadSongInfo = true;
+			this.playStatus = bgPlayer.isPlaying();
+			this.animationStatue = this.playStatus ? 'running' : 'paused';
+
+			this.curTime = bgPlayer.getPlayingCurTime();
+			this.curTimeStr = this.formateSeconds(this.curTime);
+			this.durationStr = this.formateSeconds(this.playingSong.duration);
+			this.percent = this.curTime / this.playingSong.duration * 100;
 			this.playMode = songStore.getPlayMode();
 			this.initModeView();
+			this.loadLyrics();
 
-			bgPlayer.setOnEnded(() => {
-				//一首歌播放结束，设置已加载歌曲信息和已加载歌词为false
-				this.hasLoadSongInfo = false;
-				this.hasLoadLyrics = false;
-			});
-			bgPlayer.setOnPred(() => {
-				this.hasLoadSongInfo = false;
-				this.hasLoadLyrics = false;
-			});
-			bgPlayer.setOnNexted(() => {
-				this.hasLoadSongInfo = false;
-				this.hasLoadLyrics = false;
-			});
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
-				this.setHeaderAnimation();
+				this.animationStatue = 'paused';
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;
+				this.animationStatue = 'paused';
 				this.playingSong = {};
-				this.setHeaderAnimation();
+			});
+			bgPlayer.setOnErrored(() => {
+				this.playStatus = false;
+				this.animationStatue = 'paused';
+				this.playingSong = {};
 			});
 			bgPlayer.setOnPlayed(() => {
 				//播放回调可能会回调多次，第一次播放，或者暂停后重新播放都会回调这个方法
-				this.updateTimestamp = -1;
+				updateTimestamp = -1;
 				this.playStatus = true;
-				this.playingSong = songStore.getCurPlayingSong();
-				this.initPlatform();
-				this.durationStr = this.formateSeconds(this.playingSong.duration);
-				this.setHeaderAnimation();
-
-				if (!this.hasLoadSongInfo) {
-					this.hasLoadSongInfo = true;
-
-					this.initPic();
-					this.songName = this.playingSong.name;
-					this.singer = this.playingSong.singer;
-					uni.setNavigationBarTitle({
-						title: this.songName
-					});
-				}
-				if (!this.hasLoadLyrics) {
-					this.loadLyrics();
-				}
+				this.animationStatue = 'running';
 			});
 			bgPlayer.setTimeUpdate((seconds) => {
 				//限制一秒更新一次，避免一直更新页面，容易引起卡顿
-				if (seconds - this.updateTimestamp > 1) {
-					this.updateTimestamp = seconds;
+				if (seconds - updateTimestamp > 1) {
+					updateTimestamp = seconds;
 					this.curTime = seconds;
 					this.curTimeStr = this.formateSeconds(this.curTime);
 					this.percent = seconds / this.playingSong.duration * 100;
 				}
 			});
-		},
-		onShow() {
-			//先判断是否已经加载过歌曲信息，没有加载过再加载
-			if (!this.hasLoadSongInfo) {
-				this.hasLoadSongInfo = true;
-
-				this.playStatus = bgPlayer.isPlaying();
-				this.setHeaderAnimation();
-				this.curTime = bgPlayer.getPlayingCurTime();
-				this.curTimeStr = this.formateSeconds(this.curTime);
-				this.percent = this.curTime / this.playingSong.duration * 100;
-
+			bgPlayer.setOnSongChangeCb(() => {
+				this.hasLoadSongInfo = false;
 				this.playingSong = songStore.getCurPlayingSong();
-				this.durationStr = this.formateSeconds(this.playingSong.duration);
-
-				this.initPlatform();
-				this.initPic();
 				this.songName = this.playingSong.name;
 				this.singer = this.playingSong.singer;
-
-				uni.setNavigationBarTitle({
-					title: this.songName
-				});
-			}
-			//先判断是否已经加载过歌词，没有加载过再加载
-			if (!this.hasLoadLyrics) {
+				this.initPlatform();
+				this.initPic();
+				this.curTime = 0;
+				this.curTimeStr = this.formateSeconds(0);
+				this.durationStr = this.formateSeconds(this.playingSong.duration);
 				this.loadLyrics();
-			}
-			this.updateTimestamp = -1;
+				setTimeout(() => {
+					this.hasLoadSongInfo = true;
+				}, 100);
+			});
+		},
+		onShow() {
+			updateTimestamp = -1;
 		},
 		onUnload() {
-			bgPlayer.setOnEnded(null);
 			bgPlayer.setOnPaused(null);
 			bgPlayer.setOnStoped(null);
+			bgPlayer.setOnErrored(null);
 			bgPlayer.setOnPlayed(null);
 			bgPlayer.setTimeUpdate(null);
-			bgPlayer.setOnPred(null);
-			bgPlayer.setOnNexted(null);
+			bgPlayer.setOnSongChangeCb(null);
 		},
 		onBackPress(options) {
 			// #ifdef APP-PLUS || MP-ALIPAY || H5
-			if (this.show) {
+			if (this.popupShow) {
 				this.$refs.popup.close();
 				return true;
 			}
@@ -203,20 +180,17 @@
 				showHeader: true,
 				animationStatue: 'paused',
 
-				updateTimestamp: -1,
 				curTime: 0,
 				durationStr: '',
 				curTimeStr: '',
 				percent: 0,
 				playMode: 1,
 				playModeSrc: '',
-				hasLoadLyrics: false,
 				lyrics: [],
 
-				tempDeleteIndex: -1,
 				deleteIndex: -1,
 				deleteInfo: '',
-				show: false,
+				popupShow: false,
 			};
 		},
 		methods: {
@@ -268,16 +242,13 @@
 						break;
 				}
 			},
-			setHeaderAnimation() {
-				this.animationStatue = this.playStatus ? 'running' : 'paused';
-			},
 			/**
 			 * 加载歌词
 			 * */
 			loadLyrics() {
 				if (typeof this.playingSong === 'undefined' || this.playingSong == null) return;
 
-				this.hasLoadLyrics = true;
+				hasLoadLyrics = true;
 				this.lyrics = ['[00:00]加载歌词中...'];
 				switch (this.playingSong.platform) {
 					case 'kuwo':
@@ -351,7 +322,7 @@
 					position: 'bottom'
 				});
 				this.lyrics = ['[00:00]歌词加载失败，请点击重试'];
-				this.hasLoadLyrics = false;
+				hasLoadLyrics = false;
 			},
 			changePlayMode() {
 				this.playMode++;
@@ -360,8 +331,6 @@
 				songStore.changePlayMode(this.playMode);
 			},
 			onClickPre() {
-				this.hasLoadSongInfo = false;
-				this.hasLoadLyrics = false;
 				bgPlayer.playPre();
 			},
 			onClickPlay() {
@@ -372,8 +341,6 @@
 				}
 			},
 			onClickNext() {
-				this.hasLoadSongInfo = false;
-				this.hasLoadLyrics = false;
 				bgPlayer.playNext();
 			},
 			onClickListBtn() {
@@ -383,14 +350,6 @@
 			onChangePlayMode(val) {
 				this.playMode = val;
 				this.initModeView();
-			},
-			onClickSongItem() {
-				this.playStatus = false;
-				this.initPic();
-				this.songName = songStore.getCurPlayingSong().name;
-				this.hasLoadSongInfo = false;
-				this.hasLoadLyrics = false;
-				this.setHeaderAnimation();
 			},
 			onClickSongDelete(index) {
 				this.deleteIndex = -1;
@@ -403,7 +362,7 @@
 				this.deleteIndex = this.tempDeleteIndex;
 			},
 			change(e) {
-				this.show = e.show;
+				this.popupShow = e.show;
 			},
 			formateSeconds(seconds) {
 				let secondTime = parseInt(seconds); //将传入的秒的值转化为Number
@@ -427,7 +386,7 @@
 				return result;
 			},
 			onClickLyric() {
-				if (!this.hasLoadLyrics && this.lyrics.length == 1 && this.lyrics[0] === '[00:00]歌词加载失败，请点击重试') {
+				if (!hasLoadLyrics && this.lyrics.length == 1 && this.lyrics[0] === '[00:00]歌词加载失败，请点击重试') {
 					this.loadLyrics();
 				} else {
 					if (this.lyrics.length > 1) {
@@ -438,14 +397,14 @@
 								height: '67vh'
 							};
 						} else {
-							//先让歌词缩小，再延迟100毫秒让图片展示出来，这样可以避免歌词越界显示
+							//先让歌词缩小，再延迟150毫秒让图片展示出来，这样可以避免歌词越界显示
 							this.cuAreaStyle = {
 								width: '100vw',
 								height: '30vh'
 							};
 							setTimeout(() => {
 								this.showHeader = true;
-							}, 100);
+							}, 150);
 						}
 					}
 				}
@@ -485,6 +444,28 @@
 			right: 0;
 			left: 0;
 			background-color: rgba(0, 0, 0, 0.40);
+		}
+
+		.singer-text {
+			color: white;
+			font-size: 12px;
+			max-width: 40vw;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.platform-text {
+			font-size: 10px;
+			color: white;
+			border-style: solid;
+			border-color: white;
+			border-width: 1rpx;
+			border-radius: 3px;
+			padding: 1px;
+			text-align: center;
+			position: absolute;
+			left: 15vw;
 		}
 
 		.img-bordor {

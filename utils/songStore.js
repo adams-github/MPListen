@@ -7,10 +7,10 @@ const PLAY_MODE = "play_mode";
 const CUR_INDEX = "cur_index";
 const CUR_SONG = "cur_song";
 
-let songList = []; //播放列表
-let playMode; //播放模式， 0：单曲循环， 1：顺序播放，2：随机播放
-let playingIndex = 0; //当前播放对应的index
-let playingSong;
+var songList = []; //播放列表
+var playMode; //播放模式， 0：单曲循环， 1：顺序播放，2：随机播放
+var playingIndex = 0; //当前播放对应的index
+var playingSong;
 
 
 songStore.loadAllSongs = function() {
@@ -79,7 +79,7 @@ songStore.getSongByIndex = function(index) {
 }
 
 songStore.getNextSong = function() {
-	if (typeof songList === 'undefined' || songList == null) {
+	if (typeof songList === 'undefined' || songList == null || songList.length == 0) {
 		return null;
 	}
 	if (playMode == 2) {
@@ -98,7 +98,7 @@ songStore.getNextSong = function() {
 }
 
 songStore.getPreSong = function() {
-	if (typeof songList === 'undefined' || songList == null) {
+	if (typeof songList === 'undefined' || songList == null || songList.length == 0) {
 		return null;
 	}
 

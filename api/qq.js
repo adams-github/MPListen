@@ -40,63 +40,66 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 		if (res.code === 0 && res.req.code === 0) {
 			if (typeof successCb === 'function') {
 				let songList = [];
-				res.req.data.body.song.list.forEach((item, index) => {
-					let free = item.pay.pay_play == 0 && item.action.alert != 0;
-					let songId = item.mid;
-					let lyric_Id = item.id;
-					let songName = item.name;
-					let album_name = item.album.name;
-					let singerName = '';
-					item.singer.forEach((singer_name, idx) => {
-						if (idx != 0) {
-							singerName += '、';
-						}
-						singerName += singer_name.name;
-					});
-					if (!free) {
-						for (let i = 0; i < item.grp.length; i++) {
-							if (item.grp[i].pay.pay_play == 0 && item.grp[i].action.alert != 0) {
-								songId = item.grp[i].mid;
-								lyric_Id = item.grp[i].id;
-								songName = item.grp[i].name;
-								album_name = item.grp[i].album.name;
-								singerName = '';
-								item.grp[i].singer.forEach((singer_name, idx) => {
-									if (idx != 0) {
-										singerName += '、';
-									}
-									singerName += singer_name.name;
-								});
-								free = true;
-								break;
+				if (res.req.data.body.song.list.length > 0) {
+					res.req.data.body.song.list.forEach((item, index) => {
+						let free = item.pay.pay_play == 0 && item.action.alert != 0;
+						let songId = item.mid;
+						let lyric_Id = item.id;
+						let songName = item.name;
+						let album_name = item.album.name;
+						let singerName = '';
+						item.singer.forEach((singer_name, idx) => {
+							if (idx != 0) {
+								singerName += '、';
+							}
+							singerName += singer_name.name;
+						});
+						if (!free) {
+							for (let i = 0; i < item.grp.length; i++) {
+								if (item.grp[i].pay.pay_play == 0 && item.grp[i].action.alert !=
+									0) {
+									songId = item.grp[i].mid;
+									lyric_Id = item.grp[i].id;
+									songName = item.grp[i].name;
+									album_name = item.grp[i].album.name;
+									singerName = '';
+									item.grp[i].singer.forEach((singer_name, idx) => {
+										if (idx != 0) {
+											singerName += '、';
+										}
+										singerName += singer_name.name;
+									});
+									free = true;
+									break;
+								}
 							}
 						}
-					}
-					let picUrl = '../../static/ic_main_cd_default.jpg';
-					if (item.album.mid != '') {
-						picUrl = 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
-							item.album.mid + '.jpg';
-					} else if (item.singer[0].mid != '') {
-						picUrl = 'https://y.qq.com/music/photo_new/T001R300x300M000' +
-							item.singer[0].mid + '.jpg';
-					}
-					songList.push({
-						platform: 'qq',
-						id: songId,
-						lyricId: lyric_Id,
-						name: songName,
-						url: '',
-						urlTime: -1,
-						singer: singerName,
-						albumName: album_name,
-						albumUrl: picUrl,
-						isFree: free,
-						hasCache: false,
-						delete: false,
-						localPath: '',
-						duration: 0,
-					})
-				});
+						let picUrl = '../../static/ic_main_cd_default.jpg';
+						if (item.album.mid != '') {
+							picUrl = 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
+								item.album.mid + '.jpg';
+						} else if (item.singer[0].mid != '') {
+							picUrl = 'https://y.qq.com/music/photo_new/T001R300x300M000' +
+								item.singer[0].mid + '.jpg';
+						}
+						songList.push({
+							platform: 'qq',
+							id: songId,
+							lyricId: lyric_Id,
+							name: songName,
+							url: '',
+							urlTime: -1,
+							singer: singerName,
+							albumName: album_name,
+							albumUrl: picUrl,
+							isFree: free,
+							hasCache: false,
+							delete: false,
+							localPath: '',
+							duration: 0,
+						})
+					});
+				}
 				successCb(songList);
 			}
 		} else {
@@ -268,5 +271,13 @@ qqJs.qqlyricForMPWX = function(songId, successCb, errorCb) {
 	});
 }
 
+/**
+ * 判断播放连接是否有效
+ * QQ的播放链接貌似有效期是24小时
+ */
+qqJs.isUrlValid = function(song) {
+	const timeDiff = Date.now() - song.urlTime;
+	return timeDiff < 1000 * 60 * 60 * 24 - song.duration * 1000;
+}
 
 export default qqJs;

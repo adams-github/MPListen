@@ -37,7 +37,7 @@
 
 	export default {
 		name: "PlayList",
-		emits: ['onItemClick', 'onDeleteItemClick', 'onChangePlayMode'],
+		emits: ['onDeleteItemClick', 'onChangePlayMode'],
 		props: {
 			playing_song: {
 				type: Object,
@@ -153,7 +153,6 @@
 				const clickSong = this.songList[index];
 				if (this.playingSong.id != clickSong.id) {
 					songStore.clickSong(index);
-					this.$emit("onItemClick", index);
 					bgPlayer.playSong(clickSong);
 				}
 			},

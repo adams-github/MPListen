@@ -6,12 +6,13 @@ import neteaseJs from '@/api/netease.js'
 import miguJs from '@/api/migu.js'
 
 // 全局音频播放管理
-let bgPlayer = {};
-let isInited = false;
-let curPlayingSong;
-let playSeek = 0; //播放进度，单位s
-let errorTime = 0; //播放出错次数
-let isPlaying = false;
+var bgPlayer = {};
+var isInited = false;
+var curPlayingSong = songStore.getCurPlayingSong();
+var playSeek = 0; //播放进度，单位s
+var errorTime = 0; //播放出错次数
+var isPlaying = false;
+var onSongChangeCallback;
 
 /**
  * 获取播放器， 并且在第一次获取时对播放器设置一些回调
@@ -20,20 +21,7 @@ function getBpManager() {
 	if (!isInited) {
 		isInited = true;
 		uni.getBackgroundAudioManager().onError((res) => {
-			console.error(res);
-			isPlaying = false;
-			uni.getBackgroundAudioManager().stop();
-			if (errorTime == 0) {
-				//播放失败直接重新获取url
-				updatePlayUrl();
-			} else {
-				uni.showToast({
-					title: res.errMsg,
-					icon: 'none',
-					position: 'bottom'
-				});
-			}
-			errorTime++;
+			onPlayError(res);
 		});
 		uni.getBackgroundAudioManager().onEnded(() => {
 			isPlaying = false;
@@ -44,7 +32,7 @@ function getBpManager() {
 			}
 		});
 		uni.getBackgroundAudioManager().onTimeUpdate((res) => {
-			if (!isNaN(uni.getBackgroundAudioManager().currentTime)){
+			if (!isNaN(uni.getBackgroundAudioManager().currentTime)) {
 				playSeek = uni.getBackgroundAudioManager().currentTime;
 			}
 		});
@@ -65,6 +53,22 @@ function getBpManager() {
 		});
 	}
 	return uni.getBackgroundAudioManager();
+}
+
+function onPlayError(res) {
+	console.error(res);
+	bgPlayer.stop();
+	if (errorTime <= 1) {
+		//播放失败直接重新获取url
+		updatePlayUrl();
+	} else {
+		uni.showToast({
+			title: res.errMsg,
+			icon: 'none',
+			position: 'bottom'
+		});
+	}
+	errorTime++;
 }
 
 /**
@@ -131,6 +135,9 @@ function requestSongUrlFailed(error) {
 	bgPlayer.stop();
 }
 
+bgPlayer.setOnSongChangeCb = function(callback) {
+	onSongChangeCallback = callback;
+}
 
 /**
  * 获取播放状态，true 表示暂停或停止，false 表示正在播放
@@ -144,7 +151,7 @@ bgPlayer.isPlaying = function() {
  * 当前当前音频的长度（单位：s）
  */
 bgPlayer.getPlayingDuration = function() {
-	if (isNaN(getBpManager().duration)){
+	if (isNaN(getBpManager().duration)) {
 		return 0;
 	}
 	return getBpManager().duration;
@@ -154,7 +161,7 @@ bgPlayer.getPlayingDuration = function() {
  * 当前音频的播放位置（单位：s）
  */
 bgPlayer.getPlayingCurTime = function() {
-	if (isNaN(getBpManager().currentTime)){
+	if (isNaN(getBpManager().currentTime)) {
 		return 0;
 	}
 	return getBpManager().currentTime;
@@ -166,11 +173,14 @@ bgPlayer.getPlayingCurTime = function() {
  */
 bgPlayer.playSong = function(song) {
 	//判断是不是正在播放同一个首歌
-	if (bgPlayer.isPlaying() && typeof curPlayingSong != 'undefined' &&
-		curPlayingSong != null && curPlayingSong.id === song.id) {
-		getBpManager().stop();
+	if (typeof curPlayingSong === 'undefined' || curPlayingSong === null || curPlayingSong.id != song.id) {
+		curPlayingSong = song;
+		if (typeof onSongChangeCallback != 'undefined' && onSongChangeCallback != null) {
+			onSongChangeCallback();
+		}
+	} else if (bgPlayer.isPlaying()) {
+		return;
 	}
-	curPlayingSong = song;
 	playSeek = 0;
 	errorTime = 0;
 	isPlaying = false;
@@ -181,6 +191,10 @@ bgPlayer.playSong = function(song) {
 
 	//校验各个平台播放url是否在有效时间内
 	if (song.platform == 'kuwo' && !kuwoJs.isUrlValid(song)) {
+		updatePlayUrl();
+	} else if (song.platform == 'kugou' && !kugouJs.isUrlValid(song)) {
+		updatePlayUrl();
+	} else if (song.platform == 'qq' && !qqJs.isUrlValid(song)) {
 		updatePlayUrl();
 	} else if (song.platform == 'netease' && !neteaseJs.isUrlValid(song)) {
 		updatePlayUrl();
@@ -220,9 +234,6 @@ bgPlayer.playPre = function() {
 	const preSong = songStore.getPreSong();
 	if (typeof preSong != 'undefined' && preSong != null) {
 		bgPlayer.playSong(preSong);
-	} else {
-		bgPlayer.stop();
-		isPlaying = false;
 	}
 }
 
@@ -230,9 +241,6 @@ bgPlayer.playNext = function() {
 	const nextSong = songStore.getNextSong();
 	if (typeof nextSong != 'undefined' && nextSong != null) {
 		bgPlayer.playSong(nextSong);
-	} else {
-		bgPlayer.stop();
-		isPlaying = false;
 	}
 }
 
@@ -262,6 +270,15 @@ bgPlayer.setOnCanPlay = function(onCanPlayCb) {
 	});
 }
 
+
+bgPlayer.setOnErrored = function(errorCb) {
+	getBpManager().onError((res) => {
+		onPlayError(res);
+		if (typeof errorCb === 'function') {
+			errorCb();
+		}
+	});
+}
 
 /**
  * 背景音频自然播放结束事件
@@ -318,30 +335,13 @@ bgPlayer.setOnPlayed = function(playedCb) {
 	});
 }
 
-bgPlayer.setOnPred = function(preCb) {
-	getBpManager().onPrev(() => {
-		if (typeof preCb === 'function') {
-			preCb();
-		}
-		bgPlayer.playPre();
-	});
-}
-
-bgPlayer.setOnNexted = function(nextCb) {
-	getBpManager().onNext(() => {
-		if (typeof nextCb === 'function') {
-			nextCb();
-		}
-		bgPlayer.playNext();
-	});
-}
 
 /**
  * 背景音频播放进度更新事件
  */
 bgPlayer.setTimeUpdate = function(updateCb) {
 	getBpManager().onTimeUpdate((res) => {
-		if (!isNaN(uni.getBackgroundAudioManager().currentTime)){
+		if (!isNaN(uni.getBackgroundAudioManager().currentTime)) {
 			playSeek = uni.getBackgroundAudioManager().currentTime;
 		}
 		if (typeof updateCb === 'function') {

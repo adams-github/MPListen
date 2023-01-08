@@ -39,35 +39,38 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 		if (res.code === 200) {
 			if (typeof successCb === 'function') {
 				let songList = [];
-				res.result.songs.forEach((item, index) => {
-					let singerName = '';
-					item.artists.forEach((singer_name, idx) => {
-						if (idx != 0) {
-							singerName += '、';
-						}
-						singerName += singer_name.name;
+				if (res.result.songs.length > 0) {
+					res.result.songs.forEach((item, index) => {
+						let singerName = '';
+						item.artists.forEach((singer_name, idx) => {
+							if (idx != 0) {
+								singerName += '、';
+							}
+							singerName += singer_name.name;
+						});
+						songList.push({
+							platform: 'netease',
+							id: item.id,
+							name: item.name,
+							url: '',
+							urlTime: -1,
+							singer: singerName,
+							albumName: item.album.name,
+							albumUrl: item.album.picUrl,
+							isFree: item.fee == 0 || item.fee == 8,
+							hasCache: false,
+							delete: false,
+							localPath: '',
+							duration: 0,
+						})
 					});
-					songList.push({
-						platform: 'netease',
-						id: item.id,
-						name: item.name,
-						url: '',
-						urlTime: -1,
-						singer: singerName,
-						albumName: item.album.name,
-						albumUrl: item.album.picUrl,
-						isFree: item.fee == 0 || item.fee == 8,
-						hasCache: false,
-						delete: false,
-						localPath: '',
-						duration: 0,
-					})
-				});
+				}
 				successCb(songList);
 			}
 		} else if (res.code === -462) {
 			errorCb(-462);
 		} else {
+			console.error(res.message == undefined ? res.msg : res.message);
 			if (typeof errorCb === 'function') {
 				errorCb(res.message == undefined ? res.msg : res.message);
 			}

@@ -151,30 +151,45 @@ kuwoJs.kuwoSearchForMPWX = function(label, curPage, successCb, errorCb) {
 		if (res.code === 0) {
 			if (typeof successCb === 'function') {
 				let songList = [];
-				res.data.list.forEach((item, index) => {
-					// let picUrl = item.pic;
-					// picUrl = picUrl.replace('120', '700');
-					songList.push({
-						platform: 'kuwo',
-						id: item.id,
-						name: item.title,
-						url: '',
-						singer: item.artist,
-						albumName: item.album,
-						albumUrl: item.pic,
-						isFree: true,
-						hasCache: false,
-						delete: false,
-						localPath: '',
-						duration: 0,
-					})
-				});
+				if (res.data.list.length > 0) {
+					res.data.list.forEach((item, index) => {
+						let songName = item.title;
+						songName = songName.replaceAll('&nbsp;', ' ');
+						songName = songName.replaceAll('&lt;em&gt;', '');
+						songName = songName.replaceAll('&lt;/em&gt;', '');
+						songName = songName.replaceAll('&apos;', '\'');
+						let artist = item.artist;
+						artist = artist.replaceAll('&nbsp;', ' ');
+						artist = artist.replaceAll('&lt;em&gt;', '');
+						artist = artist.replaceAll('&lt;/em&gt;', '');
+						artist = artist.replaceAll('&apos;', '\'');
+						let album = item.album;
+						album = album.replaceAll('&nbsp;', ' ');
+						album = album.replaceAll('&lt;em&gt;', '');
+						album = album.replaceAll('&lt;/em&gt;', '');
+						album = album.replaceAll('&apos;', '\'');
+						songList.push({
+							platform: 'kuwo',
+							id: item.id,
+							name: songName,
+							url: '',
+							singer: artist,
+							albumName: album,
+							albumUrl: item.pic,
+							isFree: true,
+							hasCache: false,
+							delete: false,
+							localPath: '',
+							duration: 0,
+						})
+					});
+				}
 				successCb(songList);
 			}
 		} else {
-			console.error(res.msg);
+			console.error(res.errmsg === undefined ? res.msg : res.errmsg);
 			if (typeof errorCb === 'function') {
-				errorCb(res.msg);
+				errorCb(res.errmsg === undefined ? res.msg : res.errmsg);
 			}
 		}
 	}).catch((error) => {
