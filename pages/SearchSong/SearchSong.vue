@@ -275,6 +275,7 @@
 			onPlatformSelected(val) {
 				uni.hideNavigationBarLoading()
 				this.songList = [];
+				this.loadMoreStatus = 'more';
 				platformIndex = val;
 				this.search(0);
 			},
