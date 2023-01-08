@@ -50,7 +50,7 @@
 	import songStore from '@/utils/songStore.js'
 	import bgPlayer from '@/utils/bgPlayer.js'
 
-	var inputText = "";
+	var inputText = '';
 	var isRefreshing = false;
 	var isLoadingSong = false;
 	var platformIndex = 0;
@@ -67,6 +67,16 @@
 
 	export default {
 		onLoad() {
+			inputText = '';
+			isRefreshing = false;
+			isLoadingSong = false;
+			platformIndex = 0;
+			neteaseCurPage = 1;
+			qqCurPage = 1;
+			kugouCurPage = 1;
+			kuwoCurPage = 1;
+			miguCurPage = 1;
+
 			/*
 			 * 兼容ios平台小程序点击状态栏滚动顶部
 			 * ios平台坑就坑在scrollview不设置固定固定的高度，点击状态栏就没办法自动滚动顶部
