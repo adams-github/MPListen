@@ -249,11 +249,11 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 
 /**
  * 判断播放连接是否有效
- * 网易云的网络播放链接访问时效可能是一个半小时，可能一直访问一直就有效，超过一个半小时不访问就会失效
+ * 网易云的网络播放链接访问时效可能是一个小时，可能一直访问一直就有效，超过一个小时不访问就会失效
  */
 neteaseJs.isUrlValid = function(song) {
 	const timeDiff = Date.now() - song.urlTime;
-	return timeDiff < 1000 * 60 * 90;
+	return timeDiff < 1000 * 60 * 60;
 }
 
 
