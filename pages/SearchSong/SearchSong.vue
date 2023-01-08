@@ -244,6 +244,7 @@
 				miguCurPage = 1;
 			},
 			search(val) {
+				if (this.loadMoreStatus == 'noMore') return;
 				let label = inputText;
 				if (label === '') return;
 
