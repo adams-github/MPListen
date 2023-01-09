@@ -121,7 +121,7 @@
 
 			.picture-animate {
 				animation-name: rotate;
-				animation-duration: 12s;
+				animation-duration: 36s;
 				animation-timing-function: linear;
 				animation-iteration-count: infinite;
 			}
