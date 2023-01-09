@@ -107,9 +107,11 @@
 			}
 			this.playStatus = bgPlayer.isPlaying();
 			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
-				this.playingSong = songStore.getCurPlayingSong();
-				this.picUrl = this.playingSong.albumUrl;
-				this.songName = this.playingSong.name;
+				if (this.playStatus) {
+					this.playingSong = songStore.getCurPlayingSong();
+				}
+				this.picUrl = songStore.getCurPlayingSong().albumUrl;
+				this.songName = songStore.getCurPlayingSong().name;
 				this.showController = true;
 			} else {
 				this.playingSong = {};
@@ -118,6 +120,7 @@
 
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
+				this.playingSong = {};
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;

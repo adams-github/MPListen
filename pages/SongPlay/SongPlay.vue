@@ -26,8 +26,8 @@
 				</view>
 				<view class="progress-container">
 					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
-					<slider style="width: 100%;" min="0" :max="playingSong.duration" :value="curTime"
-						backgroundColor="#B9B9B9" activeColor="#ffffff" block-size="12" @change="sliderChange"></slider>
+					<slider style="width: 100%;" min="0" :max="songDuration" :value="curTime" backgroundColor="#B9B9B9"
+						activeColor="#ffffff" block-size="12" @change="sliderChange"></slider>
 					<text style="color: #B9B9B9; font-size: 10px;">{{durationStr}}</text>
 				</view>
 				<view class="playController">
@@ -73,18 +73,21 @@
 
 	export default {
 		onLoad() {
-			this.playingSong = songStore.getCurPlayingSong();
-			this.songName = this.playingSong.name;
-			this.singer = this.playingSong.singer;
+			this.playStatus = bgPlayer.isPlaying();
+			if (this.playStatus) {
+				this.playingSong = songStore.getCurPlayingSong();
+			}
+			this.songName = songStore.getCurPlayingSong().name;
+			this.singer = songStore.getCurPlayingSong().singer;
 			this.initPlatform();
 			this.initPic();
 			this.hasLoadSongInfo = true;
-			this.playStatus = bgPlayer.isPlaying();
 			this.animationStatue = this.playStatus ? 'running' : 'paused';
 
 			this.curTime = bgPlayer.getPlayingCurTime();
 			this.curTimeStr = this.formateSeconds(this.curTime);
-			this.durationStr = this.formateSeconds(this.playingSong.duration);
+			this.songDuration = songStore.getCurPlayingSong().duration;
+			this.durationStr = this.formateSeconds(this.songDuration);
 			this.playMode = songStore.getPlayMode();
 			this.initModeView();
 			this.loadLyrics();
@@ -92,6 +95,7 @@
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
 				this.animationStatue = 'paused';
+				this.playingSong = {};
 			});
 			bgPlayer.setOnStoped(() => {
 				this.playStatus = false;
@@ -126,7 +130,8 @@
 				this.initPic();
 				this.curTime = 0;
 				this.curTimeStr = this.formateSeconds(0);
-				this.durationStr = this.formateSeconds(this.playingSong.duration);
+				this.songDuration = this.playingSong.duration;
+				this.durationStr = this.formateSeconds(this.songDuration);
 				this.loadLyrics();
 				setTimeout(() => {
 					this.hasLoadSongInfo = true;
@@ -185,6 +190,7 @@
 				animationStatue: 'paused',
 
 				curTime: 0,
+				songDuration: 0,
 				durationStr: '',
 				curTimeStr: '',
 				playMode: 1,
@@ -214,7 +220,7 @@
 				}
 			},
 			initPlatform() {
-				switch (this.playingSong.platform) {
+				switch (songStore.getCurPlayingSong().platform) {
 					case 'netease':
 						this.platformStr = '网易';
 						break;
@@ -233,15 +239,16 @@
 				}
 			},
 			initPic() {
-				switch (this.playingSong.platform) {
+				const curSong = songStore.getCurPlayingSong();
+				switch (curSong.platform) {
 					case 'kuwo':
-						this.picUrl = this.playingSong.albumUrl.replace('/120/', '/700/');
+						this.picUrl = curSong.albumUrl.replace('/120/', '/700/');
 						break;
 					case 'qq':
-						this.picUrl = this.playingSong.albumUrl.replace('300x300', '500x500');
+						this.picUrl = curSong.albumUrl.replace('300x300', '500x500');
 						break;
 					default:
-						this.picUrl = this.playingSong.albumUrl;
+						this.picUrl = curSong.albumUrl;
 						break;
 				}
 			},
@@ -249,41 +256,42 @@
 			 * 加载歌词
 			 * */
 			loadLyrics() {
-				if (typeof this.playingSong === 'undefined' || this.playingSong == null) return;
+				const curSong = songStore.getCurPlayingSong();
+				// if (typeof curSong === 'undefined' || curSong == null) return;
 
 				hasLoadLyrics = true;
 				this.lyrics = ['[00:00]加载歌词中...'];
-				switch (this.playingSong.platform) {
+				switch (curSong.platform) {
 					case 'kuwo':
-						kuwoJs.kuwoSongInfo(this.playingSong.id, (data) => {
+						kuwoJs.kuwoSongInfo(curSong.id, (data) => {
 							this.handlerKuwoLyrics(data.lrclist);
 						}, (error) => {
 							this.requestError(error);
 						})
 						break;
 					case 'kugou':
-						kugouJs.kugouSongData(this.playingSong.id, this.playingSong.albumId, (data) => {
+						kugouJs.kugouSongData(curSong.id, curSong.albumId, (data) => {
 							this.handlerKugouLyrics(data.lyrics);
 						}, (error) => {
 							this.requestError(error);
 						})
 						break;
 					case 'qq':
-						qqJs.qqlyricForMPWX(this.playingSong.lyricId, (data) => {
+						qqJs.qqlyricForMPWX(curSong.lyricId, (data) => {
 							this.handlerQQLyrics(data);
 						}, (error) => {
 							this.requestError(error);
 						});
 						break;
 					case 'netease':
-						neteaseJs.neteaseLyric(this.playingSong.id, (data) => {
+						neteaseJs.neteaseLyric(curSong.id, (data) => {
 							this.handlerNeteaseLyrics(data);
 						}, (error) => {
 							this.requestError(error);
 						})
 						break;
 					case 'migu':
-						miguJs.miguSonglyric(this.playingSong.lyricUrl, (data) => {
+						miguJs.miguSonglyric(curSong.lyricUrl, (data) => {
 							this.lyrics = data.split('\r');
 						}, (error) => {
 							this.requestError(error);

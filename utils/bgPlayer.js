@@ -135,8 +135,23 @@ function requestSongUrlFailed(error) {
 	bgPlayer.stop();
 }
 
-bgPlayer.setOnSongChangeCb = function(callback) {
-	onSongChangeCallback = callback;
+
+/**
+ * 校验各个平台播放url是否在有效时间内
+ */
+function isUrlVaild(song) {
+	switch (song.platform) {
+		case 'netease':
+			return neteaseJs.isUrlValid(song);
+		case 'kuwo':
+			return kuwoJs.isUrlValid(song);
+		case 'qq':
+			return qqJs.isUrlValid(song);
+		case 'kugou':
+			return kugouJs.isUrlValid(song);
+		case 'migu':
+			return miguJs.isUrlValid(song);
+	}
 }
 
 /**
@@ -189,21 +204,11 @@ bgPlayer.playSong = function(song) {
 	getBpManager().singer = song.singer;
 	getBpManager().coverImgUrl = song.albumUrl;
 
-	//校验各个平台播放url是否在有效时间内
-	if (song.platform == 'kuwo' && !kuwoJs.isUrlValid(song)) {
-		updatePlayUrl();
-	} else if (song.platform == 'kugou' && !kugouJs.isUrlValid(song)) {
-		updatePlayUrl();
-	} else if (song.platform == 'qq' && !qqJs.isUrlValid(song)) {
-		updatePlayUrl();
-	} else if (song.platform == 'netease' && !neteaseJs.isUrlValid(song)) {
-		updatePlayUrl();
-	} else if (song.platform == 'migu' && !miguJs.isUrlValid(song)) {
-		updatePlayUrl();
-	} else {
+	if (isUrlVaild(song)) {
 		getBpManager().src = song.url; //设置连接后会自动开始播放
+	} else {
+		updatePlayUrl();
 	}
-
 }
 
 bgPlayer.replay = function() {
@@ -251,6 +256,11 @@ bgPlayer.playNext = function() {
  */
 bgPlayer.seekTo = function(pos) {
 	getBpManager().seek(pos);
+}
+
+
+bgPlayer.setOnSongChangeCb = function(callback) {
+	onSongChangeCallback = callback;
 }
 
 /**
