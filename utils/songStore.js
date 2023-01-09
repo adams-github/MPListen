@@ -140,7 +140,12 @@ songStore.recordSong = function(song) {
 		playingIndex = 0;
 	} else {
 		playingIndex = index;
+		songList[playingIndex] = song;
 	}
+	uni.setStorage({
+		key: KEY_SONGLIST,
+		data: songList
+	});
 	uni.setStorage({
 		key: CUR_INDEX,
 		data: playingIndex
