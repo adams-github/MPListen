@@ -190,18 +190,21 @@ bgPlayer.playSong = function(song) {
 	//判断是不是正在播放同一个首歌
 	if (typeof curPlayingSong === 'undefined' || curPlayingSong === null || curPlayingSong.id != song.id) {
 		curPlayingSong = song;
+		playSeek = 0;
 		if (typeof onSongChangeCallback != 'undefined' && onSongChangeCallback != null) {
 			onSongChangeCallback();
 		}
 	} else if (bgPlayer.isPlaying()) {
 		return;
 	}
-	playSeek = 0;
 	errorTime = 0;
-	isPlaying = false;
+	isPlaying = true;
 
 	getBpManager().title = song.name;
 	getBpManager().singer = song.singer;
+	//微信小程序背景音频播放有bug, 不管怎么切换歌曲，开始时间都固定在一个秒数，
+	//尝试一下设置0，看下后续还会不会出现这个问题
+	getBpManager().startTime = 0;
 	getBpManager().coverImgUrl = song.albumUrl;
 
 	if (isUrlVaild(song)) {
@@ -219,10 +222,10 @@ bgPlayer.replay = function() {
 			bgPlayer.playSong(song);
 		}
 	} else {
-		if (curPlayingSong.platform == 'kuwo' && !kuwoJs.isUrlValid(curPlayingSong)) {
-			updatePlayUrl();
-		} else {
+		if (isUrlVaild(curPlayingSong)) {
 			getBpManager().play();
+		} else {
+			updatePlayUrl();
 		}
 	}
 }
@@ -240,6 +243,7 @@ bgPlayer.stop = function() {
 bgPlayer.playPre = function() {
 	const preSong = songStore.getPreSong();
 	if (typeof preSong != 'undefined' && preSong != null) {
+		playSeek = 0;
 		bgPlayer.playSong(preSong);
 	}
 }
@@ -247,6 +251,7 @@ bgPlayer.playPre = function() {
 bgPlayer.playNext = function() {
 	const nextSong = songStore.getNextSong();
 	if (typeof nextSong != 'undefined' && nextSong != null) {
+		playSeek = 0;
 		bgPlayer.playSong(nextSong);
 	}
 }
