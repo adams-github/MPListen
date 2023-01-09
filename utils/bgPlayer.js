@@ -158,8 +158,7 @@ function isUrlVaild(song) {
  * 获取播放状态，true 表示暂停或停止，false 表示正在播放
  */
 bgPlayer.isPlaying = function() {
-	return !getBpManager().paused && isPlaying && typeof getBpManager().src != 'undefined' &&
-		getBpManager().src != null && getBpManager().src != '';
+	return !getBpManager().paused && isPlaying && getBpManager().src != '';
 }
 
 /**
@@ -188,7 +187,7 @@ bgPlayer.getPlayingCurTime = function() {
  */
 bgPlayer.playSong = function(song) {
 	//判断是不是正在播放同一个首歌
-	if (typeof curPlayingSong === 'undefined' || curPlayingSong === null || curPlayingSong.id != song.id) {
+	if (typeof curPlayingSong === 'undefined' || curPlayingSong == null || curPlayingSong.id != song.id) {
 		curPlayingSong = song;
 		playSeek = 0;
 		if (typeof onSongChangeCallback != 'undefined' && onSongChangeCallback != null) {

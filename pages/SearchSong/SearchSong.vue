@@ -459,6 +459,9 @@
 				isLoadingSong = false;
 				uni.hideLoading();
 
+				if (item.id === songStore.getCurPlayingSong().id) {
+					this.playingSong = item;
+				}
 				item.url = data;
 				item.urlTime = Date.now();
 				this.picUrl = item.albumUrl;
