@@ -137,11 +137,10 @@
 				this.songDuration = this.playingSong.duration;
 				this.durationStr = this.formateSeconds(this.songDuration);
 				this.loadLyrics();
-				this.animationStatue = 'initial';
-				// this.hasLoadSongInfo = false;
-				// setTimeout(() => {
-				// 	this.hasLoadSongInfo = true;
-				// }, 100);
+				this.hasLoadSongInfo = false;
+				setTimeout(() => {
+					this.hasLoadSongInfo = true;
+				}, 100);
 			});
 		},
 		onShow() {

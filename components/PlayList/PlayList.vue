@@ -222,7 +222,8 @@
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
-				padding: 10px 15px;
+				padding: 10px 15px 10px 0;
+				margin-left: 15px;
 
 				.item-songname {
 					color: #3a3a3a;
