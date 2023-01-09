@@ -26,9 +26,9 @@
 				</view>
 				<view class="progress-container">
 					<text style="color: #B9B9B9; font-size: 10px;">{{curTimeStr}}</text>
-					<progress style="width: 80%; margin-left: 10px;" :percent="percent" stroke-width="3"
-						backgroundColor="#B9B9B9" activeColor="#ffffff"></progress>
-					<text style="color: #B9B9B9; font-size: 10px; margin-left: 10px;">{{durationStr}}</text>
+					<slider style="width: 100%;" min="0" :max="playingSong.duration" :value="curTime"
+						backgroundColor="#B9B9B9" activeColor="#ffffff" block-size="12" @change="sliderChange"></slider>
+					<text style="color: #B9B9B9; font-size: 10px;">{{durationStr}}</text>
 				</view>
 				<view class="playController">
 					<image style="width: 25px; height: 25px;" :src="playModeSrc" @click="changePlayMode"></image>
@@ -85,7 +85,6 @@
 			this.curTime = bgPlayer.getPlayingCurTime();
 			this.curTimeStr = this.formateSeconds(this.curTime);
 			this.durationStr = this.formateSeconds(this.playingSong.duration);
-			this.percent = this.curTime / this.playingSong.duration * 100;
 			this.playMode = songStore.getPlayMode();
 			this.initModeView();
 			this.loadLyrics();
@@ -116,7 +115,6 @@
 					updateTimestamp = seconds;
 					this.curTime = seconds;
 					this.curTimeStr = this.formateSeconds(this.curTime);
-					this.percent = seconds / this.playingSong.duration * 100;
 				}
 			});
 			bgPlayer.setOnSongChangeCb(() => {
@@ -137,6 +135,12 @@
 		},
 		onShow() {
 			updateTimestamp = -1;
+			if (this.playStatus) {
+				this.animationStatue = 'running';
+			}
+		},
+		onHide() {
+			this.animationStatue = 'paused';
 		},
 		onUnload() {
 			bgPlayer.setOnPaused(null);
@@ -183,7 +187,6 @@
 				curTime: 0,
 				durationStr: '',
 				curTimeStr: '',
-				percent: 0,
 				playMode: 1,
 				playModeSrc: '',
 				lyrics: [],
@@ -289,10 +292,14 @@
 				}
 			},
 			handlerKuwoLyrics(lrclist) {
-				this.lyrics = [];
-				lrclist.forEach((item, index) => {
-					this.lyrics.push('[' + parseFloat(item.time) + ']' + item.lineLyric);
-				});
+				if (lrclist != null) {
+					this.lyrics = [];
+					lrclist.forEach((item, index) => {
+						this.lyrics.push('[' + parseFloat(item.time) + ']' + item.lineLyric);
+					});
+				} else {
+					this.lyrics = ['[00:00]暂无歌词'];
+				}
 			},
 			handlerKugouLyrics(lyrics) {
 				this.lyrics = [];
@@ -323,6 +330,9 @@
 				});
 				this.lyrics = ['[00:00]歌词加载失败，请点击重试'];
 				hasLoadLyrics = false;
+			},
+			sliderChange(data) {
+				bgPlayer.seekTo(data.detail.value)
 			},
 			changePlayMode() {
 				this.playMode++;

@@ -67,16 +67,6 @@
 
 	export default {
 		onLoad() {
-			inputText = '';
-			isRefreshing = false;
-			isLoadingSong = false;
-			platformIndex = 0;
-			neteaseCurPage = 1;
-			qqCurPage = 1;
-			kugouCurPage = 1;
-			kuwoCurPage = 1;
-			miguCurPage = 1;
-
 			/*
 			 * 兼容ios平台小程序点击状态栏滚动顶部
 			 * ios平台坑就坑在scrollview不设置固定固定的高度，点击状态栏就没办法自动滚动顶部
@@ -158,6 +148,17 @@
 			bgPlayer.setOnErrored(null);
 			bgPlayer.setOnPlayed(null);
 			bgPlayer.setOnSongChangeCb(null);
+		},
+		onUnload() {
+			inputText = '';
+			isRefreshing = false;
+			isLoadingSong = false;
+			platformIndex = 0;
+			neteaseCurPage = 1;
+			qqCurPage = 1;
+			kugouCurPage = 1;
+			kuwoCurPage = 1;
+			miguCurPage = 1;
 		},
 		onBackPress(options) {
 			// #ifdef APP-PLUS || MP-ALIPAY || H5
