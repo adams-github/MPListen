@@ -198,6 +198,8 @@ bgPlayer.playSong = function(song) {
 		updatePlayUrl();
 	} else if (song.platform == 'netease' && !neteaseJs.isUrlValid(song)) {
 		updatePlayUrl();
+	} else if (song.platform == 'migu' && !miguJs.isUrlValid(song)) {
+		updatePlayUrl();
 	} else {
 		getBpManager().src = song.url; //设置连接后会自动开始播放
 	}
