@@ -113,6 +113,9 @@
 				updateTimestamp = -1;
 				this.playStatus = true;
 				this.animationStatue = 'running';
+				if (typeof this.playingSong.id === 'undefined') {
+					this.playingSong = songStore.getCurPlayingSong();
+				}
 			});
 			bgPlayer.setTimeUpdate((seconds) => {
 				//限制一秒更新一次，避免一直更新页面，容易引起卡顿
@@ -123,7 +126,6 @@
 				}
 			});
 			bgPlayer.setOnSongChangeCb(() => {
-				this.hasLoadSongInfo = false;
 				this.playingSong = songStore.getCurPlayingSong();
 				this.songName = this.playingSong.name;
 				this.singer = this.playingSong.singer;
@@ -135,9 +137,11 @@
 				this.songDuration = this.playingSong.duration;
 				this.durationStr = this.formateSeconds(this.songDuration);
 				this.loadLyrics();
-				setTimeout(() => {
-					this.hasLoadSongInfo = true;
-				}, 100);
+				this.animationStatue = 'initial';
+				// this.hasLoadSongInfo = false;
+				// setTimeout(() => {
+				// 	this.hasLoadSongInfo = true;
+				// }, 100);
 			});
 		},
 		onShow() {

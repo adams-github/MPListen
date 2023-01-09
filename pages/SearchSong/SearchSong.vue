@@ -132,6 +132,9 @@
 			});
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
+				if (typeof this.playingSong.id === 'undefined') {
+					this.playingSong = songStore.getCurPlayingSong();
+				}
 			});
 			bgPlayer.setOnSongChangeCb(() => {
 				this.playingSong = songStore.getCurPlayingSong();
