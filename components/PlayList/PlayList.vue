@@ -22,7 +22,7 @@
 					</view>
 					<view style="height: 30px; padding: 0 15px; display: flex; align-items: center;"
 						@tap.native.stop="remove(index)">
-						<uni-icons type="closeempty" size="20">
+						<uni-icons type="trash" size="20">
 						</uni-icons>
 					</view>
 				</view>
@@ -58,13 +58,13 @@
 			playing_song: {
 				immediate: true,
 				handler(val) {
-					if (this.playingSong != val || this.playingSong.id != val.id) {
+					if (val != null &&  (this.playingSong != val || this.playingSong.id != val.id)) {
 						this.playingSong = val;
 						if (this.songList.length > 0) {
 							this.playingIndex = this.songList.findIndex(this.findIndex);
 						}
 					}
-					if (typeof this.songList === 'undefined' || this.songList == null || this.songList.length == 0) {
+					if (this.songList.length == 0) {
 						this.songList = songStore.getSongList();
 						this.songCount = this.songList.length;
 						this.playingIndex = this.songList.findIndex(this.findIndex);

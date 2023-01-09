@@ -107,6 +107,7 @@
 			}
 			this.playStatus = bgPlayer.isPlaying();
 			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
+				//避免在进入页面前就在播放的音乐，在歌曲列表不显示正在播放
 				if (this.playStatus) {
 					this.playingSong = songStore.getCurPlayingSong();
 				}
@@ -115,7 +116,6 @@
 				this.showController = true;
 			} else {
 				this.playingSong = {};
-				this.showController = false;
 			}
 
 			bgPlayer.setOnPaused(() => {
@@ -217,7 +217,7 @@
 				picUrl: '',
 				songName: '',
 				playStatus: false,
-				playingSong: {},
+				playingSong: null,
 				playMode: 1,
 
 				deleteIndex: -1,
@@ -461,10 +461,7 @@
 			requestSongUrlSuccess(item, data) {
 				isLoadingSong = false;
 				uni.hideLoading();
-
-				if (item.id === songStore.getCurPlayingSong().id) {
-					this.playingSong = item;
-				}
+				
 				item.url = data;
 				item.urlTime = Date.now();
 				this.picUrl = item.albumUrl;

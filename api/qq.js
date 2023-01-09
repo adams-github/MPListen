@@ -94,7 +94,6 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 							albumUrl: picUrl,
 							isFree: free,
 							hasCache: false,
-							delete: false,
 							localPath: '',
 							duration: 0,
 						})

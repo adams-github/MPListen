@@ -44,7 +44,6 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 						albumUrl: item.albumpic,
 						isFree: true,
 						hasCache: false,
-						delete: false,
 						localPath: '',
 						duration: 0,
 					})
@@ -115,7 +114,6 @@ kuwoJs.kuwoSearchForAPP = function(label, curPage, successCb, errorCb) {
 					isFree: true,
 					hasCache: false,
 					urlTime: -1,
-					delete: false,
 					localPath: '',
 					duration: 0,
 				})
@@ -178,7 +176,6 @@ kuwoJs.kuwoSearchForMPWX = function(label, curPage, successCb, errorCb) {
 							albumUrl: item.pic,
 							isFree: true,
 							hasCache: false,
-							delete: false,
 							localPath: '',
 							duration: 0,
 						})

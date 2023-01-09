@@ -13,14 +13,19 @@ var playingIndex = 0; //当前播放对应的index
 var playingSong;
 
 
-songStore.loadAllSongs = function() {
+songStore.loadAllSongs = function(callback) {
 	if (typeof songList === 'undefined' || songList == null || songList.length == 0) {
 		uni.getStorage({
 			key: KEY_SONGLIST,
 			success: function(res) {
 				songList = res.data;
-				if (typeof songList === 'undefined' || songList == null) {
-					songList = [];
+				if (typeof callback != 'undefined' && callback != null) {
+					callback();
+				}
+			},
+			fail: function(res) {
+				if (typeof callback != 'undefined' && callback != null) {
+					callback();
 				}
 			}
 		});
@@ -36,11 +41,19 @@ songStore.loadPlayingIndex = function() {
 	});
 }
 
-songStore.loadPlayingSong = function() {
+songStore.loadPlayingSong = function(callback) {
 	uni.getStorage({
 		key: CUR_SONG,
 		success: function(res) {
 			playingSong = res.data;
+			if (typeof callback != 'undefined' && callback != null) {
+				callback();
+			}
+		},
+		fail:function(){
+			if (typeof callback != 'undefined' && callback != null) {
+				callback();
+			}
 		}
 	});
 }
@@ -131,7 +144,6 @@ songStore.recordSong = function(song) {
 		if (songList.length >= 500) {
 			const popSong = songList.pop();
 		}
-		song.delete = false;
 		songList.unshift(song);
 		uni.setStorage({
 			key: KEY_SONGLIST,
@@ -140,6 +152,7 @@ songStore.recordSong = function(song) {
 		playingIndex = 0;
 	} else {
 		playingIndex = index;
+		song.duration = songList[playingIndex].duration;
 		songList[playingIndex] = song;
 	}
 	uni.setStorage({
@@ -185,7 +198,6 @@ songStore.removeSong = function(index) {
 
 	if (song.id === playingSong.id) {
 		playingSong.hasCache = false;
-		playingSong.delete = true;
 		playingSong.localPath = '';
 		uni.setStorage({
 			key: CUR_SONG,
@@ -201,7 +213,7 @@ songStore.removeSong = function(index) {
  * 随时会被回收。运行时最多存储 4GB，结束运行后，如果已使用超过 2GB，会以文件为维度按照最近使用时间从远到近进行清理至少于2GB
  */
 songStore.cacheSong = function(song) {
-	if (song.platform != 'kuwo' && !song.hasCache && !song.delete) {
+	if (song.platform != 'kuwo' && !song.hasCache) {
 		downloadJs.dowloadSong(song.id, song.url, (res) => {
 			const fingSong = songList.find((ele) => ele.id === res.id);
 			if (typeof findSong != 'undefined' && findSong != null) {
@@ -233,7 +245,6 @@ songStore.cacheSong = function(song) {
 songStore.removeFile = function(song) {
 	if (song.hasCache) {
 		song.hasCache = false;
-		song.delete = true;
 		song.localPath = '';
 	}
 }

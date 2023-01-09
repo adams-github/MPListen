@@ -26,23 +26,40 @@
 	import bgPlayer from '@/utils/bgPlayer.js'
 
 	var tempDeleteIndex = -1;
+	var hasLoadData = false;
 
 	export default {
+		onLoad() {
+			songStore.loadAllSongs(() => {
+				if ((typeof songStore.getCurPlayingSong()) != 'undefined' &&
+					songStore.getCurPlayingSong() != null) {
+					this.playingSong = songStore.getCurPlayingSong();
+				} else {
+					this.playingSong = {};
+				}
+				hasLoadData = true;
+			});
+			songStore.loadPlayingSong(() => {
+				if ((typeof songStore.getCurPlayingSong()) != 'undefined' &&
+					songStore.getCurPlayingSong() != null) {
+					this.picUrl = songStore.getCurPlayingSong().albumUrl;
+					this.songName = songStore.getCurPlayingSong().name;
+					this.showController = true;
+				}
+			});
+			songStore.loadPlayingIndex();
+			songStore.loadPlayMode();
+		},
 		onShow() {
 			this.isShow = true;
 			this.playStatus = bgPlayer.isPlaying();
-			if ((typeof songStore.getCurPlayingSong()) != 'undefined' && songStore.getCurPlayingSong() != null) {
+			if (hasLoadData) {
 				if (this.playStatus) {
 					this.playingSong = songStore.getCurPlayingSong();
+				} else {
+					this.playingSong = {};
 				}
-				this.picUrl = songStore.getCurPlayingSong().albumUrl;
-				this.songName = songStore.getCurPlayingSong().name;
-				this.showController = true;
-			} else {
-				this.playingSong = {};
-				this.showController = false;
 			}
-
 			bgPlayer.setOnPaused(() => {
 				this.playStatus = false;
 				this.playingSong = {};
@@ -86,7 +103,7 @@
 				picUrl: '',
 				songName: '',
 				playStatus: false,
-				playingSong: {},
+				playingSong: null,
 				playMode: 1,
 				deleteIndex: -1,
 				deleteInfo: '',

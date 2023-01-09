@@ -3,10 +3,6 @@
 	export default {
 		onLaunch: function() {
 			console.log('App Launch')
-			songStore.loadAllSongs();
-			songStore.loadPlayingIndex();
-			songStore.loadPlayingSong();
-			songStore.loadPlayMode();
 		},
 		onShow: function() {
 			console.log('App Show')

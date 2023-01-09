@@ -82,7 +82,6 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 							albumUrl: item.albumImgs[0].img,
 							lyricUrl: item.lyricUrl,
 							hasCache: false,
-							delete: false,
 							localPath: '',
 							duration: 0,
 							isFree: (typeof item.listenFlag === 'undefined' ||

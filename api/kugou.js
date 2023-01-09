@@ -58,7 +58,6 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 							albumId: AlbumID,
 							isFree: free,
 							hasCache: false,
-							delete: false,
 							localPath: '',
 							duration: 0,
 						})
