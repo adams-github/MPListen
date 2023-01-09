@@ -3,7 +3,7 @@
 	<view>
 		<scroll-view scroll-y="true" scroll-with-animation="true">
 			<view class="container">
-				<image class="img-background" :src="playingSong.albumUrl" mode="aspectFill"></image>
+				<image class="img-background" :src="bgUrl" mode="aspectFill"></image>
 				<view class="bg-mask"></view>
 				<uni-nav-bar style="width: 100%;" leftIcon="back" :title="songName" color="#ffffff"
 					backgroundColor="rgba(255, 255, 255, 0.00)" :statusBar="true" :shadow="false" :border="false"
@@ -81,6 +81,7 @@
 			this.singer = songStore.getCurPlayingSong().singer;
 			this.initPlatform();
 			this.initPic();
+			this.bgUrl = songStore.getCurPlayingSong().albumUrl;
 			this.hasLoadSongInfo = true;
 			this.animationStatue = this.playStatus ? 'running' : 'paused';
 
@@ -128,6 +129,7 @@
 				this.singer = this.playingSong.singer;
 				this.initPlatform();
 				this.initPic();
+				this.bgUrl = songStore.getCurPlayingSong().albumUrl;
 				this.curTime = 0;
 				this.curTimeStr = this.formateSeconds(0);
 				this.songDuration = this.playingSong.duration;
@@ -182,6 +184,7 @@
 				hasLoadSongInfo: false,
 				playStatus: false,
 				playingSong: {},
+				bgUrl: '',
 				picUrl: '',
 				songName: '',
 				singer: '',
