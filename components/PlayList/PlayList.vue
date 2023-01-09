@@ -13,14 +13,15 @@
 		<scroll-view scroll-y scroll-with-animation class="scrollview">
 			<block v-for="(item, index) in songList" :key="index">
 				<view style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;"
-					hover-class="item-hover" @click="itemClick(index)">
-					<view class="item-box">
+					@click="itemClick(index)">
+					<view class="item-box" hover-class="item-hover">
 						<text class="item-songname"
 							:class="{'item-songname-playing' : playingIndex === index}">{{item.name}}</text>
 						<text class="item-singer"
 							:class="{'item-singer-playing' : playingIndex === index}">{{item.singer}}</text>
 					</view>
-					<view style="height: 30px; padding: 0 15px; display: flex; align-items: center;"
+					<view hover-class="item-hover"
+						style="width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 20px;"
 						@tap.native.stop="remove(index)">
 						<uni-icons type="trash" size="20">
 						</uni-icons>
@@ -58,7 +59,7 @@
 			playing_song: {
 				immediate: true,
 				handler(val) {
-					if (val != null &&  (this.playingSong != val || this.playingSong.id != val.id)) {
+					if (val != null && (this.playingSong != val || this.playingSong.id != val.id)) {
 						this.playingSong = val;
 						if (this.songList.length > 0) {
 							this.playingIndex = this.songList.findIndex(this.findIndex);
@@ -214,22 +215,14 @@
 
 
 		.scrollview {
-			max-height: 350px;
+			max-height: 60vh;
 
 			.item-box {
-				width: 70%;
+				width: 80%;
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
 				padding: 10px 15px;
-
-				.platform-tag {
-					color: #7d7d7d;
-					font-size: 8px;
-					border-bottom-width: 1rpx;
-					border-bottom-style: solid;
-					border-bottom-color: #F0F0F0;
-				}
 
 				.item-songname {
 					color: #3a3a3a;
