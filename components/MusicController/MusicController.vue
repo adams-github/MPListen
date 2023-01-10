@@ -17,7 +17,7 @@
 				</image>
 			</view>
 			<view class="list-container" hover-class="btn-hover">
-				<image class="list" hover-class="btn-hover" src="../../static/ic_main_songsheet_active.png"
+				<image class="list" src="../../static/ic_main_songsheet_active.png"
 					@click="onClickList"></image>
 			</view>
 		</view>

@@ -5,14 +5,13 @@
 				<view class="header">
 					<view class="mode-container" hover-class="click-hover"  @click="changePlayMode">
 						<image class="ic-mode" mode="aspectFit" :src="playModeSrc"></image>
-						<text style="margin-left: 5px; color: #464646; font-size: 15px;"
-							@click="changePlayMode">{{playModeStr}}</text>
+						<text style="margin-left: 5px; color: #464646; font-size: 15px;">{{playModeStr}}</text>
 					</view>
 					<text style="margin-left: 10px; color: #909399; font-size: 13px;">{{songCount}}</text>
 					<view class="clearAll-container" hover-class="click-hover" @click="clearAll">
 						<uni-icons type="trash" size="20">
 						</uni-icons>
-						<text style="margin-left: 5px; color: #464646; font-size: 15px;">清空</text>
+						<text style="margin-left: 3px; color: #464646; font-size: 15px;">清空</text>
 					</view>
 				</view>
 				<view class="divide-line"></view>
@@ -129,8 +128,11 @@
 				this.$emit('onShowChange', e);
 			},
 			changePlayMode() {
+				console.log('changePlayMode');
+				console.log('playMode: ' + this.playMode);
 				this.playMode++;
 				this.playMode = this.playMode % 3;
+				console.log('playMode: ' + this.playMode);
 				this.initModeView();
 				songStore.changePlayMode(this.playMode);
 				this.$emit('onChangePlayMode', this.playMode);
