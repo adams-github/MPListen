@@ -59,16 +59,17 @@ function onPlayError(res) {
 	console.error(res);
 	bgPlayer.stop();
 	if (errorTime <= 1) {
-		//播放失败直接重新获取url
+		errorTime++;
 		updatePlayUrl();
 	} else {
+		//两次出错，不再播放
 		uni.showToast({
 			title: res.errMsg,
 			icon: 'none',
 			position: 'bottom'
 		});
+		errorTime = 0;
 	}
-	errorTime++;
 }
 
 /**
@@ -120,7 +121,9 @@ function requestSongUrlSuccess(songId, platform, newUrl) {
 		getBpManager().title = curPlayingSong.name;
 		getBpManager().singer = curPlayingSong.singer;
 		getBpManager().coverImgUrl = curPlayingSong.albumUrl;
-		getBpManager().startTime = playSeek;
+		if (errorTime != 0){
+			getBpManager().startTime = playSeek;
+		}
 		getBpManager().src = newUrl;
 	}
 	songStore.updateUrl(songId, newUrl);
@@ -133,6 +136,7 @@ function requestSongUrlFailed(error) {
 		position: 'bottom'
 	});
 	bgPlayer.stop();
+	errorTime = 0;
 }
 
 
@@ -196,7 +200,6 @@ bgPlayer.playSong = function(song) {
 	} else if (bgPlayer.isPlaying()) {
 		return;
 	}
-	errorTime = 0;
 	isPlaying = true;
 
 	getBpManager().title = song.name;
@@ -240,6 +243,7 @@ bgPlayer.stop = function() {
 }
 
 bgPlayer.playPre = function() {
+	errorTime = 0;
 	const preSong = songStore.getPreSong();
 	if (typeof preSong != 'undefined' && preSong != null) {
 		playSeek = 0;
@@ -248,6 +252,7 @@ bgPlayer.playPre = function() {
 }
 
 bgPlayer.playNext = function() {
+	errorTime = 0;
 	const nextSong = songStore.getNextSong();
 	if (typeof nextSong != 'undefined' && nextSong != null) {
 		playSeek = 0;
@@ -273,6 +278,7 @@ bgPlayer.setOnSongChangeCb = function(callback) {
 bgPlayer.setOnCanPlay = function(onCanPlayCb) {
 	getBpManager().onCanplay((res) => {
 		isPlaying = true;
+		errorTime = 0;
 		if (curPlayingSong.duration != uni.getBackgroundAudioManager().duration) {
 			let duration = uni.getBackgroundAudioManager().duration;
 			if (!isNaN(duration) && duration > 0) {
