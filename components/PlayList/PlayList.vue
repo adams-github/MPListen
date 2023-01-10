@@ -218,7 +218,7 @@
 			max-height: 60vh;
 
 			.item-box {
-				width: 80%;
+				width: 100%;
 				display: flex;
 				flex-direction: column;
 				justify-content: center;

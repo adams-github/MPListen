@@ -6,11 +6,20 @@
 				@error="loadImgError"></image>
 			<text
 				style="color: black; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%;">{{songName}}</text>
-			<image class="play"
-				:src="playStatus ? require('../../static/ic_main_pause.png'):require('../../static/ic_main_play.png')"
-				@click="onClickPlay"></image>
-			<image class="next" src="../../static/ic_main_next.png" @click="onClickNext"></image>
-			<image class="list" src="../../static/ic_main_songsheet_active.png" @click="onClickList"></image>
+
+			<view class="play-container" hover-class="btn-hover">
+				<image class="play"
+					:src="playStatus ? require('../../static/ic_main_pause.png'):require('../../static/ic_main_play.png')"
+					@click="onClickPlay"></image>
+			</view>
+			<view class="next-container" hover-class="btn-hover">
+				<image class="next" hover-class="btn-hover" src="../../static/ic_main_next.png" @click="onClickNext">
+				</image>
+			</view>
+			<view class="list-container" hover-class="btn-hover">
+				<image class="list" hover-class="btn-hover" src="../../static/ic_main_songsheet_active.png"
+					@click="onClickList"></image>
+			</view>
 		</view>
 	</view>
 </template>
@@ -136,25 +145,58 @@
 				}
 			}
 
-			.play {
-				width: 25px;
-				height: 25px;
+			.play-container {
+				width: 30px;
+				height: 30px;
+				border-radius: 3px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
 				position: absolute;
 				right: 90px;
+
+				.play {
+					width: 25px;
+					height: 25px;
+				}
 			}
 
-			.next {
-				width: 25px;
-				height: 25px;
+
+			.next-container {
+				width: 30px;
+				height: 30px;
+				border-radius: 3px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
 				position: absolute;
 				right: 50px;
+
+				.next {
+					width: 25px;
+					height: 25px;
+				}
 			}
 
-			.list {
-				width: 25px;
-				height: 25px;
+
+			.list-container {
+				width: 30px;
+				height: 30px;
+				border-radius: 3px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
 				position: absolute;
 				right: 10px;
+
+				.list {
+					width: 25px;
+					height: 25px;
+				}
+			}
+
+			.btn-hover {
+				background-color: #F0F0F0;
 			}
 
 		}

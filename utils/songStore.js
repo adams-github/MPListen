@@ -19,11 +19,8 @@ songStore.loadAllSongs = function(callback) {
 			key: KEY_SONGLIST,
 			success: function(res) {
 				songList = res.data;
-				if (typeof callback != 'undefined' && callback != null) {
-					callback();
-				}
 			},
-			fail: function(res) {
+			complete:function(){
 				if (typeof callback != 'undefined' && callback != null) {
 					callback();
 				}
@@ -31,6 +28,21 @@ songStore.loadAllSongs = function(callback) {
 		});
 	}
 }
+
+songStore.loadPlayingSong = function(callback) {
+	uni.getStorage({
+		key: CUR_SONG,
+		success: function(res) {
+			playingSong = res.data;
+		},
+		complete:function(){
+			if (typeof callback != 'undefined' && callback != null) {
+				callback();
+			}
+		}
+	});
+}
+
 
 songStore.loadPlayingIndex = function() {
 	uni.getStorage({
@@ -41,22 +53,6 @@ songStore.loadPlayingIndex = function() {
 	});
 }
 
-songStore.loadPlayingSong = function(callback) {
-	uni.getStorage({
-		key: CUR_SONG,
-		success: function(res) {
-			playingSong = res.data;
-			if (typeof callback != 'undefined' && callback != null) {
-				callback();
-			}
-		},
-		fail:function(){
-			if (typeof callback != 'undefined' && callback != null) {
-				callback();
-			}
-		}
-	});
-}
 
 songStore.loadPlayMode = function() {
 	uni.getStorage({

@@ -461,7 +461,7 @@
 			requestSongUrlSuccess(item, data) {
 				isLoadingSong = false;
 				uni.hideLoading();
-				
+
 				item.url = data;
 				item.urlTime = Date.now();
 				this.picUrl = item.albumUrl;
