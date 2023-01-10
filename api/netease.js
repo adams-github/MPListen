@@ -248,12 +248,10 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 
 /**
  * 判断播放连接是否有效
- * 网易云的网络播放链接访问时效会看访问次数，访问越多次，有效期越久
- * 有效播放期可能只有25分钟
  */
 neteaseJs.isUrlValid = function(song) {
 	const timeDiff = Date.now() - song.urlTime;
-	return timeDiff < 1000 * 60 * 25;
+	return timeDiff < 1000 * 60 * 15;
 }
 
 

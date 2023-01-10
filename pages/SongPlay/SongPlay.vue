@@ -45,14 +45,9 @@
 						@click="onClickListBtn">
 					</image>
 				</view>
-				<uni-popup ref="popup" background-color="#fff" @change="change">
-					<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
-						@onDeleteItemClick="onClickSongDelete" @onChangePlayMode="onChangePlayMode"></PlayList>
-				</uni-popup>
-				<uni-popup ref="alertDialog" type="dialog">
-					<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
-						@confirm="onDeleteConfirm"></uni-popup-dialog>
-				</uni-popup>
+				<SongListPopup ref="popup" :playing_song="playingSong" :play_mode="playMode"
+					@onShowChange="onPopupShowChange" @onChangePlayMode="onChangePlayMode">
+				</SongListPopup>
 			</view>
 		</scroll-view>
 	</view>
@@ -69,7 +64,6 @@
 
 	var updateTimestamp = -1;
 	var hasLoadLyrics = false;
-	var tempDeleteIndex = -1;
 
 	export default {
 		onLoad() {
@@ -203,8 +197,6 @@
 				playModeSrc: '',
 				lyrics: [],
 
-				deleteIndex: -1,
-				deleteInfo: '',
 				popupShow: false,
 			};
 		},
@@ -368,25 +360,14 @@
 				bgPlayer.playNext();
 			},
 			onClickListBtn() {
-				this.deleteIndex = -1;
 				this.$refs.popup.open('bottom');
+			},
+			onPopupShowChange(e) {
+				this.popupShow = e.show;
 			},
 			onChangePlayMode(val) {
 				this.playMode = val;
 				this.initModeView();
-			},
-			onClickSongDelete(index) {
-				this.deleteIndex = -1;
-				this.tempDeleteIndex = index;
-				const deleteSong = songStore.getSongByIndex(index);
-				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
-				this.$refs.alertDialog.open()
-			},
-			onDeleteConfirm() {
-				this.deleteIndex = this.tempDeleteIndex;
-			},
-			change(e) {
-				this.popupShow = e.show;
 			},
 			formateSeconds(seconds) {
 				let secondTime = parseInt(seconds); //将传入的秒的值转化为Number

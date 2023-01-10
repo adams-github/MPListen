@@ -8,7 +8,7 @@ const CUR_INDEX = "cur_index";
 const CUR_SONG = "cur_song";
 
 var songList = []; //播放列表
-var playMode; //播放模式， 0：单曲循环， 1：顺序播放，2：随机播放
+var playMode = 1; //播放模式， 0：单曲循环， 1：顺序播放，2：随机播放
 var playingIndex = 0; //当前播放对应的index
 var playingSong;
 
@@ -191,15 +191,20 @@ songStore.removeSong = function(index) {
 			data: playingIndex
 		});
 	}
+}
 
-	if (song.id === playingSong.id) {
-		playingSong.hasCache = false;
-		playingSong.localPath = '';
-		uni.setStorage({
-			key: CUR_SONG,
-			data: playingSong
-		});
-	}
+
+songStore.removeAllSong = function() {
+	songList.splice(0, songList.length);
+	uni.setStorage({
+		key: KEY_SONGLIST,
+		data: songList
+	});
+	playingIndex = 0;
+	uni.setStorage({
+		key: CUR_INDEX,
+		data: playingIndex
+	});
 }
 
 

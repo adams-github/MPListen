@@ -29,14 +29,8 @@
 				@clickPic="onClickPic" @clickPlay="onClickPlayBtn" @clickList="onClickListBtn">
 			</MusicController>
 		</view>
-		<uni-popup ref="popup" background-color="#fff" @change="change">
-			<PlayList :playing_song="playingSong" :delete_index="deleteIndex" :play_mode="playMode"
-				@onDeleteItemClick="onClickSongDelete"></PlayList>
-		</uni-popup>
-		<uni-popup ref="alertDialog" type="dialog">
-			<uni-popup-dialog type="info" cancelText="取消" confirmText="确定" title="删除歌曲" :content="deleteInfo"
-				@confirm="onDeleteConfirm"></uni-popup-dialog>
-		</uni-popup>
+		<SongListPopup ref="popup" :playing_song="playingSong" :play_mode="playMode" @onShowChange="onPopupShowChange">
+		</SongListPopup>
 	</view>
 </template>
 
@@ -59,7 +53,6 @@
 	var kugouCurPage = 1;
 	var kuwoCurPage = 1;
 	var miguCurPage = 1;
-	var tempDeleteIndex = -1;
 	var windowHeight = 0;
 	var scrollViewTop = 0;
 	var controllTop = 0;
@@ -132,7 +125,7 @@
 			});
 			bgPlayer.setOnPlayed(() => {
 				this.playStatus = true;
-				if (typeof this.playingSong.id === 'undefined') {
+				if (this.playingSong == null || typeof this.playingSong.id === 'undefined') {
 					this.playingSong = songStore.getCurPlayingSong();
 				}
 			});
@@ -220,8 +213,6 @@
 				playingSong: null,
 				playMode: 1,
 
-				deleteIndex: -1,
-				deleteInfo: '',
 				isShow: true,
 				popupShow: false,
 			};
@@ -493,21 +484,10 @@
 				}
 			},
 			onClickListBtn() {
-				this.deleteIndex = -1;
 				this.playMode = songStore.getPlayMode();
-				this.$refs.popup.open('bottom');
+				this.$refs.popup.open();
 			},
-			onClickSongDelete(index) {
-				this.deleteIndex = -1;
-				tempDeleteIndex = index;
-				const deleteSong = songStore.getSongByIndex(index);
-				this.deleteInfo = '确定要删除\"' + deleteSong.singer + '-' + deleteSong.name + '\"?';
-				this.$refs.alertDialog.open()
-			},
-			onDeleteConfirm() {
-				this.deleteIndex = tempDeleteIndex;
-			},
-			change(e) {
+			onPopupShowChange(e) {
 				this.popupShow = e.show;
 			}
 		}
