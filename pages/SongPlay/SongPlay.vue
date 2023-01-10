@@ -341,10 +341,8 @@
 				bgPlayer.seekTo(data.detail.value)
 			},
 			changePlayMode() {
-				console.log('playMode: ' + this.playMode);
 				this.playMode++;
 				this.playMode = this.playMode % 3;
-				console.log('playMode: ' + this.playMode);
 				this.initModeView();
 				songStore.changePlayMode(this.playMode);
 			},

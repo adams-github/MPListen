@@ -74,7 +74,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 								}
 							}
 						}
-						let picUrl = '../../static/ic_main_cd_default.jpg';
+						let picUrl = '';
 						if (item.album.mid != '') {
 							picUrl = 'https://y.gtimg.cn/music/photo_new/T002R300x300M000' +
 								item.album.mid + '.jpg';

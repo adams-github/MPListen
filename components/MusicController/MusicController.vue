@@ -86,7 +86,7 @@
 		},
 		methods: {
 			loadImgError() {
-				this.picUrl = '../../static/ic_main_cd_default.jpg';
+				this.picUrl = '';
 			},
 			onClickPicture() {
 				this.$emit("clickPic");
