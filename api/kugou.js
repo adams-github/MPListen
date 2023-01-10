@@ -129,10 +129,21 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 /**
  * 判断播放连接是否有效
  * 酷狗的播放链接貌似有效期是24小时
+ * 另外酷狗的播放链接带有url的生成时间，这个生成时间可能会和url请求时间差几分钟
+ * https://webfs.tx.kugou.com/202301102145/3d0dca83bde7a92a68a9f722bca2f555/v2/6451d57aa27f80b17bfa7735cf8df106/G169/M05/11/13/6Q0DAF1JJG6AGAfIAEC_bagk7Eo659.mp3
+ * 
  */
 kugouJs.isUrlValid = function(song) {
-	const timeDiff = Date.now() - song.urlTime;
-	return timeDiff < 1000 * 60 * 60 * 24 - song.duration * 1000;
+	const startIndex = song.url.indexOf('.com/') + 5;
+	let createTimeStr =  song.url.substring(startIndex, startIndex + 12);
+	let year = createTimeStr.substring(0, 4);
+	let month = createTimeStr.substring(4, 6);
+	let day = createTimeStr.substring(6, 8);
+	let hour = createTimeStr.substring(8, 10);
+	let minite = createTimeStr.substring(10, 12);
+	createTimeStr = year + '-' + month + '-' + day + ' ' + hour + ':' + minite + ':' + '00';
+	const createTime = Date.parse(createTimeStr);//有效截止时间的时间戳
+	return (Date.now() + song.duration * 1000) < (createTime + 1000 * 60 * 60 * 24);
 }
 
 export default kugouJs;
