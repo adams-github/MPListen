@@ -53,7 +53,6 @@ neteaseJs.neteaseSearch = function(label, curPage, successCb, errorCb) {
 							id: item.id,
 							name: item.name,
 							url: '',
-							urlTime: -1,
 							singer: singerName,
 							albumName: item.album.name,
 							albumUrl: item.album.picUrl,
@@ -248,10 +247,21 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 
 /**
  * 判断播放连接是否有效
+ * 网易的播放连接中带有有效截止时间的字段
+ * 比如：http://m801.music.126.net/20230110171831/e6963ca45fa09b6b64d2fff54748b5a4/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/14096446930/78e1/6c03/760c/ea1c72d665ff8fc2753897e67105753b.mp3
  */
 neteaseJs.isUrlValid = function(song) {
-	const timeDiff = Date.now() - song.urlTime;
-	return timeDiff < 1000 * 60 * 15;
+	const startIndex = song.url.indexOf('.net/') + 5;
+	let cutOffTimeStr =  song.url.substring(startIndex, startIndex + 14);
+	let year = cutOffTimeStr.substring(0, 4);
+	let month = cutOffTimeStr.substring(4, 6);
+	let day = cutOffTimeStr.substring(6, 8);
+	let hour = cutOffTimeStr.substring(8, 10);
+	let minite = cutOffTimeStr.substring(10, 12);
+	let second = cutOffTimeStr.substring(12, 14);
+	cutOffTimeStr = year + '-' + month + '-' + day + ' ' + hour + ':' + minite + ':' + second;
+	const cutOffTime = Date.parse(cutOffTimeStr);//有效截止时间的时间戳
+	return (Date.now() + song.duration * 1000) < cutOffTime;
 }
 
 

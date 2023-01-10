@@ -344,10 +344,6 @@ bgPlayer.setOnPlayed = function(playedCb) {
 		if (typeof playedCb === 'function') {
 			playedCb();
 		}
-		if (curPlayingSong.platform == 'netease') {
-			//网易平台的歌曲播放就是应该url更新访问时间
-			songStore.updateVisitTime(curPlayingSong.id);
-		}
 	});
 }
 

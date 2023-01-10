@@ -454,7 +454,9 @@
 				uni.hideLoading();
 
 				item.url = data;
-				item.urlTime = Date.now();
+				if (item.platform != 'netease') {
+					item.urlTime = Date.now();
+				}
 				this.picUrl = item.albumUrl;
 				this.songName = item.name;
 				songStore.recordSong(item);

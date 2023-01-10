@@ -298,28 +298,6 @@ songStore.updateUrl = function(songId, newUrl) {
 }
 
 /**
- * 更新url的访问时间
- */
-songStore.updateVisitTime = function(songId) {
-	const findSong = songList.find((ele) => ele.id === songId);
-	if (typeof findSong != 'undefined' && findSong != null) {
-		findSong.urlTime = Date.now();
-		uni.setStorage({
-			key: KEY_SONGLIST,
-			data: songList
-		});
-	}
-
-	if (songId === playingSong.id) {
-		playingSong.urlTime = Date.now();
-		uni.setStorage({
-			key: CUR_SONG,
-			data: playingSong
-		});
-	}
-}
-
-/**
  * 记录当前播放到哪一首歌的index
  */
 songStore.clickSong = function(index) {
