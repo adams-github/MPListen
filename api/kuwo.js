@@ -55,10 +55,10 @@ kuwoJs.kuwoSearch = function(label, curPage, successCb, errorCb) {
 				errorCb(res.msg);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -120,10 +120,10 @@ kuwoJs.kuwoSearchForAPP = function(label, curPage, successCb, errorCb) {
 			});
 			successCb(songList);
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -189,10 +189,10 @@ kuwoJs.kuwoSearchForMPWX = function(label, curPage, successCb, errorCb) {
 				errorCb(res.errmsg === undefined ? res.msg : res.errmsg);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -216,10 +216,10 @@ kuwoJs.kuwoSongUrl = function(songId, successCb, errorCb) {
 		if (typeof successCb === 'function') {
 			successCb(res);
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -250,10 +250,10 @@ kuwoJs.kuwoSongInfo = function(songId, successCb, errorCb) {
 				errorCb(res.msg);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }

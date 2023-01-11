@@ -11,7 +11,7 @@
 					<view class="clearAll-container" hover-class="click-hover" @click="clearAll">
 						<uni-icons type="trash" size="20">
 						</uni-icons>
-						<text style="margin-left: 3px; color: #464646; font-size: 15px;">清空</text>
+						<text style="margin-left: 2px; color: #464646; font-size: 15px;">清空</text>
 					</view>
 				</view>
 				<view class="divide-line"></view>

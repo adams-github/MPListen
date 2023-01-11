@@ -147,10 +147,10 @@ neteaseJs.neteaseSongUrl = function(songId, successCb, errorCb) {
 				errorCb(res.message == undefined ? res.msg : res.message);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 };
@@ -236,10 +236,10 @@ neteaseJs.neteaseLyric = function(songId, successCb, errorCb) {
 				errorCb(res.message == undefined ? res.msg : res.message);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 
@@ -259,7 +259,7 @@ neteaseJs.isUrlValid = function(song) {
 	let hour = cutOffTimeStr.substring(8, 10);
 	let minite = cutOffTimeStr.substring(10, 12);
 	let second = cutOffTimeStr.substring(12, 14);
-	cutOffTimeStr = year + '-' + month + '-' + day + ' ' + hour + ':' + minite + ':' + second;
+	cutOffTimeStr = year + '/' + month + '/' + day + ' ' + hour + ':' + minite + ':' + second;
 	const cutOffTime = Date.parse(cutOffTimeStr);//有效截止时间的时间戳
 	return (Date.now() + song.duration * 1000) < cutOffTime;
 }

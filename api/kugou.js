@@ -51,7 +51,6 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 							id: songId,
 							name: songName,
 							url: '',
-							urlTime: -1,
 							singer: singerName,
 							albumName: AlbumName,
 							albumUrl: '',
@@ -70,10 +69,10 @@ kugouJs.kugouSearch = function(label, curPage, successCb, errorCb) {
 				errorCb(res.error_msg);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -118,10 +117,10 @@ kugouJs.kugouSongData = function(songId, albumId, successCb, errorCb) {
 				errorCb(res.err_msg);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -141,7 +140,7 @@ kugouJs.isUrlValid = function(song) {
 	let day = createTimeStr.substring(6, 8);
 	let hour = createTimeStr.substring(8, 10);
 	let minite = createTimeStr.substring(10, 12);
-	createTimeStr = year + '-' + month + '-' + day + ' ' + hour + ':' + minite + ':' + '00';
+	createTimeStr = year + '/' + month + '/' + day + ' ' + hour + ':' + minite + ':' + '00';
 	const createTime = Date.parse(createTimeStr);//有效截止时间的时间戳
 	return (Date.now() + song.duration * 1000) < (createTime + 1000 * 60 * 60 * 24);
 }

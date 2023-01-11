@@ -454,7 +454,7 @@
 				uni.hideLoading();
 
 				item.url = data;
-				if (item.platform != 'netease') {
+				if (item.platform == 'qq' || item.platform == 'kuwo') {
 					item.urlTime = Date.now();
 				}
 				this.picUrl = item.albumUrl;

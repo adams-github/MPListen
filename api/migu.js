@@ -76,7 +76,6 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 							name: item.name,
 							quality: item.toneControl,
 							url: '',
-							urlTime: -1,
 							singer: item.singer,
 							albumName: item.album,
 							albumUrl: item.albumImgs[0].img,
@@ -98,10 +97,10 @@ miguJs.miguSearch = function(label, curPage, successCb, errorCb) {
 				errorCb(res.info != undefined ? res.info : res.errormsg);
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -148,10 +147,10 @@ miguJs.miguSongUrl = function(songId, quality, successCb, errorCb) {
 				errorCb('需要咪咕VIP或没有音源');
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -170,10 +169,10 @@ miguJs.miguSonglyric = function(lyricUrl, successCb, errorCb) {
 		if (typeof successCb === 'function') {
 			successCb(res);
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }

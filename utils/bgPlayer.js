@@ -162,7 +162,7 @@ function isUrlVaild(song) {
  * 获取播放状态，true 表示暂停或停止，false 表示正在播放
  */
 bgPlayer.isPlaying = function() {
-	return !getBpManager().paused && isPlaying && getBpManager().src != '';
+	return !getBpManager().paused && isPlaying && typeof getBpManager().src != 'undefined' && getBpManager().src != '';
 }
 
 /**
@@ -218,7 +218,7 @@ bgPlayer.playSong = function(song) {
 
 bgPlayer.replay = function() {
 	errorTime = 0;
-	if (getBpManager().src == null || getBpManager().src == '') {
+	if (typeof getBpManager().src === 'undefined' || getBpManager().src == '') {
 		const song = songStore.getCurPlayingSong();
 		if (song != null) {
 			bgPlayer.playSong(song);

@@ -103,13 +103,13 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 			}
 		} else {
 			if (typeof errorCb === 'function') {
-				errorCb("请求失败: qqSearch()");
+				errorCb("搜索失败，请重试");
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -168,10 +168,10 @@ qqJs.qqSongUrl = function(songId, successCb, errorCb) {
 				errorCb("请求失败: qqSongUrl()");
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 };
@@ -209,10 +209,10 @@ qqJs.qqlyric = function(songId, successCb, errorCb) {
 				errorCb("请求失败: qqlyric()");
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
@@ -262,10 +262,10 @@ qqJs.qqlyricForMPWX = function(songId, successCb, errorCb) {
 				errorCb("请求失败: qqlyricForMPWX()");
 			}
 		}
-	}).catch((error) => {
-		console.error(error);
+	}).catch((errMsg) => {
+		console.error(errMsg);
 		if (typeof errorCb === 'function') {
-			errorCb(error);
+			errorCb(errMsg);
 		}
 	});
 }
