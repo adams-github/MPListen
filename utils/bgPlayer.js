@@ -121,7 +121,7 @@ function requestSongUrlSuccess(songId, platform, newUrl) {
 		getBpManager().title = curPlayingSong.name;
 		getBpManager().singer = curPlayingSong.singer;
 		getBpManager().coverImgUrl = curPlayingSong.albumUrl;
-		if (errorTime != 0){
+		if (errorTime != 0) {
 			getBpManager().startTime = playSeek;
 		}
 		getBpManager().src = newUrl;
@@ -206,7 +206,7 @@ bgPlayer.playSong = function(song) {
 	getBpManager().singer = song.singer;
 	//微信小程序背景音频播放有bug, 不管怎么切换歌曲，开始时间都固定在一个秒数，
 	//尝试一下设置0，看下后续还会不会出现这个问题
-	getBpManager().startTime = 0;
+	// getBpManager().startTime = 0;
 	getBpManager().coverImgUrl = song.albumUrl;
 
 	if (isUrlVaild(song)) {

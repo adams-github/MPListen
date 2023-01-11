@@ -1,9 +1,9 @@
 <template>
-	<view >
+	<view>
 		<uni-popup ref="popup" background-color="#fff" @change="change">
 			<view class="list-constainer">
 				<view class="header">
-					<view class="mode-container" hover-class="click-hover"  @click="changePlayMode">
+					<view class="mode-container" hover-class="click-hover" @click="changePlayMode">
 						<image class="ic-mode" mode="aspectFit" :src="playModeSrc"></image>
 						<text style="margin-left: 5px; color: #464646; font-size: 15px;">{{playModeStr}}</text>
 					</view>
@@ -15,9 +15,9 @@
 					</view>
 				</view>
 				<view class="divide-line"></view>
-				<scroll-view scroll-y scroll-with-animation class="scrollview">
+				<scroll-view scroll-y scroll-with-animation class="scrollview" :scroll-into-view="playingSongId">
 					<block v-for="(item, index) in songList" :key="index">
-						<view
+						<view :id="'songId_' + index"
 							style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;"
 							@click="itemClick(index)">
 							<view class="item-box" hover-class="item-hover">
@@ -116,6 +116,7 @@
 				songCount: 0,
 				playingIndex: 0,
 				playingSong: {},
+				playingSongId: '',
 				songList: [],
 				deleteInfo: '',
 			};
@@ -123,16 +124,20 @@
 		methods: {
 			open() {
 				this.$refs.popup.open('bottom');
+				if (this.playingIndex >= 0) {
+					setTimeout(() => {
+						this.playingSongId = 'songId_' + this.playingIndex;
+					}, 300);
+				}
 			},
 			change(e) {
 				this.$emit('onShowChange', e);
+				if (!e.show) {
+					this.playingSongId = '';
+				}
 			},
 			changePlayMode() {
-				console.log('changePlayMode');
-				console.log('playMode: ' + this.playMode);
-				this.playMode++;
-				this.playMode = this.playMode % 3;
-				console.log('playMode: ' + this.playMode);
+				this.playMode = ++this.playMode % 3;
 				this.initModeView();
 				songStore.changePlayMode(this.playMode);
 				this.$emit('onChangePlayMode', this.playMode);
@@ -175,7 +180,7 @@
 				this.$refs.alertDialog.open()
 			},
 			onDeleteConfirm() {
-				if (deleteIndex == -1){
+				if (deleteIndex == -1) {
 					songStore.removeAllSong();
 				} else if (deleteIndex >= 0) {
 					this.songCount--;
@@ -203,8 +208,8 @@
 			flex-direction: row;
 			align-items: center;
 			margin-left: 10px;
-			
-			.mode-container{
+
+			.mode-container {
 				display: flex;
 				flex-direction: row;
 				justify-content: center;
@@ -252,6 +257,7 @@
 				padding: 10px 15px;
 
 				.item-songname {
+					max-width: 85%;
 					color: #3a3a3a;
 					font-size: 13px;
 					overflow: hidden;
@@ -265,6 +271,7 @@
 				}
 
 				.item-singer {
+					max-width: 85%;
 					color: #7d7d7d;
 					font-size: 10px;
 					overflow: hidden;

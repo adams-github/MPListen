@@ -45,7 +45,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 						let free = item.pay.pay_play == 0 && item.action.alert != 0;
 						let songId = item.mid;
 						let lyric_Id = item.id;
-						let songName = item.name;
+						let songName = item.title;
 						let album_name = item.album.name;
 						let singerName = '';
 						item.singer.forEach((singer_name, idx) => {
@@ -60,7 +60,7 @@ qqJs.qqSearch = function(label, curPage, successCb, errorCb) {
 									0) {
 									songId = item.grp[i].mid;
 									lyric_Id = item.grp[i].id;
-									songName = item.grp[i].name;
+									songName = item.grp[i].title;
 									album_name = item.grp[i].album.name;
 									singerName = '';
 									item.grp[i].singer.forEach((singer_name, idx) => {

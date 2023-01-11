@@ -4,7 +4,7 @@
 		height:cuAreaStyle.height,
 		background:cuAreaStyle.background}" @click="clickLyrics">
 		<scroll-view id="lyric-show" class="lyric-show" scroll-with-animation="true" :scroll-y="true"
-			:scroll-into-view="showLyricId" :style="{
+			:scroll-into-view="curLyricId" :style="{
 		top:scrollView.top,
 		width:cuAreaStyle.width,
 		height:scrollView.height}">
@@ -63,8 +63,7 @@
 		data() {
 			return {
 				font2line4height: 2.5,
-				curLyricId: 'lrc-0', // 时间进度控制
-				showLyricId: 'lrc-0', // 界面显示，时间和touch控制
+				curLyricId: 'lrc-0',
 				curLyricIndex: 0,
 				spaceLineNum: 0,
 				cuLyricStyle: {
@@ -93,11 +92,13 @@
 			};
 		},
 		watch: {
-			curTime(t) {
-				timeIndex = this.getIndex(t, this.mLyrics.times)
-				this.curLyricIndex = timeIndex + this.spaceLineNum
-				this.curLyricId = 'lrc-' + timeIndex
-				this.showLyricId = this.curLyricId
+			curTime: {
+				immediate:true,
+				handler(val){
+					timeIndex = this.getIndex(val, this.mLyrics.times);
+					this.curLyricIndex = timeIndex + this.spaceLineNum;
+					this.curLyricId = 'lrc-' + timeIndex;
+				}
 			},
 			areaStyle: {
 				immediate: true,

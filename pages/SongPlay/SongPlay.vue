@@ -62,6 +62,7 @@
 	import miguJs from '@/api/migu.js'
 	import qqJs from '../../api/qq'
 
+	var isShowing = false;
 	var updateTimestamp = -1;
 	var hasLoadLyrics = false;
 
@@ -112,8 +113,11 @@
 				}
 			});
 			bgPlayer.setTimeUpdate((seconds) => {
-				//限制一秒更新一次，避免一直更新页面，容易引起卡顿
-				if (seconds - updateTimestamp > 1) {
+				/**
+				 * 限制一秒更新一次，避免一直更新页面，容易引起卡顿
+				 * 页面不可见时不更新进度，等到onShow方法再执行更新进度，保证歌词可以滚动到正确的位置
+				 */
+				if (seconds - updateTimestamp > 1 && isShowing) {
 					updateTimestamp = seconds;
 					this.curTime = seconds;
 					this.curTimeStr = this.formateSeconds(this.curTime);
@@ -138,12 +142,16 @@
 			});
 		},
 		onShow() {
+			isShowing = true;
 			updateTimestamp = -1;
 			if (this.playStatus) {
 				this.animationStatue = 'running';
 			}
+			this.curTime = bgPlayer.getPlayingCurTime();
+			this.curTimeStr = this.formateSeconds(this.curTime);
 		},
 		onHide() {
+			isShowing = false;
 			this.animationStatue = 'paused';
 		},
 		onUnload() {
@@ -341,8 +349,7 @@
 				bgPlayer.seekTo(data.detail.value)
 			},
 			changePlayMode() {
-				this.playMode++;
-				this.playMode = this.playMode % 3;
+				this.playMode = ++this.playMode % 3;
 				this.initModeView();
 				songStore.changePlayMode(this.playMode);
 			},
@@ -480,10 +487,10 @@
 			background-color: rgba(255, 255, 255, 0.05);
 
 			.header {
-				margin: 1.5vh;
-				width: 34vh;
-				height: 34vh;
-				border-radius: 17vh;
+				margin: 1vh;
+				width: 35vh;
+				height: 35vh;
+				border-radius: 17.5vh;
 			}
 
 			.header-animate {
